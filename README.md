@@ -15,5 +15,7 @@ Trước khi code:
 ------Các file chính---------
 
 index.py: controller, định tuyến action
+
 models: chứa class các bảng trong database
+
 dao: các phương thức tương tác database
