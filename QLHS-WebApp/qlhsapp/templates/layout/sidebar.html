@@ -1,0 +1,65 @@
+<div class="sidebar pe-4 pb-3">
+    <nav class="navbar bg-light navbar-light">
+        <a href="index.html" class="navbar-brand mx-4 mb-3">
+            <h5 class="text-primary"><i></i>Student Management</h5>
+        </a>
+        <!-- Đây là thẻ hiển thị thông tin người dùng -->
+        <div class="d-flex align-items-center ms-4 mb-4">
+            <div class="position-relative">
+                <img class="rounded-circle" src="{{ url_for('static', filename='img/user.jpg') }}" alt=""
+                     style="width: 40px; height: 40px;">
+                <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+            </div>
+            <div class="ms-3">
+                <h6 class="mb-0">Lê Trung</h6>
+                <span>Admin</span>
+            </div>
+        </div>
+        <!-- Kết thúc thẻ hiển thị thông tin người dùng -->
+
+        <div class="navbar-nav w-100">
+            <!-- Dashboard -->
+            <a href="index.html" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+
+            <!-- Quản lý học sinh -->
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-users me-2"></i>Student Management</a>
+                <div class="dropdown-menu bg-transparent border-0">
+                    <a href="students.html" class="dropdown-item">All Students</a>
+                    <a href="add_student.html" class="dropdown-item">Add Student</a>
+                    <a href="student_grades.html" class="dropdown-item">Student Grades</a>
+                </div>
+            </div>
+
+            <!-- Quản lý lớp học -->
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-school me-2"></i>Class Management</a>
+                <div class="dropdown-menu bg-transparent border-0">
+                    <a href="classes.html" class="dropdown-item">All Classes</a>
+                    <a href="add_class.html" class="dropdown-item">Add Class</a>
+                </div>
+            </div>
+
+            <!-- Quản lý môn học -->
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-book me-2"></i>Subject Management</a>
+                <div class="dropdown-menu bg-transparent border-0">
+                    <a href="subjects.html" class="dropdown-item">All Subjects</a>
+                    <a href="add_subject.html" class="dropdown-item">Add Subject</a>
+                </div>
+            </div>
+
+            <!-- Quản lý giáo viên -->
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-chalkboard-teacher me-2"></i>Teacher Management</a>
+                <div class="dropdown-menu bg-transparent border-0">
+                    <a href="teachers.html" class="dropdown-item">All Teachers</a>
+                    <a href="add_teacher.html" class="dropdown-item">Add Teacher</a>
+                </div>
+            </div>
+
+            <!-- Sign Out    -->
+            <a href="signout.html" class="nav-item nav-link"><i class="fa fa-sign-out-alt me-2"></i>Sign Out</a>
+        </div>
+    </nav>
+</div>

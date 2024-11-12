@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Enum
 from qlhsapp import db
 from enum import Enum
 
+
 # Models chứa các class là các table trong CSDL
 
 class BaseModel(db.Model):
@@ -14,17 +15,18 @@ class UserRole(Enum):
     STAFF = 2
     TEACHER = 3
 
+
 # Loai diem
 class ScoreType(Enum):
     FIFTEEN = 1  # 15p
-    FORTY_FIVE = 2 # 45p
+    FORTY_FIVE = 2  # 45p
     END_TERM = 3  # Cuoi ky
 
 
 # Tai khoan
 class Account(BaseModel):
-
     pass
+
 
 class User(BaseModel):
     __abstract__ = True
@@ -33,6 +35,7 @@ class User(BaseModel):
 # Nhan vien
 class Staff(User):
     pass
+
 
 # Giao vien
 class Teacher(User):
@@ -49,7 +52,6 @@ class Regulation(BaseModel):
     pass
 
 
-
 class Student(BaseModel):
     pass
 
@@ -57,7 +59,6 @@ class Student(BaseModel):
 # Khoi lop
 class GradeLevel(BaseModel):
     pass
-
 
 
 class Class(BaseModel):
@@ -78,6 +79,7 @@ class Score(BaseModel):
 class Subject(BaseModel):
     pass
 
+
 # Hoc Ky
 class Semester(BaseModel):
     pass
@@ -87,11 +89,12 @@ class Semester(BaseModel):
 class StaffClass(BaseModel):
     pass
 
+
 # Student_Class, Many-To-Many
 class StudentClass(BaseModel):
     pass
 
+
 # Teacher_Subject, Many-To-Many
 class TeacherSubject(BaseModel):
     pass
-
