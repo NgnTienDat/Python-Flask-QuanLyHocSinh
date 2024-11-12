@@ -12,6 +12,8 @@ Trước khi code:
 
 -------------------------
 
+Tạo database tên: qlhsdb trong MySQL
+
 ------Các file chính---------
 
 index.py: controller, định tuyến action
