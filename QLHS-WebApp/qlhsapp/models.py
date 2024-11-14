@@ -87,9 +87,9 @@ class Teacher(db.Model):
 
 
 
-# Quy dinh
-class Regulation(BaseModel):
-    pass
+# # Quy dinh
+# class Regulation(BaseModel):
+#     pass
 
 
 # Khoi lop
@@ -125,14 +125,14 @@ class Student(BaseModel):
     classes = relationship('Class', secondary='student_class',  backref='students', lazy=True)
 
 
-# Bang diem
-class ScoreBoard(BaseModel):
-    pass
-
-
-# Diem
-class Score(BaseModel):
-    pass
+# # Bang diem
+# class ScoreBoard(BaseModel):
+#     pass
+#
+#
+# # Diem
+# class Score(BaseModel):
+#     pass
 
 
 # Mon hoc
@@ -145,14 +145,14 @@ class Subject(BaseModel):
 
 
 
-# Hoc Ky
-class Semester(BaseModel):
-    pass
-
-
-# Staff_Class, Many-To-Many
-class StaffClass(BaseModel):
-    pass
+# # Hoc Ky
+# class Semester(BaseModel):
+#     pass
+#
+#
+# # Staff_Class, Many-To-Many
+# class StaffClass(BaseModel):
+#     pass
 
 
 # Teacher_Subject, Many-To-Many
