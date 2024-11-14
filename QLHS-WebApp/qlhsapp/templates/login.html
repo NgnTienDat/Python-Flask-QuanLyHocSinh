@@ -1,10 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+    <meta charset="utf-8">
+    <title>Student Management Login</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
 
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Custom Stylesheet -->
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        .login-header {
+            text-align: center;
+            color: #6e8efb;
+            margin-bottom: 1rem;
+        }
+        .form-floating label {
+            color: #777;
+        }
+        .form-control, .btn-primary, .form-select {
+            border-radius: 8px;
+        }
+        .btn-primary {
+            background: #6e8efb;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #5c7edb;
+        }
+        .forgot-password {
+            text-align: right;
+            color: #6e8efb;
+        }
+        .forgot-password a {
+            color: #6e8efb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+<div class="login-container">
+
+    <div class="d-flex flex-column align-items-center">
+        <div class="login-header">
+            <h3>Student Management Login</h3>
+        </div>
+
+
+        <div class="form-floating mb-4 w-100">
+            <select class="form-select" id="role" aria-label="User Role">
+                <option value="staff">Staff</option>
+                <option value="teacher">Teacher</option>
+                <option value="admin">Administrator</option>
+            </select>
+            <label for="role">Select Role</label>
+        </div>
+
+        <!-- Email Input -->
+        <div class="form-floating mb-3 w-100">
+            <input type="email" class="form-control" id="email" placeholder="name@example.com">
+            <label for="email">Email address</label>
+        </div>
+
+        <!-- Password Input -->
+        <div class="form-floating mb-4 w-100">
+            <input type="password" class="form-control" id="password" placeholder="Password">
+            <label for="password">Password</label>
+        </div>
+
+        <!-- Forgot Password Link -->
+        <div class="forgot-password w-100 mb-4">
+            <a href="#">Forgot Password?</a>
+        </div>
+
+        <!-- Sign In Button -->
+        <button type="submit" class="btn btn-primary py-3 w-100">Sign In</button>
+    </div>
+    <!-- Sign In End -->
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
