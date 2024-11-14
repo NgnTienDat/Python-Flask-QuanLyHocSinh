@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 from datetime import datetime
 
-
+# test branch
 # Models chứa các class là các table trong CSDL
 
 class BaseModel(db.Model):
