@@ -10,5 +10,10 @@ def get_home_page():
     return render_template('home-page.html')
 
 
+@app.route("/login")
+def get_login_page():
+    return render_template('login.html')
+
+
 if __name__ == '__main__':
     app.run(debug=True)
