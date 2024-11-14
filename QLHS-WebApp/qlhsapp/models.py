@@ -1,4 +1,3 @@
-
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Table
 from qlhsapp import db, app
 from sqlalchemy.orm import relationship
@@ -27,8 +26,6 @@ class ScoreType(PyEnum):
     END_TERM = 3  # Cuoi ky
 
 
-
-
 class User(BaseModel):
     first_name = Column(String(20), nullable=False)
     last_name = Column(String(50), nullable=False)
@@ -44,7 +41,6 @@ class User(BaseModel):
     administrator = relationship('Administrator', back_populates='user', uselist=False)
 
 
-
 # Tai khoan
 class Account(db.Model):
     account_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
@@ -58,13 +54,11 @@ class Account(db.Model):
     user = relationship('User', back_populates='account')
 
 
-
 # Nhan vien
 class Staff(db.Model):
     staff_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
     user = relationship('User', back_populates='staff')
-
 
 
 # Quan tri vien
@@ -74,10 +68,8 @@ class Administrator(db.Model):
     user = relationship('User', back_populates='administrator', uselist=False)
 
 
-
 # Giao vien
 class Teacher(db.Model):
-
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
     # OneToOne
     user = relationship('User', back_populates='teacher', uselist=False)
@@ -85,9 +77,7 @@ class Teacher(db.Model):
     subjects = relationship('Subject', secondary='teacher_subject', back_populates='teacher')
 
 
-
-
-# # Quy dinh
+# Quy dinh
 # class Regulation(BaseModel):
 #     pass
 
@@ -122,10 +112,11 @@ class Student(BaseModel):
     gender = Column(Enum(GenderEnum, name="gender_enum"), nullable=False)
     phone_number = Column(String(10))
     date_of_birth = Column(Date, nullable=False)
-    classes = relationship('Class', secondary='student_class',  backref='students', lazy=True)
+    classes = relationship('Class', secondary='student_class', backref='students', lazy=True)
 
 
-# # Bang diem
+
+# Bang diem
 # class ScoreBoard(BaseModel):
 #     pass
 #
@@ -142,10 +133,7 @@ class Subject(BaseModel):
     teachers = relationship('Teacher', secondary='teacher_subject', back_populates='subject')
 
 
-
-
-
-# # Hoc Ky
+# Hoc Ky
 # class Semester(BaseModel):
 #     pass
 #
@@ -160,9 +148,7 @@ teacher_subject = Table('teacher_subject', db.Model.metadata,
                         Column('id', Integer, primary_key=True, autoincrement=True),
                         Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
                         Column('subject_id', Integer, ForeignKey('subject.id'))
-)
-
-
+                        )
 
 if __name__ == '__main__':
     with app.app_context():
