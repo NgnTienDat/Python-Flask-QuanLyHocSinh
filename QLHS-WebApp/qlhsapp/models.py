@@ -57,7 +57,7 @@ class Account(db.Model):
 # Nhan vien
 class Staff(db.Model):
     staff_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
-    department = Column(String(50), nullable=False)
+
     user = relationship('User', back_populates='staff')
 
 
