@@ -115,6 +115,7 @@ class Student(BaseModel):
     classes = relationship('Class', secondary='student_class', backref='students', lazy=True)
 
 
+
 # Bang diem
 # class ScoreBoard(BaseModel):
 #     pass
