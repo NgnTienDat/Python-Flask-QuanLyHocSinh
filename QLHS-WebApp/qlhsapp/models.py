@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Table
+from qlhsapp import db, app
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
-from qlhsapp import db, app
 from datetime import datetime
+
 
 # Models chứa các class là các table trong CSDL
 
@@ -81,35 +82,35 @@ class Teacher(db.Model):
 
 
 
-# # Quy dinh
-# class Regulation(BaseModel):
-#     pass
-#
-#
-#
-# class Student(BaseModel):
-#     pass
-#
-#
-# # Khoi lop
-# class GradeLevel(BaseModel):
-#     pass
-#
-#
-#
-# class Class(BaseModel):
-#     pass
-#
-#
-# # Bang diem
-# class ScoreBoard(BaseModel):
-#     pass
-#
-#
-# # Diem
-# class Score(BaseModel):
-#     pass
-#
+# Quy dinh
+class Regulation(BaseModel):
+    pass
+
+
+
+class Student(BaseModel):
+    pass
+
+
+# Khoi lop
+class GradeLevel(BaseModel):
+    pass
+
+
+
+class Class(BaseModel):
+    pass
+
+
+# Bang diem
+class ScoreBoard(BaseModel):
+    pass
+
+
+# Diem
+class Score(BaseModel):
+    pass
+
 
 # Mon hoc
 class Subject(BaseModel):
@@ -119,19 +120,19 @@ class Subject(BaseModel):
 
 
 
-#
-# # Hoc Ky
-# class Semester(BaseModel):
-#     pass
-#
-#
-# # Staff_Class, Many-To-Many
-# class StaffClass(BaseModel):
-#     pass
-#
-# # Student_Class, Many-To-Many
-# class StudentClass(BaseModel):
-#     pass
+
+# Hoc Ky
+class Semester(BaseModel):
+    pass
+
+
+# Staff_Class, Many-To-Many
+class StaffClass(BaseModel):
+    pass
+
+# Student_Class, Many-To-Many
+class StudentClass(BaseModel):
+    pass
 
 # Teacher_Subject, Many-To-Many
 teacher_subject = Table('teacher_subject', db.Model.metadata,
