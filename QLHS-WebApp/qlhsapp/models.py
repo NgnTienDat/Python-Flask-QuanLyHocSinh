@@ -1,10 +1,12 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum
+
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Table
 from qlhsapp import db, app
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 from datetime import datetime
 
 
+# test branch
 # Models chứa các class là các table trong CSDL
 
 class BaseModel(db.Model):
@@ -25,28 +27,64 @@ class ScoreType(PyEnum):
     END_TERM = 3  # Cuoi ky
 
 
-# Tai khoan
-class Account(BaseModel):
-    pass
 
 
 class User(BaseModel):
-    __abstract__ = True
+    first_name = Column(String(20), nullable=False)
+    last_name = Column(String(50), nullable=False)
+    email = Column(String(50), unique=True, nullable=False)
+    phone_number = Column(String(12), nullable=False)
+    address = Column(String(255))
+    avatar = Column(String(255))
+
+    # OneToOne, uselist=False: Chi dinh moi quan he 1-1
+    account = relationship('Account', back_populates='user', uselist=False)
+    staff = relationship('Staff', back_populates='user', uselist=False)
+    teacher = relationship('Teacher', back_populates='user', uselist=False)
+    administrator = relationship('Administrator', back_populates='user', uselist=False)
+
+
+
+# Tai khoan
+class Account(db.Model):
+    account_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+    username = Column(String(100), unique=True, nullable=False)
+    password = Column(String(50), nullable=False)
+    role = Column(Enum(UserRole), nullable=False)
+    created_date = Column(DateTime, default=datetime.now())
+    active = Column(Boolean, default=True)
+
+    # OneToOne voi User
+    user = relationship('User', back_populates='account')
+
 
 
 # Nhan vien
-class Staff(User):
-    pass
+class Staff(db.Model):
+    staff_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
+    user = relationship('User', back_populates='staff')
 
-# Giao vien
-class Teacher(User):
-    pass
 
 
 # Quan tri vien
-class Administrator(User):
-    pass
+class Administrator(db.Model):
+    admin_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+
+    user = relationship('User', back_populates='administrator', uselist=False)
+
+
+
+# Giao vien
+class Teacher(db.Model):
+
+    teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+    # OneToOne
+    user = relationship('User', back_populates='teacher', uselist=False)
+    # ManyToMany
+    subjects = relationship('Subject', secondary='teacher_subject', back_populates='teacher')
+
+
 
 
 # Quy dinh
@@ -99,7 +137,12 @@ class Score(BaseModel):
 
 # Mon hoc
 class Subject(BaseModel):
-    pass
+    name = Column(String(50), unique=True, nullable=False)
+    # ManyToMany
+    teachers = relationship('Teacher', secondary='teacher_subject', back_populates='subject')
+
+
+
 
 
 # Hoc Ky
@@ -113,8 +156,12 @@ class StaffClass(BaseModel):
 
 
 # Teacher_Subject, Many-To-Many
-class TeacherSubject(BaseModel):
-    pass
+teacher_subject = Table('teacher_subject', db.Model.metadata,
+                        Column('id', Integer, primary_key=True, autoincrement=True),
+                        Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
+                        Column('subject_id', Integer, ForeignKey('subject.id'))
+)
+
 
 
 if __name__ == '__main__':
