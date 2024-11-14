@@ -1,8 +1,10 @@
+
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Table
 from qlhsapp import db, app
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 from datetime import datetime
+
 
 # test branch
 # Models chứa các class là các table trong CSDL
@@ -17,11 +19,14 @@ class UserRole(PyEnum):
     STAFF = 2
     TEACHER = 3
 
+
 # Loai diem
 class ScoreType(PyEnum):
     FIFTEEN = 1  # 15p
-    FORTY_FIVE = 2 # 45p
+    FORTY_FIVE = 2  # 45p
     END_TERM = 3  # Cuoi ky
+
+
 
 
 class User(BaseModel):
@@ -87,19 +92,37 @@ class Regulation(BaseModel):
     pass
 
 
-
-class Student(BaseModel):
-    pass
-
-
 # Khoi lop
 class GradeLevel(BaseModel):
-    pass
+    name = Column(String(50), nullable=False)
+    classes = relationship('Class', backref='gradelevel', lazy=True)
 
+
+student_class = db.Table('student_class',
+                         Column('student_id', Integer, ForeignKey('student.id'), primary_key=True),
+                         Column('class_id', Integer, ForeignKey('class.id'), primary_key=True)
+                         )
 
 
 class Class(BaseModel):
-    pass
+    name = Column(String(50), nullable=False)
+    # teacher_id
+    grade_id = Column(Integer, ForeignKey(GradeLevel.id), nullable=False)
+
+
+class GenderEnum(PyEnum):
+    MALE = "male"
+    FEMALE = "female"
+
+
+class Student(BaseModel):
+    name = Column(String(50), nullable=False)
+    address = Column(String(100))
+    email = Column(String(50))
+    gender = Column(Enum(GenderEnum, name="gender_enum"), nullable=False)
+    phone_number = Column(String(10))
+    date_of_birth = Column(Date, nullable=False)
+    classes = relationship('Class', secondary='student_class',  backref='students', lazy=True)
 
 
 # Bang diem
@@ -121,6 +144,7 @@ class Subject(BaseModel):
 
 
 
+
 # Hoc Ky
 class Semester(BaseModel):
     pass
@@ -130,9 +154,6 @@ class Semester(BaseModel):
 class StaffClass(BaseModel):
     pass
 
-# Student_Class, Many-To-Many
-class StudentClass(BaseModel):
-    pass
 
 # Teacher_Subject, Many-To-Many
 teacher_subject = Table('teacher_subject', db.Model.metadata,
@@ -143,6 +164,7 @@ teacher_subject = Table('teacher_subject', db.Model.metadata,
 
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        db.session.commit()
