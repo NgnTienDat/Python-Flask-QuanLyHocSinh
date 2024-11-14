@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean, Table, column
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean, Table
 from sqlalchemy.orm import relationship
-from enum import Enum as UserEnum
+from enum import Enum as PyEnum
 from qlhsapp import db, app
 from datetime import datetime
 
@@ -11,13 +11,13 @@ class BaseModel(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
 
 
-class UserRole(UserEnum):
+class UserRole(PyEnum):
     ADMIN = 1
     STAFF = 2
     TEACHER = 3
 
 # Loai diem
-class ScoreType(Enum):
+class ScoreType(PyEnum):
     FIFTEEN = 1  # 15p
     FORTY_FIVE = 2 # 45p
     END_TERM = 3  # Cuoi ky
@@ -33,9 +33,9 @@ class User(BaseModel):
 
     # OneToOne, uselist=False: Chi dinh moi quan he 1-1
     account = relationship('Account', back_populates='user', uselist=False)
-    # staff = relationship('Staff', back_populates='user', uselist=False)
-    # teacher = relationship('Teacher', back_populates='user', uselist=False)
-    # administrator = relationship('Administrator', back_populates='user', uselist=False)
+    staff = relationship('Staff', back_populates='user', uselist=False)
+    teacher = relationship('Teacher', back_populates='user', uselist=False)
+    administrator = relationship('Administrator', back_populates='user', uselist=False)
 
 
 
@@ -145,10 +145,3 @@ teacher_subject = Table('teacher_subject', db.Model.metadata,
 if __name__=='__main__':
     with app.app_context():
         db.create_all()
-        # student = Student(name='student 1')
-        # profile = StudentProfile(bio='HCMOU', student=student)
-        # profile2 = StudentProfile(bio='HCMOU 2', student=student)
-        # db.session.add(student)
-        # db.session.add(profile)
-        # db.session.add(profile)
-        # db.session.commit()
