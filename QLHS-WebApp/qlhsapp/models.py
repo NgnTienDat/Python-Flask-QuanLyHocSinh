@@ -5,7 +5,6 @@ from enum import Enum as PyEnum
 from datetime import datetime
 
 
-# test branch
 # Models chứa các class là các table trong CSDL
 
 class BaseModel(db.Model):
@@ -24,6 +23,12 @@ class ScoreType(PyEnum):
     FIFTEEN = 1  # 15p
     FORTY_FIVE = 2  # 45p
     END_TERM = 3  # Cuoi ky
+
+
+
+class GenderEnum(PyEnum):
+    MALE = "male"
+    FEMALE = "female"
 
 
 class User(BaseModel):
@@ -68,41 +73,81 @@ class Administrator(db.Model):
     user = relationship('User', back_populates='administrator', uselist=False)
 
 
+student_class = db.Table('student_class',
+                         Column('id', Integer, primary_key=True, autoincrement=True),
+                         Column('student_id', Integer, ForeignKey('student.id'), primary_key=True),
+                         Column('class_id', Integer, ForeignKey('class.id'), primary_key=True)
+                         )
+
+
+teacher_class = db.Table('teacher_class',
+                         Column('id', Integer, primary_key=True, autoincrement=True),
+                          Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
+                          Column('class_id', Integer, ForeignKey('class.id'))
+                         )
+
+
+# Teacher_Subject, Many-To-Many
+teacher_subject = db.Table('teacher_subject',
+                        Column('id', Integer, primary_key=True, autoincrement=True),
+                        Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
+                        Column('subject_id', Integer, ForeignKey('subject.id'))
+                        )
+
+
+
+# # Staff_Class, Many-To-Many
+# staff_class = db.Table('staff_class',
+#                         Column('id', Integer, primary_key=True, autoincrement=True),
+#                         Column('staff_id', Integer, ForeignKey('staff.staff_id')),
+#                         Column('class_id', Integer, ForeignKey('class.id'))
+#                         )
+
+
+
 # Giao vien
 class Teacher(db.Model):
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
-    # OneToOne
+    homeroom_class_id = Column(Integer, ForeignKey('class.id'), nullable=True)
+    # 1 - 1: Homeroom
+    homeroom_class = relationship('Class', back_populates='teacher', uselist=False)
+    # 1 - 1: User
     user = relationship('User', back_populates='teacher', uselist=False)
-    # ManyToMany
+    # N - N: Teach subjects
     subjects = relationship('Subject', secondary='teacher_subject', back_populates='teacher')
+    # N - N: Teach classes
+    teach_classes = relationship('Class', secondary='teacher_class', back_populates='teacher')
 
 
-# Quy dinh
+
+# # Quy dinh
 # class Regulation(BaseModel):
 #     pass
 
 
 # Khoi lop
 class GradeLevel(BaseModel):
+    __tablename__ = 'grade_level'
     name = Column(String(50), nullable=False)
-    classes = relationship('Class', backref='gradelevel', lazy=True)
+    classes = relationship('Class', backref='grade_level', lazy=True)
 
 
-student_class = db.Table('student_class',
-                         Column('student_id', Integer, ForeignKey('student.id'), primary_key=True),
-                         Column('class_id', Integer, ForeignKey('class.id'), primary_key=True)
-                         )
+
+
+
 
 
 class Class(BaseModel):
-    name = Column(String(50), nullable=False)
-    # teacher_id
-    grade_id = Column(Integer, ForeignKey(GradeLevel.id), nullable=False)
+    name = Column(String(20), nullable=False, unique=True)
+    grade_level_id = Column(Integer, ForeignKey('grade_level.id'), nullable=False)
+    # this class is homeroom_ed by this teacher ;)
+    homeroom_teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), nullable=False)
+    # N - N: Subject teachers
+    subject_teachers = relationship('Teacher', secondary='teacher_class', back_populates='classes')
+    # N - N: Students
+    students = relationship('Student', secondary='student_class', back_populates='classes')
 
 
-class GenderEnum(PyEnum):
-    MALE = "male"
-    FEMALE = "female"
 
 
 class Student(BaseModel):
@@ -112,7 +157,7 @@ class Student(BaseModel):
     gender = Column(Enum(GenderEnum, name="gender_enum"), nullable=False)
     phone_number = Column(String(10))
     date_of_birth = Column(Date, nullable=False)
-    classes = relationship('Class', secondary='student_class', backref='students', lazy=True)
+    classes = relationship('Class', secondary='student_class', back_populates='students', lazy=True)
 
 
 
@@ -138,17 +183,10 @@ class Subject(BaseModel):
 #     pass
 #
 #
-# # Staff_Class, Many-To-Many
-# class StaffClass(BaseModel):
-#     pass
 
 
-# Teacher_Subject, Many-To-Many
-teacher_subject = Table('teacher_subject', db.Model.metadata,
-                        Column('id', Integer, primary_key=True, autoincrement=True),
-                        Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
-                        Column('subject_id', Integer, ForeignKey('subject.id'))
-                        )
+
+
 
 if __name__ == '__main__':
     with app.app_context():
