@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Table
+from os.path import realpath
+
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 from qlhsapp import db, app
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
@@ -13,9 +15,9 @@ class BaseModel(db.Model):
 
 
 class UserRole(PyEnum):
-    ADMIN = 1
-    STAFF = 2
-    TEACHER = 3
+    ADMIN = 'ADMIN'
+    STAFF = 'STAFF'
+    TEACHER = 'TEACHER'
 
 
 # Loai diem
@@ -27,9 +29,13 @@ class ScoreType(PyEnum):
 
 
 class GenderEnum(PyEnum):
-    MALE = "male"
-    FEMALE = "female"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
 
+
+class Status(PyEnum):
+    CREATE = 'CREATE'
+    EDIT = 'EDIT'
 
 class User(BaseModel):
     first_name = Column(String(20), nullable=False)
@@ -38,12 +44,17 @@ class User(BaseModel):
     phone_number = Column(String(12), nullable=False)
     address = Column(String(255))
     avatar = Column(String(255))
+    # Create by Administrator's id
+    create_by_Id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=False)
 
     # OneToOne, uselist=False: Chi dinh moi quan he 1-1
-    account = relationship('Account', back_populates='user', uselist=False)
-    staff = relationship('Staff', back_populates='user', uselist=False)
-    teacher = relationship('Teacher', back_populates='user', uselist=False)
-    administrator = relationship('Administrator', back_populates='user', uselist=False)
+    account = relationship('Account', back_populates='user', uselist=False) # done
+    staff = relationship('Staff', back_populates='user', uselist=False) # done
+    teacher = relationship('Teacher', back_populates='user', uselist=False) # done
+    # 1-1: An user can be an admin
+    administrator = relationship('Administrator', back_populates='user', uselist=False) # done
+    # 1-N: User are managed by an admin
+    admin_creator = relationship('Administrator', back_populates='manage_users') # done
 
 
 # Tai khoan
@@ -56,27 +67,35 @@ class Account(db.Model):
     active = Column(Boolean, default=True)
 
     # OneToOne voi User
-    user = relationship('User', back_populates='account')
+    user = relationship('User', back_populates='account') # done
 
 
 # Nhan vien
 class Staff(db.Model):
     staff_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
-    user = relationship('User', back_populates='staff')
+    user = relationship('User', back_populates='staff') # done
+
+    classes = relationship('Class', secondary='StaffClass', back_populates='staff') # done
+
+    students = relationship('Student', back_populates='staff')
 
 
 # Quan tri vien
 class Administrator(db.Model):
     admin_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
-    user = relationship('User', back_populates='administrator', uselist=False)
+    user = relationship('User', back_populates='administrator', uselist=False) # done
+    # 1 - N: An admin manages many users
+    manage_users = relationship('User', back_populates='admin_creator') # done
+    # 1 - N: An admin manages many subjects
+    create_subject = relationship('Subject', back_populates='admin_creator') # done
 
 
 student_class = db.Table('student_class',
                          Column('id', Integer, primary_key=True, autoincrement=True),
-                         Column('student_id', Integer, ForeignKey('student.id'), primary_key=True),
-                         Column('class_id', Integer, ForeignKey('class.id'), primary_key=True)
+                         Column('student_id', Integer, ForeignKey('student.id')),
+                         Column('class_id', Integer, ForeignKey('class.id'))
                          )
 
 
@@ -96,12 +115,13 @@ teacher_subject = db.Table('teacher_subject',
 
 
 
-# # Staff_Class, Many-To-Many
-# staff_class = db.Table('staff_class',
-#                         Column('id', Integer, primary_key=True, autoincrement=True),
-#                         Column('staff_id', Integer, ForeignKey('staff.staff_id')),
-#                         Column('class_id', Integer, ForeignKey('class.id'))
-#                         )
+# Staff_Class, Many-To-Many
+class StaffClass(BaseModel):
+    staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
+    class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
+    date_time = Column(DateTime, default=datetime.now())
+    status = Column(Enum(Status), nullable=False)
+
 
 
 
@@ -109,14 +129,33 @@ teacher_subject = db.Table('teacher_subject',
 class Teacher(db.Model):
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
     homeroom_class_id = Column(Integer, ForeignKey('class.id'), nullable=True)
-    # 1 - 1: Homeroom
-    homeroom_class = relationship('Class', back_populates='teacher', uselist=False)
-    # 1 - 1: User
-    user = relationship('User', back_populates='teacher', uselist=False)
-    # N - N: Teach subjects
-    subjects = relationship('Subject', secondary='teacher_subject', back_populates='teacher')
-    # N - N: Teach classes
-    teach_classes = relationship('Class', secondary='teacher_class', back_populates='teacher')
+    # 1 - 1: teacher homeroom
+    homeroom_class = relationship('Class', back_populates='homeroom_teacher', uselist=False) # done
+    # 1 - 1: An user can be a teacher
+    user = relationship('User', back_populates='teacher', uselist=False) # done
+    # N - N: A teacher teach many subjects
+    subjects = relationship('Subject', secondary='teacher_subject', back_populates='teachers') # done
+    # N - N: A teacher teach many classes
+    teach_classes = relationship('Class', secondary='teacher_class', back_populates='teachers') # done
+    # 1 - N: A teacher enter scores for many scoreboards
+    enter_scores = relationship('ScoreBoard', back_populates='teacher') # done
+
+
+class Class(BaseModel):
+    name = Column(String(20), nullable=False, unique=True)
+    grade_level_id = Column(Integer, ForeignKey('grade_level.id'), nullable=False)
+    grade_level = relationship('GradeLevel', back_populates='classes') # done
+    # this class is homeroom_ed by this teacher ;)
+    homeroom_teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), nullable=False)
+    # N - N: Subject teachers
+    teachers = relationship('Teacher', secondary='teacher_class', back_populates='teach_classes') # done
+    # N - N: Students
+    students = relationship('Student', secondary='student_class', back_populates='classes') # done
+    # N - N: A class is homeroom_ed by one teacher
+    homeroom_teacher = relationship('Teacher', back_populates='homeroom_class') # done
+
+    staff = relationship('Staff', secondary='StaffClass', back_populates='classes') # done
+
 
 
 
@@ -129,23 +168,12 @@ class Teacher(db.Model):
 class GradeLevel(BaseModel):
     __tablename__ = 'grade_level'
     name = Column(String(50), nullable=False)
-    classes = relationship('Class', backref='grade_level', lazy=True)
+    classes = relationship('Class', back_populates='grade_level', lazy=True) # done
 
 
 
 
 
-
-
-class Class(BaseModel):
-    name = Column(String(20), nullable=False, unique=True)
-    grade_level_id = Column(Integer, ForeignKey('grade_level.id'), nullable=False)
-    # this class is homeroom_ed by this teacher ;)
-    homeroom_teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), nullable=False)
-    # N - N: Subject teachers
-    subject_teachers = relationship('Teacher', secondary='teacher_class', back_populates='classes')
-    # N - N: Students
-    students = relationship('Student', secondary='student_class', back_populates='classes')
 
 
 
@@ -157,33 +185,53 @@ class Student(BaseModel):
     gender = Column(Enum(GenderEnum, name="gender_enum"), nullable=False)
     phone_number = Column(String(10))
     date_of_birth = Column(Date, nullable=False)
-    classes = relationship('Class', secondary='student_class', back_populates='students', lazy=True)
-
+    staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
+    # N - N: A student can study in many classes
+    classes = relationship('Class', secondary='student_class', back_populates='students', lazy=True) # done
+    # 1 - N: A student is admitted by one user (staff)
+    staff = relationship('Staff', back_populates='students') # done
+    # 1 - N: A student has many scoreboards
+    score_boards = relationship('ScoreBoard', back_populates='student') # done
 
 
 # Bang diem
-# class ScoreBoard(BaseModel):
-#     pass
-#
-#
-# # Diem
-# class Score(BaseModel):
-#     pass
+class ScoreBoard(BaseModel):
+    student_id = Column(Integer, ForeignKey('student.id'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
+    semester_id = Column(Integer, ForeignKey('semester.id'), nullable=False)
+    teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), nullable=False)
+    # 1 - N: A subject's scoreboard has many scores
+    scores = relationship('Score', back_populates='score_board') # done
+    # 1 - N: A scoreboard is scored by a teacher
+    teacher = relationship('Teacher', back_populates='enter_scores') # done
+    # 1 - N: A scoreboard belongs to a student
+    student = relationship('Student', back_populates='score_boards') # done
+
+
+
+# Diem
+class Score(BaseModel):
+    score_type = Column(Enum(ScoreType), nullable=False)
+    score_value = Column(Float, nullable=False)
+    score_board_id = Column(Integer, ForeignKey('score_board.id'), nullable=False)
+    # 1 - N: A score belongs to one scoreboard
+    score_board = relationship('ScoreBoard', back_populates='scores') # done
+
 
 
 # Mon hoc
 class Subject(BaseModel):
     name = Column(String(50), unique=True, nullable=False)
-    # ManyToMany
-    teachers = relationship('Teacher', secondary='teacher_subject', back_populates='subject')
+    creator_admin_id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=False)
+    admin_creator = relationship('Administrator', back_populates='create_subject') # done
+    # N - N
+    teachers = relationship('Teacher', secondary='teacher_subject', back_populates='subjects') # done
 
 
 # Hoc Ky
-# class Semester(BaseModel):
-#     pass
-#
-#
-
+class Semester(BaseModel):
+    name = Column(String(20), nullable=False)
+    school_year = Column(String(10), nullable=False)
 
 
 
