@@ -20,14 +20,27 @@
 
         <div class="navbar-nav w-100">
             <!-- Dashboard -->
-            <a href="index.html" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Hệ Thống</a>
-
+             <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-tachometer-alt me-2"></i>Hệ thống</a>
+                <div class="dropdown-menu bg-transparent border-0">
+                    <a href="students.html" class="dropdown-item">Cấu hình số lượng loại điểm</a>
+                    <a href="add_student.html" class="dropdown-item">Quản lý người dùng</a>
+                </div>
+            </div>
             <!-- Quản lý học sinh -->
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-users me-2"></i>Học Sinh</a>
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="students.html" class="dropdown-item">Danh sách học sinh</a>
                     <a href="add_student.html" class="dropdown-item">Tiếp nhận học sinh</a>
+                </div>
+            </div>
+
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-table me-2"></i>Điểm</a>
+                <div class="dropdown-menu bg-transparent border-0">
+                    <a href="students.html" class="dropdown-item">Nhập-xuất điểm</a>
+                    <a href="add_student.html" class="dropdown-item">Khác...</a>
                 </div>
             </div>
 
@@ -55,6 +68,14 @@
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="teachers.html" class="dropdown-item">Danh sách giáo viên</a>
                     <a href="add_teacher.html" class="dropdown-item">Khác...</a>
+                </div>
+            </div>
+
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-chart-bar me-2"></i>Báo cáo</a>
+                <div class="dropdown-menu bg-transparent border-0">
+                    <a href="teachers.html" class="dropdown-item">Báo cáo tổng kết theo môn</a>
+                    <a href="add_teacher.html" class="dropdown-item">Báo cáo tổng kết theo lớp</a>
                 </div>
             </div>
 
