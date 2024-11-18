@@ -203,6 +203,13 @@ class Score(BaseModel):
     score_board = relationship('ScoreBoard', back_populates='scores')  # done
 
 
+# Cau hinh so cot diem
+class ScoreConfig(BaseModel):
+    score_type = Column(Enum(ScoreType), nullable=False)
+    score_quantity = Column(Integer, nullable=False)
+
+
+
 # Mon hoc
 class Subject(BaseModel):
     name = Column(String(50), unique=True, nullable=False)
