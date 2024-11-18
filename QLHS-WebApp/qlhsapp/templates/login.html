@@ -46,6 +46,10 @@
             color: #6e8efb;
             margin-bottom: 1rem;
         }
+        .login-header h3, .login-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
         .form-floating label {
             color: #777;
         }
@@ -60,17 +64,16 @@
         .btn-primary:hover {
             background-color: #5c7edb;
         }
-        .forgot-password {
-            text-align: right;
+        .show-password {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             color: #6e8efb;
+            cursor: pointer;
         }
-        .forgot-password a {
-            color: #6e8efb;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .forgot-password a:hover {
-            text-decoration: underline;
+        .show-password input {
+            width: auto;
+            margin: 0;
         }
     </style>
 </head>
@@ -80,41 +83,41 @@
 
     <div class="d-flex flex-column align-items-center">
         <div class="login-header">
-            <h3>Student Management Login</h3>
+            <h5 style="color: #1E90FF; margin-bottom: 10px;">HỆ THỐNG QUẢN LÝ HỌC SINH</h5>
+            <br>
+            <h5 style="color: #1E90FF; margin-top: 0;">Đăng Nhập</h5>
         </div>
 
 
-        <div class="form-floating mb-4 w-100">
-            <select class="form-select" id="role" aria-label="User Role">
-                <option value="staff">Staff</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Administrator</option>
-            </select>
-            <label for="role">Select Role</label>
-        </div>
-
-        <!-- Email Input -->
+        <!-- Username Input -->
         <div class="form-floating mb-3 w-100">
-            <input type="email" class="form-control" id="email" placeholder="name@example.com">
-            <label for="email">Email address</label>
+            <input type="text" class="form-control" id="username" placeholder="User name">
+            <label for="username">Tài khoản</label>
         </div>
 
         <!-- Password Input -->
         <div class="form-floating mb-4 w-100">
             <input type="password" class="form-control" id="password" placeholder="Password">
-            <label for="password">Password</label>
+            <label for="password">Mật khẩu</label>
         </div>
 
-        <!-- Forgot Password Link -->
-        <div class="forgot-password w-100 mb-4">
-            <a href="#">Forgot Password?</a>
+        <!-- Show Password Checkbox -->
+        <div class="show-password w-100 mb-4">
+            <input type="checkbox" id="showPassword" onclick="togglePassword()">
+            <label for="showPassword">Hiện mật khẩu</label>
         </div>
 
         <!-- Sign In Button -->
-        <button type="submit" class="btn btn-primary py-3 w-100">Sign In</button>
+        <button type="submit" class="btn btn-primary py-3 w-100">Đăng Nhập</button>
     </div>
-    <!-- Sign In End -->
 </div>
+
+<script>
+    function togglePassword() {
+        const passwordField = document.getElementById('password');
+        passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+    }
+</script>
 
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>

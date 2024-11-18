@@ -275,3 +275,61 @@
     background: var(--dark);
     border-color: var(--primary);
 }
+
+/* Dropdown */
+.nav-item .dropdown-menu {
+    background-color: #ffffff; /* Màu nền */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Bóng đổ */
+    border-radius: 8px; /* Bo góc */
+    padding: 10px 15px; /* Khoảng cách bên trong */
+    margin-left: 10px; /* Thụt vào bên trái */
+    margin-top: 5px; /* Khoảng cách phía trên */
+    transition: all 0.3s ease; /* Hiệu ứng mượt */
+}
+
+/* Dropdown Item */
+.nav-item .dropdown-menu .dropdown-item {
+    font-size: 14px; /* Cỡ chữ */
+    color: #333; /* Màu chữ */
+    padding: 8px 20px; /* Khoảng cách bên trong */
+    border-radius: 6px; /* Bo góc các item */
+    margin-bottom: 5px; /* Khoảng cách giữa các item */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Hiệu ứng hover */
+}
+
+/* Hover trên item */
+.nav-item .dropdown-menu .dropdown-item:hover {
+    background-color: #007bff; /* Màu nền khi hover */
+    color: #fff; /* Màu chữ khi hover */
+    transform: translateX(5px); /* Thụt vào khi hover */
+}
+
+/* Dropdown Toggle Icon */
+.nav-item .dropdown-toggle::after {
+    margin-left: 5px;
+    vertical-align: middle;
+    font-size: 0.75em;
+}
+
+/* Hiện dropdown khi hover */
+.nav-item.dropdown:hover .dropdown-menu {
+    display: block !important; /* Bắt buộc hiển thị dropdown */
+}
+
+
+.sidebar {
+     width: 280px;
+}
+.nav-item .nav-link {
+     padding-left: 15px;
+}
+ .nav-item.dropdown .nav-link {
+     padding-right: 20px;
+ }
+ .nav-item.dropdown .dropdown-toggle::after {
+     margin-left: 10px;
+ }
+ .nav-item .nav-link i {
+     margin-right: 10px;
+ }
+
