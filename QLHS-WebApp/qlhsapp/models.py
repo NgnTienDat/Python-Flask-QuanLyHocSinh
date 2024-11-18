@@ -37,6 +37,9 @@ class Status(PyEnum):
     CREATE = 'CREATE'
     EDIT = 'EDIT'
 
+
+
+
 class User(BaseModel):
     first_name = Column(String(20), nullable=False)
     last_name = Column(String(50), nullable=False)
@@ -216,6 +219,13 @@ class Score(BaseModel):
     score_board_id = Column(Integer, ForeignKey('score_board.id'), nullable=False)
     # 1 - N: A score belongs to one scoreboard
     score_board = relationship('ScoreBoard', back_populates='scores') # done
+
+
+
+# Cau hinh so cot diem
+class ScoreConfig(BaseModel):
+    score_type = Column(Enum(ScoreType), nullable=False)
+    score_quantity = Column(Integer, nullable=False)
 
 
 
