@@ -7,7 +7,7 @@ from qlhsapp import app
 
 @app.route("/")
 def get_home_page():
-    return render_template('home-page.html')
+    return render_template('home-page-admin.html')
 
 
 @app.route("/login")
