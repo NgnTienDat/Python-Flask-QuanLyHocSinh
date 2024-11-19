@@ -276,6 +276,8 @@
     border-color: var(--primary);
 }
 
+
+
 /* Dropdown */
 .nav-item .dropdown-menu {
     background-color: #ffffff; /* Màu nền */
@@ -312,14 +314,12 @@
 }
 
 /* Hiện dropdown khi hover */
-.nav-item.dropdown:hover .dropdown-menu {
-    display: block !important; /* Bắt buộc hiển thị dropdown */
+.nav-item.active .dropdown-menu {
+    display: block; /* Hiện menu khi active */
 }
 
 
-.sidebar {
-     width: 320px;
-}
+
 .nav-item .nav-link {
      padding-left: 15px;
 }
@@ -332,4 +332,3 @@
  .nav-item .nav-link i {
      margin-right: 10px;
  }
-
