@@ -1,0 +1,106 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    table th, table td {
+        text-align: left;
+        padding: 12px;
+        border: 1px solid #ddd;
+    }
+
+    table th {
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+    }
+
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+
+</style>
+
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+
+        </nav>
+        <div class="container">
+            <h1>Danh Sách Giáo Viên</h1>
+            <table>
+                <thead>
+                <tr>
+                    <th>Mã Giáo Viên</th>
+                    <th>Tên Giáo Viên</th>
+                    <th>Môn Dạy</th>
+                    <th>Thao Tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>GV001</td>
+                    <td>Nguyễn Văn A</td>
+                    <td>Toán</td>
+                    <td class="action-btns">
+                        <div class="button-group">
+                            <button>Chỉnh sửa</button>
+                            <button class="btn-cancel">Xóa</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>GV002</td>
+                    <td>Trần Thị B</td>
+                    <td>Văn</td>
+                    <td class="action-btns">
+                        <div class="button-group">
+                            <button>Chỉnh sửa</button>
+                            <button class="btn-cancel">Xóa</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>GV003</td>
+                    <td>Phạm Minh C</td>
+                    <td>Vật Lý</td>
+                    <td class="action-btns">
+                        <div class="button-group">
+                            <button>Chỉnh sửa</button>
+                            <button class="btn-cancel">Xóa</button>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Thêm các giáo viên khác nếu cần -->
+                </tbody>
+            </table>
+            <div class="button-group">
+                <button>Thêm giáo viên</button>
+
+            </div>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
