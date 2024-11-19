@@ -1,0 +1,181 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    .breadcrumb {
+        margin-bottom: 20px;
+        font-size: 16px;
+    }
+    .breadcrumb a {
+        text-decoration: none;
+        color: #007bff;
+    }
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+    .breadcrumb span {
+        color: #6c757d;
+    }
+    .search-bar {
+        margin-bottom: 20px;
+    }
+    .search-bar input[type="text"] {
+        padding: 8px;
+        width: 300px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .search-bar button {
+        padding: 8px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .search-bar button:hover {
+        background-color: #0056b3;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    table th, table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    table th {
+        background-color: #f2f2f2;
+    }
+    .btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .btn-view {
+        background-color: #28a745;
+        color: white;
+    }
+    .btn-view:hover {
+        background-color: #218838;
+    }
+    .btn-edit {
+        background-color: #ffc107;
+        color: black;
+    }
+    .btn-edit:hover {
+        background-color: #e0a800;
+    }
+</style>
+{% endblock %}
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
+                <li class="breadcrumb-item"><a href="/find-student">Tra cứu học sinh</a></li>
+            </ol>
+        </nav>
+        <h1>Tra cứu học sinh</h1>
+        <div class="search-bar">
+            <input type="text" placeholder="Tên học sinh cần tìm...">
+            <button>Tìm kiếm</button>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>STT</th>
+                <th>Họ tên</th>
+                <th>Lớp</th>
+                <th>Giới tính</th>
+                <th>Ngày sinh</th>
+                <th>SĐT</th>
+                <th>Chi tiết</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>1</td>
+                <td>Nguyễn Văn A</td>
+                <td>10A1</td>
+                <td>Nam</td>
+                <td>15/01/2008</td>
+                <td>0987654321</td>
+                <td>
+                    <button class="btn btn-view">Xem</button>
+                    <button class="btn btn-edit">Cập nhật</button>
+                </td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Trần Thị B</td>
+                <td>10A2</td>
+                <td>Nữ</td>
+                <td>23/03/2008</td>
+                <td>0988888888</td>
+                <td>
+                    <button class="btn btn-view">Xem</button>
+                    <button class="btn btn-edit">Cập nhật</button>
+                </td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Lê Văn C</td>
+                <td>11B1</td>
+                <td>Nam</td>
+                <td>02/09/2007</td>
+                <td>0977777777</td>
+                <td>
+                    <button class="btn btn-view">Xem</button>
+                    <button class="btn btn-edit">Cập nhật</button>
+                </td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Phạm Thị D</td>
+                <td>12C1</td>
+                <td>Nữ</td>
+                <td>30/12/2006</td>
+                <td>0966666666</td>
+                <td>
+                    <button class="btn btn-view">Xem</button>
+                    <button class="btn btn-edit">Cập nhật</button>
+                </td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Hoàng Văn E</td>
+                <td>10A1</td>
+                <td>Nam</td>
+                <td>17/04/2008</td>
+                <td>0955555555</td>
+                <td>
+                    <button class="btn btn-view">Xem</button>
+                    <button class="btn btn-edit">Cập nhật</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+
+
