@@ -27,7 +27,6 @@ def find_student_page():
 def add_student_page():
     return render_template('admin/add-student.html')
 
-
 # Phân lớp học sinh
 @app.route("/set-class")
 def set_class_page():

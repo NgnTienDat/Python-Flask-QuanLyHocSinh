@@ -1,11 +1,12 @@
-
-
+import hashlib
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
 from qlhsapp import db, app
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
-from datetime import datetime
+from datetime import datetime, date
+from faker import Faker
+from random import choice, randint
 
 
 
@@ -19,24 +20,34 @@ class UserRole(PyEnum):
     STAFF = 'STAFF'
     TEACHER = 'TEACHER'
 
+    def __str__(self):
+        return self.value
 
 # Loai diem
 class ScoreType(PyEnum):
-    FIFTEEN = '15 phút'  # 15p
-    FORTY_FIVE = '45 phút'  # 45p
-    END_TERM = 'Cuối Kỳ'  # Cuoi ky
+    FIFTEEN = '15 phút'
+    FORTY_FIVE = '45 phút'
+    END_TERM = 'Cuối kỳ'
+
+    def __str__(self):
+        return self.value
 
 
 # Gioi tinh
 class GenderEnum(PyEnum):
-    MALE = "MALE"
-    FEMALE = "FEMALE"
+    MALE = "Nam"
+    FEMALE = "Nữ"
+
+    def __str__(self):
+        return self.value
 
 
 class Action(PyEnum):
     CREATE = 'CREATE'
     EDIT = 'EDIT'
 
+    def __str__(self):
+        return self.value
 
 class User(BaseModel):
     first_name = Column(String(20), nullable=False)
@@ -46,7 +57,7 @@ class User(BaseModel):
     address = Column(String(255))
     avatar = Column(String(255))
     # Create by Administrator's id
-    create_by_Id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=False)
+    create_by_Id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=True)
 
     # OneToOne, uselist=False: Chi dinh moi quan he 1-1
     account = relationship('Account', back_populates='user', uselist=False)  # done
@@ -91,8 +102,10 @@ class Administrator(db.Model):
     user = relationship('User', back_populates='administrator', uselist=False, foreign_keys=[admin_id])  # done
     # 1 - N: An admin manages many users
     manage_users = relationship('User', back_populates='admin_creator', foreign_keys='User.create_by_Id')  # done
-    # 1 - N: An admin manages many subjects
-    create_subject = relationship('Subject', back_populates='admin_creator')  # done
+
+    # # 1 - N: An admin manages many subjects
+    # create_subject = relationship('Subject', back_populates='admin_creator')  # done
+
 
 
 student_class = db.Table('student_class',
@@ -107,12 +120,6 @@ teacher_class = db.Table('teacher_class',
                          Column('class_id', Integer, ForeignKey('class.id'))
                          )
 
-# Teacher_Subject, Many-To-Many
-teacher_subject = db.Table('teacher_subject',
-                           Column('id', Integer, primary_key=True, autoincrement=True),
-                           Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
-                           Column('subject_id', Integer, ForeignKey('subject.id'))
-                           )
 
 
 staff_class = db.Table('staff_class',
@@ -124,24 +131,22 @@ staff_class = db.Table('staff_class',
                        )
 
 
-# # Staff_Class, Many-To-Many
-# class StaffClass(BaseModel):
-#     staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
-#     class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
-#     date_time = Column(DateTime, default=datetime.now())
-#     action = Column(Enum(Action), nullable=False)
+
 
 
 # Giao vien
 class Teacher(db.Model):
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+
+    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
+
     # 1 - 1: teacher homeroom
     homeroom_class = relationship('Class', back_populates='homeroom_teacher', uselist=False,
                                   foreign_keys='Class.homeroom_teacher_id')  # done
     # 1 - 1: An user can be a teacher
     user = relationship('User', back_populates='teacher', uselist=False)  # done
     # N - N: A teacher teach many subjects
-    subjects = relationship('Subject', secondary='teacher_subject', back_populates='teachers')  # done
+    subject = relationship('Subject', back_populates='teachers')  # done
     # N - N: A teacher teach many classes
     teach_classes = relationship('Class', secondary='teacher_class', back_populates='teachers')  # done
     # 1 - N: A teacher enter scores for many scoreboards
@@ -152,7 +157,8 @@ class Class(BaseModel):
     name = Column(String(20), nullable=False, unique=True)
     grade_level_id = Column(Integer, ForeignKey('grade_level.id'), nullable=False)
     # Number of students (Sĩ số)
-    student_numbers = Column(Integer, nullable=False)
+    student_numbers = Column(Integer, nullable=True)
+
 
     grade_level = relationship('GradeLevel', back_populates='classes')  # done
     # this class is homeroom_ed by this teacher ;)
@@ -245,10 +251,10 @@ class SchoolYear(BaseModel):
 # Mon hoc
 class Subject(BaseModel):
     name = Column(String(50), unique=True, nullable=False)
-    creator_admin_id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=False)
-    admin_creator = relationship('Administrator', back_populates='create_subject')  # done
+    # creator_admin_id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=False)
+    # admin_creator = relationship('Administrator', back_populates='create_subject')  # done
     # N - N
-    teachers = relationship('Teacher', secondary='teacher_subject', back_populates='subjects')  # done
+    teachers = relationship('Teacher', back_populates='subject')  # done
     # 1 - N: A subject has many scoreboards
     score_boards = relationship('ScoreBoard', back_populates='subject') # done
 
@@ -262,6 +268,10 @@ class Semester(BaseModel):
     school_year = relationship('SchoolYear', back_populates='semesters') # done
     # 1 - N: A semester has many scoreboard
     score_boards = relationship('ScoreBoard', back_populates='semester') # done
+
+
+
+
 
 
 if __name__ == '__main__':
