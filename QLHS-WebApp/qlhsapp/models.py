@@ -1,12 +1,11 @@
-import hashlib
+
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
 from qlhsapp import db, app
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
-from datetime import datetime, date
-from faker import Faker
-from random import choice, randint
+from datetime import datetime
+
 
 
 

@@ -5,6 +5,7 @@ from qlhsapp import app,db
 import dao
 
 
+
 @app.route("/")
 def get_home_page():
     return render_template('admin/index.html')
@@ -25,6 +26,7 @@ def find_student_page():
 @app.route("/add-student")
 def add_student_page():
     return render_template('admin/add-student.html')
+
 
 # Phân lớp học sinh
 @app.route("/set-class")
@@ -124,6 +126,22 @@ def list_class():
     return render_template('admin/class.html')
 
 
+@app.route("/list-user")
+def list_user():
+    return render_template('admin/list-user.html')
+
+
+@app.route("/subject-summary-score")
+def subject_summary_score():
+    return render_template('admin/subject-summary.html')
+
+
+@app.route("/class-summary-score")
+def class_summary_score():
+    return render_template('admin/class-summary.html')
+
+
 if __name__ == '__main__':
     from qlhsapp.admin import *
+
     app.run(debug=True)
