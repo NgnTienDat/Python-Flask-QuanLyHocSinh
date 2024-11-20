@@ -1,0 +1,176 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+
+
+    h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        color: #333;
+    }
+
+    .select-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .col {
+        flex: 1;
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        background-color: #fff;
+        appearance: none;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+        .actions {
+    width: 100%;
+    text-align: right; /* Căn nút sang bên phải */
+    margin-top: 20px;
+}
+    .score-table-container {
+        margin-top: 20px;
+    }
+
+    .score-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .score-table th,
+    .score-table td {
+        padding: 10px;
+        text-align: center;
+        border: 1px solid #ddd;
+    }
+
+    .score-table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+
+    .score-table tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="">Báo cáo</a></li>
+                <li class="breadcrumb-item"><a href="/find-student">Báo cáo tổng kết theo môn</a></li>
+            </ol>
+        </nav>
+        <div class="container">
+            <h2>Báo cáo tổng kết theo môn</h2>
+
+            <!-- Hàng chọn thông tin -->
+            <div class="row select-row">
+                <div class="col">
+                    <label for="subject-select">Môn học</label>
+                    <select id="subject-select" class="form-control">
+                        <option value="math">Toán</option>
+                        <option value="literature">Văn</option>
+                        <option value="physics">Lý</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="class-select">Lớp</label>
+                    <select id="class-select" class="form-control">
+                        <option value="10a1">10A1</option>
+                        <option value="10a2">10A2</option>
+                        <option value="10a3">10A3</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="semester-select">Học kỳ</label>
+                    <select id="semester-select" class="form-control">
+                        <option value="1">Học kỳ 1</option>
+                        <option value="2">Học kỳ 2</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="school-year-select">Niên khóa</label>
+                    <select id="school-year-select" class="form-control">
+                        <option value="2023-2024">2023-2024</option>
+                        <option value="2024-2025">2024-2025</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Hàng các nút chức năng -->
+            <div class="actions">
+                <button id="export-excel-btn">Xem dạng bảng</button>
+                <button id="export-pdf-btn">Xem dạng biểu đồ</button>
+            </div>
+
+            <!-- Bảng hiển thị dữ liệu -->
+            <div id="score-table-container" class="score-table-container">
+                    <table class="score-table">
+                        <thead>
+                        <tr>
+                            <th>Mã Lớp</th>
+                            <th>Tên Lớp</th>
+                            <th>Sĩ Số</th>
+                            <th>Số Lượng Đạt</th>
+                            <th>Tỉ Lệ (%)</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>10A1</td>
+                            <td>Lớp 10A1</td>
+                            <td>45</td>
+                            <td>40</td>
+                            <td>88.89</td>
+                        </tr>
+                        <tr>
+                            <td>10A2</td>
+                            <td>Lớp 10A2</td>
+                            <td>50</td>
+                            <td>42</td>
+                            <td>84.00</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
