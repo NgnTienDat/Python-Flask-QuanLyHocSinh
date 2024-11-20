@@ -1,0 +1,66 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+
+    }
+    .container {
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 10px;
+        display: inline-block;
+        background-color: #f9f9f9;
+        width: 500px;
+        text-align: center;
+    }
+    .display {
+        font-size: 24px;
+        font-weight: bold;
+        border: 1px solid #ccc;
+        padding: 30px;
+        width: 100px;
+        margin: 20px auto;
+        background-color: #eee;
+        text-align: center;
+    }
+
+    .button-container {
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
+                <li class="breadcrumb-item"><a href="/find-student">Quy định số học sinh</a></li>
+            </ol>
+        </nav>
+        <h3>Sĩ số học sinh tối đa trong một lớp học</h3>
+        <div class="container">
+            <div class="display">40</div>
+            <button>Thay đổi</button>
+            <button>Lưu</button>
+        </div>
+
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+
+

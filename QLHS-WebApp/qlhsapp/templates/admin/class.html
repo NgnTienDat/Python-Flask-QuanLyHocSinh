@@ -1,0 +1,129 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f6f9;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    table th, table td {
+        text-align: left;
+        padding: 12px;
+        border: 1px solid #ddd;
+    }
+
+    table th {
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+    }
+
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+    .button-group {
+    width: 100%;
+    text-align: right; /* Căn nút sang bên phải */
+    margin-top: 20px;
+}
+
+
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+
+
+            </ol>
+        </nav>
+        <div class="container">
+            <h1>Danh Sách Lớp Học</h1>
+            <table>
+                <thead>
+                <tr>
+                    <th>Mã Lớp</th>
+                    <th>Tên Lớp</th>
+                    <th>Giáo Viên Chủ Nhiệm</th>
+                    <th>Số Lượng Học Sinh</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>10A1</td>
+                    <td>Lớp 10A1</td>
+                    <td>Nguyễn Văn A</td>
+                    <td>45</td>
+                </tr>
+                <tr>
+                    <td>10A2</td>
+                    <td>Lớp 10A2</td>
+                    <td>Trần Thị B</td>
+                    <td>42</td>
+                </tr>
+                <tr>
+                    <td>11B1</td>
+                    <td>Lớp 11B1</td>
+                    <td>Phạm Văn C</td>
+                    <td>40</td>
+                </tr>
+                <tr>
+                    <td>12C1</td>
+                    <td>Lớp 12C1</td>
+                    <td>Hoàng Thị D</td>
+                    <td>38</td>
+                </tr>
+                </tbody>
+            </table>
+             <!-- Nút lưu -->
+            <div class="button-group">
+                <button>Thêm</button>
+                <button> Cập nhật</button>
+
+            </div>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
