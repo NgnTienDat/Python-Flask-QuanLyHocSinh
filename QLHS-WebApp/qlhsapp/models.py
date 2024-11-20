@@ -1,11 +1,12 @@
-
-
+import hashlib
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
 from qlhsapp import db, app
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
-from datetime import datetime
+from datetime import datetime, date
+from faker import Faker
+from random import choice, randint
 
 
 
@@ -22,9 +23,9 @@ class UserRole(PyEnum):
 
 # Loai diem
 class ScoreType(PyEnum):
-    FIFTEEN = 1  # 15p
-    FORTY_FIVE = 2  # 45p
-    END_TERM = 3  # Cuoi ky
+    FIFTEEN = '15PHUT'
+    FORTY_FIVE = '45PHUT'
+    END_TERM = 'CUOIKY'
 
 
 # Gioi tinh
@@ -46,7 +47,7 @@ class User(BaseModel):
     address = Column(String(255))
     avatar = Column(String(255))
     # Create by Administrator's id
-    create_by_Id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=False)
+    create_by_Id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=True)
 
     # OneToOne, uselist=False: Chi dinh moi quan he 1-1
     account = relationship('Account', back_populates='user', uselist=False)  # done
@@ -91,8 +92,10 @@ class Administrator(db.Model):
     user = relationship('User', back_populates='administrator', uselist=False, foreign_keys=[admin_id])  # done
     # 1 - N: An admin manages many users
     manage_users = relationship('User', back_populates='admin_creator', foreign_keys='User.create_by_Id')  # done
-    # 1 - N: An admin manages many subjects
-    create_subject = relationship('Subject', back_populates='admin_creator')  # done
+
+    # # 1 - N: An admin manages many subjects
+    # create_subject = relationship('Subject', back_populates='admin_creator')  # done
+
 
 
 student_class = db.Table('student_class',
@@ -107,12 +110,6 @@ teacher_class = db.Table('teacher_class',
                          Column('class_id', Integer, ForeignKey('class.id'))
                          )
 
-# Teacher_Subject, Many-To-Many
-teacher_subject = db.Table('teacher_subject',
-                           Column('id', Integer, primary_key=True, autoincrement=True),
-                           Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
-                           Column('subject_id', Integer, ForeignKey('subject.id'))
-                           )
 
 
 staff_class = db.Table('staff_class',
@@ -124,24 +121,22 @@ staff_class = db.Table('staff_class',
                        )
 
 
-# # Staff_Class, Many-To-Many
-# class StaffClass(BaseModel):
-#     staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
-#     class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
-#     date_time = Column(DateTime, default=datetime.now())
-#     action = Column(Enum(Action), nullable=False)
+
 
 
 # Giao vien
 class Teacher(db.Model):
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+
+    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
+
     # 1 - 1: teacher homeroom
     homeroom_class = relationship('Class', back_populates='homeroom_teacher', uselist=False,
                                   foreign_keys='Class.homeroom_teacher_id')  # done
     # 1 - 1: An user can be a teacher
     user = relationship('User', back_populates='teacher', uselist=False)  # done
     # N - N: A teacher teach many subjects
-    subjects = relationship('Subject', secondary='teacher_subject', back_populates='teachers')  # done
+    subject = relationship('Subject', back_populates='teachers')  # done
     # N - N: A teacher teach many classes
     teach_classes = relationship('Class', secondary='teacher_class', back_populates='teachers')  # done
     # 1 - N: A teacher enter scores for many scoreboards
@@ -152,7 +147,8 @@ class Class(BaseModel):
     name = Column(String(20), nullable=False, unique=True)
     grade_level_id = Column(Integer, ForeignKey('grade_level.id'), nullable=False)
     # Number of students (Sĩ số)
-    student_numbers = Column(Integer, nullable=False)
+    student_numbers = Column(Integer, nullable=True)
+
 
     grade_level = relationship('GradeLevel', back_populates='classes')  # done
     # this class is homeroom_ed by this teacher ;)
@@ -245,10 +241,10 @@ class SchoolYear(BaseModel):
 # Mon hoc
 class Subject(BaseModel):
     name = Column(String(50), unique=True, nullable=False)
-    creator_admin_id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=False)
-    admin_creator = relationship('Administrator', back_populates='create_subject')  # done
+    # creator_admin_id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=False)
+    # admin_creator = relationship('Administrator', back_populates='create_subject')  # done
     # N - N
-    teachers = relationship('Teacher', secondary='teacher_subject', back_populates='subjects')  # done
+    teachers = relationship('Teacher', back_populates='subject')  # done
     # 1 - N: A subject has many scoreboards
     score_boards = relationship('ScoreBoard', back_populates='subject') # done
 
@@ -264,6 +260,173 @@ class Semester(BaseModel):
     score_boards = relationship('ScoreBoard', back_populates='semester') # done
 
 
+
+def create_user_data(session):
+    admin_user = User(
+        first_name="Admin",
+        last_name="System",
+        email="admin@school.edu",
+        phone_number="0123456789",
+        address="123 Admin Street",
+        avatar="avatar"
+    )
+    session.add(admin_user)
+    session.flush()
+    admin_account = Account(
+        account_id=admin_user.id,
+        username="admin",
+        password=str(hashlib.md5("123".strip().encode('utf-8')).hexdigest()),
+        role=UserRole.ADMIN,
+        created_date=datetime.now(),
+        active=True
+    )
+    session.add(admin_account)
+
+    # Create Administrator record
+    administrator = Administrator(
+        admin_id=admin_user.id
+    )
+    session.add(administrator)
+
+    # Now we can create other users with admin as creator
+
+    # 2. Create Staff
+    staff_user = User(
+        first_name="Staff",
+        last_name="Member",
+        email="staff@school.edu",
+        phone_number="0987654321",
+        address="456 Staff Avenue",
+        avatar="avatar",
+        create_by_Id=administrator.admin_id
+    )
+    session.add(staff_user)
+    session.flush()
+
+    staff_account = Account(
+        account_id=staff_user.id,
+        username="staff",
+        password=str(hashlib.md5("123".strip().encode('utf-8')).hexdigest()),
+        role=UserRole.STAFF,
+        created_date=datetime.now(),
+        active=True
+    )
+    session.add(staff_account)
+
+    staff = Staff(
+        staff_id=staff_user.id
+    )
+    session.add(staff)
+
+    # 3. Create Teacher
+    teacher_user = User(
+        first_name="Teacher",
+        last_name="Smith",
+        email="teacher@school.edu",
+        phone_number="0555555555",
+        address="789 Teacher Road",
+        avatar="avatar",
+        create_by_Id=administrator.admin_id
+    )
+    session.add(teacher_user)
+    session.flush()
+
+    teacher_account = Account(
+        account_id=teacher_user.id,
+        username="teacher",
+        password=str(hashlib.md5("123".strip().encode('utf-8')).hexdigest()),
+        role=UserRole.TEACHER,
+        created_date=datetime.now(),
+        active=True
+    )
+    session.add(teacher_account)
+
+    teacher = Teacher(
+        teacher_id=teacher_user.id
+    )
+    session.add(teacher)
+
+    # Commit all changes
+    try:
+        session.commit()
+        print("Sample data created successfully!")
+    except Exception as e:
+        session.rollback()
+        print(f"Error creating sample data: {str(e)}")
+        raise
+
+
+def generate_students_to_db(session):
+    fake = Faker('en_US')  # Tạo dữ liệu giả lập bằng tiếng Anh
+    students = []
+
+    for _ in range(10):  # Tạo 10 nam
+        student = Student(
+            name=fake.name_male(),
+            address=fake.address(),
+            email=fake.email(),
+            gender=GenderEnum.MALE,
+            phone_number=f'0{randint(100000000, 999999999)}',
+            date_of_birth=fake.date_of_birth(minimum_age=15, maximum_age=18),
+            staff_id=5
+        )
+        students.append(student)
+
+    for _ in range(10):  # Tạo 10 nữ
+        student = Student(
+            name=fake.name_female(),
+            address=fake.address(),
+            email=fake.email(),
+            gender=GenderEnum.FEMALE,
+            phone_number=f'0{randint(100000000, 999999999)}',
+            date_of_birth=fake.date_of_birth(minimum_age=15, maximum_age=18),
+            staff_id=5
+        )
+        students.append(student)
+
+    # Thêm tất cả các đối tượng vào session SQLAlchemy
+    session.add_all(students)
+    session.commit()  # Lưu thay đổi vào cơ sở dữ liệu
+    print(f"Đã thêm {len(students)} học sinh vào cơ sở dữ liệu.")
+
+
+def create_students(session):
+    # Danh sách các học sinh
+    students = []
+
+    # Tạo 10 học sinh nam
+    for i in range(10):
+        student = Student(
+            name=f"Nguyễn Văn Nam {i + 1}",
+            address="Hồ Chí Minh",
+            email=f"nam{i + 1}@example.com",
+            gender=GenderEnum.MALE,
+            phone_number=f"090{randint(1000000, 9999999)}",
+            date_of_birth=date(2009, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
+            staff_id=5
+        )
+        students.append(student)
+
+    # Tạo 10 học sinh nữ
+    for i in range(10):
+        student = Student(
+            name=f"Hà Kiều Nữ {i + 1}",
+            address="Hồ Chí Minh",
+            email=f"nu{i + 1}@example.com",
+            gender=GenderEnum.FEMALE,
+            phone_number=f"091{randint(1000000, 9999999)}",
+            date_of_birth=date(2009, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
+            staff_id=5
+        )
+        students.append(student)
+
+    # Thêm danh sách vào session
+    session.add_all(students)
+    session.commit()
+    print("Đã thêm 20 học sinh vào cơ sở dữ liệu.")
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        # create_students(db.session)
