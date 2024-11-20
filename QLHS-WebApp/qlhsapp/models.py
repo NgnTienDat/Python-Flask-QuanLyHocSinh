@@ -22,9 +22,9 @@ class UserRole(PyEnum):
 
 # Loai diem
 class ScoreType(PyEnum):
-    FIFTEEN = 1  # 15p
-    FORTY_FIVE = 2  # 45p
-    END_TERM = 3  # Cuoi ky
+    FIFTEEN = '15 phút'  # 15p
+    FORTY_FIVE = '45 phút'  # 45p
+    END_TERM = 'Cuối Kỳ'  # Cuoi ky
 
 
 # Gioi tinh
