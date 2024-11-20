@@ -9,6 +9,7 @@ from faker import Faker
 from random import choice, randint
 
 
+
 class BaseModel(db.Model):
     __abstract__ = True
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -91,8 +92,10 @@ class Administrator(db.Model):
     user = relationship('User', back_populates='administrator', uselist=False, foreign_keys=[admin_id])  # done
     # 1 - N: An admin manages many users
     manage_users = relationship('User', back_populates='admin_creator', foreign_keys='User.create_by_Id')  # done
+
     # # 1 - N: An admin manages many subjects
     # create_subject = relationship('Subject', back_populates='admin_creator')  # done
+
 
 
 student_class = db.Table('student_class',
@@ -120,10 +123,13 @@ staff_class = db.Table('staff_class',
 
 
 
+
 # Giao vien
 class Teacher(db.Model):
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+
     subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
+
     # 1 - 1: teacher homeroom
     homeroom_class = relationship('Class', back_populates='homeroom_teacher', uselist=False,
                                   foreign_keys='Class.homeroom_teacher_id')  # done
@@ -142,6 +148,7 @@ class Class(BaseModel):
     grade_level_id = Column(Integer, ForeignKey('grade_level.id'), nullable=False)
     # Number of students (Sĩ số)
     student_numbers = Column(Integer, nullable=True)
+
 
     grade_level = relationship('GradeLevel', back_populates='classes')  # done
     # this class is homeroom_ed by this teacher ;)
@@ -251,6 +258,7 @@ class Semester(BaseModel):
     school_year = relationship('SchoolYear', back_populates='semesters') # done
     # 1 - N: A semester has many scoreboard
     score_boards = relationship('ScoreBoard', back_populates='semester') # done
+
 
 
 def create_user_data(session):
