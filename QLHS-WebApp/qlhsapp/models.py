@@ -230,7 +230,7 @@ class ScoreRegulation(BaseModel):
     score_quantity = Column(Integer, nullable=False)
     # Hệ số
     coefficient = Column(Integer, nullable=False)
-
+    score_type = relationship('ScoreType', backref='score_regulations')
 
 # Quy dinh
 class Regulation(BaseModel):
