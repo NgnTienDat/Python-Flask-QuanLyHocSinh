@@ -27,6 +27,7 @@ def find_student_page():
 def add_student_page():
     return render_template('admin/add-student.html')
 
+
 # Phân lớp học sinh
 @app.route("/set-class")
 def set_class_page():
@@ -81,6 +82,16 @@ def list_class():
 @app.route("/list-user")
 def list_user():
     return render_template('admin/list-user.html')
+
+
+@app.route("/subject-summary-score")
+def subject_summary_score():
+    return render_template('admin/subject-summary.html')
+
+
+@app.route("/class-summary-score")
+def class_summary_score():
+    return render_template('admin/class-summary.html')
 
 
 if __name__ == '__main__':
