@@ -1,12 +1,11 @@
-import hashlib
+
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
 from qlhsapp import db, app
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
-from datetime import datetime, date
-from faker import Faker
-from random import choice, randint
+from datetime import datetime
+
 
 
 
@@ -230,7 +229,7 @@ class ScoreRegulation(BaseModel):
     score_quantity = Column(Integer, nullable=False)
     # Hệ số
     coefficient = Column(Integer, nullable=False)
-
+    score_type = relationship('ScoreType', backref='score_regulations')
 
 # Quy dinh
 class Regulation(BaseModel):

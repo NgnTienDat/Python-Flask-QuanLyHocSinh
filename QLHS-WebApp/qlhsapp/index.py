@@ -1,9 +1,9 @@
-from flask import render_template
-from qlhsapp import app
+
+from flask import render_template, request, url_for, redirect
+from qlhsapp.models import ScoreRegulation, ScoreType
+from qlhsapp import app,db
 import dao
 
-
-# Index là Controller: Định tuyến các action
 
 
 @app.route("/")
@@ -35,9 +35,56 @@ def set_class_page():
 
 
 # Quy định số cột điểm
-@app.route("/score-regulation")
+@app.route("/score-regulation", methods=['get', 'post'])
 def score_regulations_page():
-    return render_template('admin/score.html')
+    # Update score regulation changes
+    if request.method.__eq__('POST'):
+        scores_update = []
+        for index in range(1, len(request.form)//3+1):  # chia nguyen de lay so dong, vi du 9 o input thi 9//3=3 dong, lap tung dong
+            score_type = request.form.get(f'score_type_{index}')
+            score_quantity = request.form.get(f'score_quantity_{index}')
+            coefficient = request.form.get(f'coefficient_{index}')
+
+            scores_update.append({
+                'score_type':score_type,
+                'score_quantity':score_quantity,
+                'coefficient':coefficient
+            })
+
+        for data in scores_update:
+            score_type = data['score_type'] # chỉ gửi lên chuỗi ví dụ '15 phút'
+            score_quantity=data['score_quantity']
+            coefficient=data['coefficient']
+
+            st = ScoreType.query.filter_by(name=score_type).first()
+
+            print(st.id)   # tại sao không có dòng này thì lại báo lỗi NoneType st.id nhỉ??????
+            score_id = st.id
+            # trong ScoreRegulation chỉ có trường score_type_id nên phải tìm đối tượng qua score_type để lấy id
+            score_regulation = ScoreRegulation.query.filter_by(score_type_id=score_id).first()
+            if score_regulation: #Thay thi cap nhat
+                score_regulation.score_quantity = int(score_quantity)
+                score_regulation.coefficient = int(coefficient)
+
+                db.session.commit()
+
+        return redirect(url_for('score_regulations_page'))
+
+    score_regulation = dao.load_score_regulation()
+    return render_template('admin/score.html', score_regulation=score_regulation)
+
+
+
+@app.route("/add-new-score-type", methods=['get', 'post'])
+def new_score_regulation():
+    # score_type = request.form.get('scoreType')
+    # score_quantity = request.form.get('scoreQuantity')
+    # coefficient = request.form.get('coefficient')
+    #
+    # dao.add_score_regulation(score_type, int(score_quantity), int(coefficient))
+    return render_template('admin/new-score-regulation.html')
+
+
 
 
 # Quy định số học sinh

@@ -1,0 +1,66 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    th {
+        background-color: #f4f4f4;
+    }
+
+    .button-container {
+        margin-top: 10px;
+        text-align: right; /* Căn nút sang bên phải */
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
+                <li class="breadcrumb-item"><a href="/find-student">Quy định số cột điểm</a></li>
+            </ol>
+        </nav>
+        <h3>Quy định cột điểm</h3>
+                <form action="" method="get">
+        <form action="{{ url_for('new_score_regulation') }}" method="post">
+
+        </form>
+
+        <div class="button-container">
+
+            <button type="submit" id="save-button">Lưu</button>
+        </div>
+    </div>
+</div>
+
+{% block js %}
+
+{% endblock %}
+
+{% endblock %}
+
+
+
+
