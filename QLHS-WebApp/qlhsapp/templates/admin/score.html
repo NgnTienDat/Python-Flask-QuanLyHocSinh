@@ -3,29 +3,29 @@
 
 {% block css %}
 <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    th {
+        background-color: #f4f4f4;
+    }
 
-        .button-container {
-            margin-top: 10px;
-            text-align: right; /* Căn nút sang bên phải */
-        }
-    </style>
+    .button-container {
+        margin-top: 10px;
+        text-align: right; /* Căn nút sang bên phải */
+    }
+</style>
 {% endblock %}
 
 {% block sidebar %}
@@ -43,44 +43,73 @@
             </ol>
         </nav>
         <h3>Quy định cột điểm</h3>
-        <table>
-            <thead>
-            <tr>
-                <th>Loại điểm</th>
-                <th>Số cột</th>
-                <th>Hệ số</th>
-            </tr>
-            </thead>
-            <tbody id="score-table-body">
-            <!-- Dữ liệu mẫu -->
+        <!-- Form -->
+        <form action="{{ url_for('score_regulations_page') }}" method="post">
+            <table>
+                <thead>
+                <tr>
+                    <th>Loại điểm</th>
+                    <th>Số cột</th>
+                    <th>Hệ số</th>
+                </tr>
+                </thead>
+                <tbody id="score-table-body">
+                {% for s in score_regulation %}
+                <tr>
+                    <td>
+                        <input type="text" value="{{ s.score_type.name }}" name="score_type_{{ loop.index }}" readonly>
+                    </td>
+                    <td>
+                        <input type="number" value="{{ s.score_quantity }}" class="edit-input"
+                               name="score_quantity_{{ loop.index }}" readonly>
+                    </td>
+                    <td>
+                        <input type="number" value="{{ s.coefficient }}" class="edit-input"
+                               name="coefficient_{{ loop.index }}" readonly>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
 
-            <tr>
-                <td>15 phút</td>
-                <td>3</td>
-                <td>1</td>
-            </tr>
-            <tr>
-                <td>45 phút</td>
-                <td>2</td>
-                <td>2</td>
-            </tr>
-            <tr>
-                <td>Điểm học kỳ</td>
-                <td>1</td>
-                <td>3</td>
-            </tr>
-            </tbody>
-        </table>
-        <div class="button-container">
-            <button>Thay đổi</button>
-            <button>Thêm mới</button>
-            <button>Lưu</button>
-        </div>
-
+            <div class="button-container">
+                <!-- Nút sửa và lưu -->
+                <button id="edit-button" type="button">Thay đổi</button>
+                <button type="submit" id="save-button" style="display:none;">Lưu</button>
+                <!-- Nút thêm mới -->
+                <button id="add-button">
+                    <a href="{{ url_for('new_score_regulation') }}" style="text-decoration: none; color: white;">
+                        Thêm mới
+                    </a>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+
+{% block js %}
+<script>
+    // Kích hoạt chế độ chỉnh sửa
+    document.getElementById("edit-button").addEventListener("click", function() {
+        // Bật chế độ chỉnh sửa cho các ô input
+        const inputs = document.querySelectorAll(".edit-input");
+        inputs.forEach(input => {
+            input.readOnly = false; // Cho phép chỉnh sửa
+        });
+
+        // Hiển thị nút Lưu và ẩn nút Thay đổi
+        document.getElementById("edit-button").style.display = "none";
+        document.getElementById("save-button").style.display = "inline";
+    });
+
+    // Sau khi submit form, các ô input sẽ trở lại chế độ chỉ đọc
+    document.getElementById("save-button").addEventListener("click", function() {
+        const inputs = document.querySelectorAll("#score-table-body input");
+        inputs.forEach(input => {
+            input.readOnly = true;
+        });
+    });
+</script>
 {% endblock %}
 
-
-
-
+{% endblock %}
