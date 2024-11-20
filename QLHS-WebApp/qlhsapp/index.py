@@ -2,6 +2,7 @@ from flask import render_template
 from qlhsapp import app
 import dao
 
+
 # Index là Controller: Định tuyến các action
 
 
@@ -78,6 +79,12 @@ def list_class():
     return render_template('admin/class.html')
 
 
+@app.route("/list-user")
+def list_user():
+    return render_template('admin/list-user.html')
+
+
 if __name__ == '__main__':
     from qlhsapp.admin import *
+
     app.run(debug=True)
