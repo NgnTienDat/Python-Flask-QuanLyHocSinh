@@ -20,24 +20,34 @@ class UserRole(PyEnum):
     STAFF = 'STAFF'
     TEACHER = 'TEACHER'
 
+    def __str__(self):
+        return self.value
 
 # Loai diem
 class ScoreType(PyEnum):
-    FIFTEEN = '15PHUT'
-    FORTY_FIVE = '45PHUT'
-    END_TERM = 'CUOIKY'
+    FIFTEEN = '15 phút'
+    FORTY_FIVE = '45 phút'
+    END_TERM = 'Cuối kỳ'
+
+    def __str__(self):
+        return self.value
 
 
 # Gioi tinh
 class GenderEnum(PyEnum):
-    MALE = "MALE"
-    FEMALE = "FEMALE"
+    MALE = "Nam"
+    FEMALE = "Nữ"
+
+    def __str__(self):
+        return self.value
 
 
 class Action(PyEnum):
     CREATE = 'CREATE'
     EDIT = 'EDIT'
 
+    def __str__(self):
+        return self.value
 
 class User(BaseModel):
     first_name = Column(String(20), nullable=False)
@@ -261,172 +271,9 @@ class Semester(BaseModel):
 
 
 
-def create_user_data(session):
-    admin_user = User(
-        first_name="Admin",
-        last_name="System",
-        email="admin@school.edu",
-        phone_number="0123456789",
-        address="123 Admin Street",
-        avatar="avatar"
-    )
-    session.add(admin_user)
-    session.flush()
-    admin_account = Account(
-        account_id=admin_user.id,
-        username="admin",
-        password=str(hashlib.md5("123".strip().encode('utf-8')).hexdigest()),
-        role=UserRole.ADMIN,
-        created_date=datetime.now(),
-        active=True
-    )
-    session.add(admin_account)
 
-    # Create Administrator record
-    administrator = Administrator(
-        admin_id=admin_user.id
-    )
-    session.add(administrator)
-
-    # Now we can create other users with admin as creator
-
-    # 2. Create Staff
-    staff_user = User(
-        first_name="Staff",
-        last_name="Member",
-        email="staff@school.edu",
-        phone_number="0987654321",
-        address="456 Staff Avenue",
-        avatar="avatar",
-        create_by_Id=administrator.admin_id
-    )
-    session.add(staff_user)
-    session.flush()
-
-    staff_account = Account(
-        account_id=staff_user.id,
-        username="staff",
-        password=str(hashlib.md5("123".strip().encode('utf-8')).hexdigest()),
-        role=UserRole.STAFF,
-        created_date=datetime.now(),
-        active=True
-    )
-    session.add(staff_account)
-
-    staff = Staff(
-        staff_id=staff_user.id
-    )
-    session.add(staff)
-
-    # 3. Create Teacher
-    teacher_user = User(
-        first_name="Teacher",
-        last_name="Smith",
-        email="teacher@school.edu",
-        phone_number="0555555555",
-        address="789 Teacher Road",
-        avatar="avatar",
-        create_by_Id=administrator.admin_id
-    )
-    session.add(teacher_user)
-    session.flush()
-
-    teacher_account = Account(
-        account_id=teacher_user.id,
-        username="teacher",
-        password=str(hashlib.md5("123".strip().encode('utf-8')).hexdigest()),
-        role=UserRole.TEACHER,
-        created_date=datetime.now(),
-        active=True
-    )
-    session.add(teacher_account)
-
-    teacher = Teacher(
-        teacher_id=teacher_user.id
-    )
-    session.add(teacher)
-
-    # Commit all changes
-    try:
-        session.commit()
-        print("Sample data created successfully!")
-    except Exception as e:
-        session.rollback()
-        print(f"Error creating sample data: {str(e)}")
-        raise
-
-
-def generate_students_to_db(session):
-    fake = Faker('en_US')  # Tạo dữ liệu giả lập bằng tiếng Anh
-    students = []
-
-    for _ in range(10):  # Tạo 10 nam
-        student = Student(
-            name=fake.name_male(),
-            address=fake.address(),
-            email=fake.email(),
-            gender=GenderEnum.MALE,
-            phone_number=f'0{randint(100000000, 999999999)}',
-            date_of_birth=fake.date_of_birth(minimum_age=15, maximum_age=18),
-            staff_id=5
-        )
-        students.append(student)
-
-    for _ in range(10):  # Tạo 10 nữ
-        student = Student(
-            name=fake.name_female(),
-            address=fake.address(),
-            email=fake.email(),
-            gender=GenderEnum.FEMALE,
-            phone_number=f'0{randint(100000000, 999999999)}',
-            date_of_birth=fake.date_of_birth(minimum_age=15, maximum_age=18),
-            staff_id=5
-        )
-        students.append(student)
-
-    # Thêm tất cả các đối tượng vào session SQLAlchemy
-    session.add_all(students)
-    session.commit()  # Lưu thay đổi vào cơ sở dữ liệu
-    print(f"Đã thêm {len(students)} học sinh vào cơ sở dữ liệu.")
-
-
-def create_students(session):
-    # Danh sách các học sinh
-    students = []
-
-    # Tạo 10 học sinh nam
-    for i in range(10):
-        student = Student(
-            name=f"Nguyễn Văn Nam {i + 1}",
-            address="Hồ Chí Minh",
-            email=f"nam{i + 1}@example.com",
-            gender=GenderEnum.MALE,
-            phone_number=f"090{randint(1000000, 9999999)}",
-            date_of_birth=date(2009, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
-            staff_id=5
-        )
-        students.append(student)
-
-    # Tạo 10 học sinh nữ
-    for i in range(10):
-        student = Student(
-            name=f"Hà Kiều Nữ {i + 1}",
-            address="Hồ Chí Minh",
-            email=f"nu{i + 1}@example.com",
-            gender=GenderEnum.FEMALE,
-            phone_number=f"091{randint(1000000, 9999999)}",
-            date_of_birth=date(2009, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
-            staff_id=5
-        )
-        students.append(student)
-
-    # Thêm danh sách vào session
-    session.add_all(students)
-    session.commit()
-    print("Đã thêm 20 học sinh vào cơ sở dữ liệu.")
 
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        # create_students(db.session)
