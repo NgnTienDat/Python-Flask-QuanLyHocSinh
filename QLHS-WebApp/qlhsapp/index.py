@@ -1,6 +1,6 @@
 from flask import render_template
 from qlhsapp import app
-
+import dao
 
 # Index là Controller: Định tuyến các action
 
@@ -15,7 +15,7 @@ def get_login_page():
     return render_template('login.html')
 
 
-# Trung code: Tra cuu hoc sinhh
+# Trung code: Tra cuu hoc sinh
 @app.route("/find-student")
 def find_student_page():
     return render_template('admin/find-student.html')
@@ -79,4 +79,5 @@ def list_class():
 
 
 if __name__ == '__main__':
+    from qlhsapp.admin import *
     app.run(debug=True)
