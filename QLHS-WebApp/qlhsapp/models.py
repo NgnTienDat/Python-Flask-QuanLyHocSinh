@@ -24,13 +24,11 @@ class UserRole(PyEnum):
         return self.value
 
 # Loai diem
-class ScoreType(PyEnum):
-    FIFTEEN = '15 phút'
-    FORTY_FIVE = '45 phút'
-    END_TERM = 'Cuối kỳ'
+class ScoreType(BaseModel):
+    name = Column(String(30), nullable=False, unique=True)
 
     def __str__(self):
-        return self.value
+        return self.name
 
 
 # Gioi tinh
@@ -219,7 +217,7 @@ class ScoreBoard(BaseModel):
 
 # Diem
 class Score(BaseModel):
-    score_type = Column(Enum(ScoreType), nullable=False)
+    score_type = Column(Integer, ForeignKey('score_type.id'), nullable=False)
     score_value = Column(Float, nullable=False)
     score_board_id = Column(Integer, ForeignKey('score_board.id'), nullable=False)
     # 1 - N: A score belongs to one scoreboard
@@ -228,7 +226,7 @@ class Score(BaseModel):
 
 # Cau hinh so cot diem
 class ScoreRegulation(BaseModel):
-    score_type = Column(Enum(ScoreType), nullable=False)
+    score_type_id = Column(Integer, ForeignKey('score_type.id'), nullable=False)
     score_quantity = Column(Integer, nullable=False)
     # Hệ số
     coefficient = Column(Integer, nullable=False)
