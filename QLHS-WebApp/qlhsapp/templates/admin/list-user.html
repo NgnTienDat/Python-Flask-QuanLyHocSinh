@@ -1,8 +1,30 @@
 {% extends 'layout/base.html'%}
-{% block title %} Trang chủ {% endblock %}
+{% block title %} Danh sách Người Dùng {% endblock %}
 
 {% block css %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
 
+    table th, table td {
+        text-align: left;
+        padding: 12px;
+        border: 1px solid #ddd;
+    }
+
+    table th {
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+    }
+
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
 {% endblock %}
 
 {% block sidebar %}
@@ -16,10 +38,65 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
-                <li class="breadcrumb-item"><a href="/find-student">Quy định số cột điểm</a></li>
+                <li class="breadcrumb-item"><a href="/find-student">Quản lý người dùng</a></li>
             </ol>
         </nav>
-        <h3>Danh sach nguoi dung</h3>
+        <div class="container">
+            <h1>Danh Sách Người Dùng</h1>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Họ Tên</th>
+                    <th>Email</th>
+                    <th>Số Điện Thoại</th>
+                    <th>Địa Chỉ</th>
+                    <th>Thao Tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Nguyễn Văn A</td>
+                    <td>nguyenvana@example.com</td>
+                    <td>0123456789</td>
+                    <td>123 Đường ABC, TP. HCM</td>
+                    <td>
+                        <div class="button-group">
+                            <a href="#">
+                                <button>Cập nhật</button>
+                            </a><a href="#">
+                                <button class="btn-cancel">Xóa</button>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Trần Thị B</td>
+                    <td>tranthib@example.com</td>
+                    <td>0987654321</td>
+                    <td>456 Đường XYZ, Hà Nội</td>
+                     <td>
+                        <div class="button-group">
+                            <a href="#">
+                                <button>Cập nhật</button>
+                            </a>
+                            <a href="#">
+                                <button class="btn-cancel">Xóa</button>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Thêm các hàng khác -->
+                </tbody>
+            </table>
+            <a href="#">
+                <div class="button-group">
+                    <button>Thêm người dùng</button>
+                </div>
+            </a>
+        </div>
 
 
     </div>
