@@ -15,7 +15,7 @@ def get_login_page():
     return render_template('login.html')
 
 
-# Trung code: Tra cuu hoc sinh
+# Trung code: Tra cuu hoc sinhh
 @app.route("/find-student")
 def find_student_page():
     return render_template('admin/find-student.html')
