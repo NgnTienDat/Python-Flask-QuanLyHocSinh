@@ -1,4 +1,3 @@
-from http.client import error
 
 from flask import render_template, request, url_for, redirect, flash
 from qlhsapp.models import ScoreType, Score
@@ -87,9 +86,22 @@ def new_score_regulation():
 
     return render_template('admin/new-score-regulation.html')
 
-@app.route('/score-regulation/<int:score_type_id>')
+@app.route('/score-regulation/<int:score_type_id>', methods=['get', 'post'])
 def delete_score_type(score_type_id):
-    return render_template('admin/delete-score-type.html')
+    score = ScoreType.query.get(score_type_id)
+    if request.method == 'POST':
+
+        score = ScoreType.query.get(score_type_id)
+
+        if score:
+            db.session.delete(score)
+            db.session.commit()
+            flash('Xóa thành công!', 'success')
+        else:
+            flash('Loại điểm không tồn tại!', 'danger')
+        return redirect(url_for('score_regulations_page'))
+
+    return render_template('admin/delete-score-type.html', score=score)
 
 
 # Quy định số học sinh

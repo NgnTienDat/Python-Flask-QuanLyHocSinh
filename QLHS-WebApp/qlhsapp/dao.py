@@ -27,9 +27,13 @@ def handle_add_score_regulation(score_type, score_quantity, coefficient):
                                 coefficient=coefficient)
     db.session.add(new_score_type)
     db.session.commit()
-    flash('Lưu thành công!', 'success')
+    flash('Thêm loại điểm mới thành công!', 'success')
     return True
 
 
 def get_score_type_by_name(name):
     return ScoreType.query.filter_by(name=name).first()
+
+
+
+

@@ -58,6 +58,15 @@
                 <li class="breadcrumb-item">Quy định số cột điểm</li>
             </ol>
         </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <h3>Quy định cột điểm</h3>
         <!-- Form -->
         <form action="{{ url_for('score_regulations_page') }}" method="post">

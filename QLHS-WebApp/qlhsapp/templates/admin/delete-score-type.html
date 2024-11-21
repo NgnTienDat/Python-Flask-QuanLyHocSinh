@@ -35,45 +35,25 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
-                <li class="breadcrumb-item"><a href="">Quy định số cột điểm</a></li>
-                <li class="breadcrumb-item"><a href=""> Xóa cột điểm</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('score_regulations_page') }}">Quy định số cột điểm</a>
+                </li>
+                <li class="breadcrumb-item"> Xóa điểm</li>
             </ol>
         </nav>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
 
-        <h3>Quy định cột điểm</h3>
-        <form action="{{ url_for('new_score_regulation') }}" method="post" id="scoreForm" novalidate>
+        <h3>Xóa loại điểm</h3>
+        <div class="alert alert-danger">
+            Bạn muốn xóa loại điểm {{ score.name }}?
+        </div>
+        <form action="{{ url_for('delete_score_type', score_type_id=score.id) }}" method="post">
             <div style="max-width: 200px; margin: 0 auto;"> <!-- Tạo container để căn giữa -->
-                <div style="margin-bottom: 20px;">
-                    <label for="score_type">Loại điểm</label>
-                    <input type="text" id="score_type" class="edit-input" name="score_type" required>
-                </div>
 
-                <div style="margin-bottom: 20px;">
-                    <label for="score_quantity">Số cột điểm</label>
-                    <input type="number" id="score_quantity" class="edit-input" name="score_quantity" min="1" max="10"
-                           step="1" required>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label for="coefficient">Hệ số</label>
-                    <input type="number" id="coefficient" class="edit-input" name="coefficient" min="1" max="10"
-                           step="1" required>
-                </div>
 
                 <div class="button-container"
                      style="text-align: center; display: flex; justify-content: center; ">
-                    <button type="submit" id="save-new-score"
+                    <button type="submit"
                             style="flex: 1;padding: 10px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s ease;">
-                        Lưu
+                        Xóa
                     </button>
                     <button id="add-button" type="button"
                             style="flex: 1; padding: 10px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; transition: background-color 0.3s ease;">
@@ -84,9 +64,6 @@
 
             </div>
         </form>
-
-
-
 
 
     </div>
