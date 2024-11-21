@@ -35,8 +35,8 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
-                <li class="breadcrumb-item"><a href="{{ url_for('score_regulations_page') }}">Quy định số cột điểm</a></li>
-                <li class="breadcrumb-item">Thêm mới điểm</li>
+                <li class="breadcrumb-item"><a href="">Quy định số cột điểm</a></li>
+                <li class="breadcrumb-item"><a href=""> Xóa cột điểm</a></li>
             </ol>
         </nav>
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -86,32 +86,7 @@
         </form>
 
 
-        <!-- JavaScript kiểm tra dữ liệu -->
-        <script>
-            document.getElementById('scoreForm').addEventListener('submit', function (event) {
-                const scoreTypeInputs = document.querySelectorAll('input[name="score_type"]');
-                const scoreQuantityInputs = document.querySelectorAll('input[name="score_quantity"]');
-                const coefficientInputs = document.querySelectorAll('input[name="coefficient"]');
-                let isValid = true;
-                let errorMessage = '';
 
-                // Kiểm tra các ô "Loại điểm" (score_type)
-                scoreTypeInputs.forEach(input => {
-                    if (input.value.trim() === '') {
-                        isValid = false;
-                        errorMessage = 'Vui lòng nhập loại điểm!';
-                    }
-                });
-
-
-
-                // Nếu có lỗi, hiển thị thông báo và ngăn gửi form
-                if (!isValid) {
-                    event.preventDefault();
-                    alert(errorMessage);
-                }
-            });
-        </script>
 
 
     </div>

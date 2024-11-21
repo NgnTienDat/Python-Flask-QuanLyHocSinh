@@ -1,6 +1,7 @@
+from http.client import error
 
-from flask import render_template, request, url_for, redirect
-from qlhsapp.models import ScoreRegulation, ScoreType
+from flask import render_template, request, url_for, redirect, flash
+from qlhsapp.models import ScoreType, Score
 from qlhsapp import app,db
 import dao
 
@@ -57,34 +58,38 @@ def score_regulations_page():
             coefficient=data['coefficient']
 
             st = ScoreType.query.filter_by(name=score_type).first()
-
-            print(st.id)   # tại sao không có dòng này thì lại báo lỗi NoneType st.id nhỉ??????
-            score_id = st.id
-            # trong ScoreRegulation chỉ có trường score_type_id nên phải tìm đối tượng qua score_type để lấy id
-            score_regulation = ScoreRegulation.query.filter_by(score_type_id=score_id).first()
-            if score_regulation: #Thay thi cap nhat
-                score_regulation.score_quantity = int(score_quantity)
-                score_regulation.coefficient = int(coefficient)
+            if st: #Thay thi cap nhat
+                st.score_quantity = int(score_quantity)
+                st.coefficient = int(coefficient)
 
                 db.session.commit()
 
         return redirect(url_for('score_regulations_page'))
 
-    score_regulation = dao.load_score_regulation()
-    return render_template('admin/score.html', score_regulation=score_regulation)
+    score_types = dao.load_score_regulation()
+    return render_template('admin/score.html', score_types=score_types)
 
 
 
 @app.route("/add-new-score-type", methods=['get', 'post'])
 def new_score_regulation():
-    # score_type = request.form.get('scoreType')
-    # score_quantity = request.form.get('scoreQuantity')
-    # coefficient = request.form.get('coefficient')
-    #
-    # dao.add_score_regulation(score_type, int(score_quantity), int(coefficient))
+    if request.method == 'POST':
+        try:
+            score_type = request.form.get('score_type')
+            score_quantity = int(request.form.get('score_quantity'))
+            coefficient = int(request.form.get('coefficient'))
+        except (ValueError, TypeError):
+            flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
+            return render_template('admin/new-score-regulation.html')
+
+        if dao.handle_add_score_regulation(score_type, score_quantity, coefficient):
+            return redirect(url_for('score_regulations_page'))
+
     return render_template('admin/new-score-regulation.html')
 
-
+@app.route('/score-regulation/<int:score_type_id>')
+def delete_score_type(score_type_id):
+    return render_template('admin/delete-score-type.html')
 
 
 # Quy định số học sinh
