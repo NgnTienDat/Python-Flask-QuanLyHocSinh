@@ -52,31 +52,31 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
-                    <li class="breadcrumb-item"><a href="/add-student">Tiếp nhận học sinh</a></li>
+                    <li class="breadcrumb-item"><a href="/update-student/{{ student.id }}">Cập nhật học sinh</a></li>
                 </ol>
             </nav>
-            <h1>Tiếp nhận học sinh</h1>
+            <h1>Cập nhật học sinh</h1>
 
-            <form action="/add-student" method="post">
+            <form action="/update-student/{{ student.id }}" method="post">
                 <div class="row">
                     <div class="col-md-6">
                         <!-- Họ và tên -->
                         <div class="form-group">
                             <label for="name">Họ và tên</label>
-                            <input type="text" id="name" name="name" placeholder="Nhập họ và tên" required>
+                            <input type="text" id="name" name="name" value="{{ student.name }}" placeholder="Nhập họ và tên" required>
                         </div>
                         <!-- Giới tính -->
                         <div class="form-group">
                             <label for="gender">Giới tính</label>
                             <select id="gender" name="gender" required>
-                                <option value="Nam">Nam</option>
-                                <option value="Nữ">Nữ</option>
+                                <option value="Nam" {% if student.gender == 'MALE' %} selected {% endif %}>Nam</option>
+                                <option value="Nữ" {% if student.gender == 'FEMALE' %} selected {% endif %}>Nữ</option>
                             </select>
                         </div>
                         <!-- Địa chỉ -->
                         <div class="form-group">
                             <label for="address">Địa chỉ</label>
-                            <input type="text" id="address" name="address" placeholder="Nhập địa chỉ" required>
+                            <input type="text" id="address" name="address" value="{{ student.address }}" placeholder="Nhập địa chỉ" required>
                         </div>
                     </div>
 
@@ -85,23 +85,23 @@
                         <!-- Email -->
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="email" placeholder="Nhập email" required>
+                            <input type="email" id="email" name="email" value="{{ student.email }}" placeholder="Nhập email" required>
                         </div>
                         <!-- Ngày sinh -->
                         <div class="form-group">
                             <label for="date_of_birth">Ngày sinh</label>
-                            <input type="date" id="date_of_birth" name="date_of_birth" required>
+                            <input type="date" id="date_of_birth" name="date_of_birth" value="{{ student.date_of_birth }}" required>
                         </div>
                         <!-- Số điện thoại -->
                         <div class="form-group">
                             <label for="phone_number">Số điện thoại</label>
-                            <input type="tel" id="phone_number" name="phone_number" placeholder="Nhập số điện thoại"
+                            <input type="tel" id="phone_number" name="phone_number" value="{{ student.phone_number }}" placeholder="Nhập số điện thoại"
                                    required>
                         </div>
                     </div>
 
                     <div class="button-group">
-                        <button type="submit" class="btn btn-success">Lưu</button>
+                        <button type="submit" class="btn btn-warning">Cập nhật</button>
                     </div>
                 </div>
             </form>
@@ -110,6 +110,33 @@
 
 
 {% endblock %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const deleteButtons = document.querySelectorAll(".delete-btn");
+
+        deleteButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const id = this.getAttribute("data-id");
+
+                if (confirm("Bạn có chắc chắn muốn xóa xe này?")) {
+                    fetch(`/delete-student/${id}`, {
+                        method: 'DELETE'
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                this.closest('tr').remove(); // Xóa hàng khỏi bảng nếu thành công
+                                alert("Đã xóa thành công!");
+                            } else {
+                                alert("Xóa không thành công. Vui lòng thử lại.");
+                            }
+                        })
+                        .catch(error => console.error("Error:", error));
+                }
+            });
+        });
+    });
+</script>
 
 
 
