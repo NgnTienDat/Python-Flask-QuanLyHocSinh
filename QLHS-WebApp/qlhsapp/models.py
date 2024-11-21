@@ -230,10 +230,18 @@ class Score(BaseModel):
 # Cau hinh so cot diem
 class ScoreRegulation(BaseModel):
     __tablename__ = "score_regulation"
-    score_type = Column(Enum(ScoreType), nullable=False)
+
+    # Cột kiểu Enum được đổi tên
+    score_type_enum = Column(Enum(ScoreType), nullable=False)
+
     score_quantity = Column(Integer, nullable=False)
-    # Hệ số
     coefficient = Column(Integer, nullable=False)
+
+    # Khóa ngoại tới ScoreType
+    score_type_id = Column(Integer, ForeignKey('score_type.id'), nullable=False)
+
+    # Mối quan hệ với ScoreType
+    score_type = relationship('ScoreType', back_populates='score_regulations')
 
 
 # Quy dinh
@@ -241,6 +249,15 @@ class Regulation(BaseModel):
     __tablename__ = "regulation"
     key_name = Column(String(50), unique=True, nullable=False)
     value = Column(String(50), unique=True)
+
+
+class ScoreType(BaseModel):
+    __tablename__ = "score_type"
+
+    name = Column(String(30), nullable=False, unique=True)
+
+    # Mối quan hệ ngược tới ScoreRegulation
+    score_regulations = relationship('ScoreRegulation', back_populates='score_type')
 
 
 # Nam hoc
@@ -274,53 +291,49 @@ class Semester(BaseModel):
     score_boards = relationship('ScoreBoard', back_populates='semester')  # done
 
 
-# from datetime import date
-# from random import randint
-# from sqlalchemy.orm import Session
-# from sqlalchemy import create_engine
-#
-# engine = create_engine('sqlite:///D:/PycharmProject/Python-Flask-QuanLyHocSinh/QLHS-WebApp/qlhsapp/data/database.db')  # Thay đường dẫn đúng của cơ sở dữ liệu
-#
-#
-# def create_students(session: Session):
-#     students = []
-#
-#     # Tạo học sinh nam
-#     for i in range(10):
-#         student = Student(
-#             name=f"Nguyễn Văn Nam {i + 1}",
-#             address="Hồ Chí Minh",
-#             email=f"nam{i + 1}@example.com",
-#             gender=GenderEnum.MALE,
-#             phone_number=f"090{randint(1000000, 9999999)}",
-#             date_of_birth=date(2005, randint(1, 12), randint(1, 28)),
-#             staff_id=5
-#         )
-#         students.append(student)
-#
-#     # Tạo học sinh nữ
-#     for i in range(10):
-#         student = Student(
-#             name=f"Hà Kiều Nữ {i + 1}",
-#             address="Hồ Chí Minh",
-#             email=f"nu{i + 1}@example.com",
-#             gender=GenderEnum.FEMALE,
-#             phone_number=f"091{randint(1000000, 9999999)}",
-#             date_of_birth=date(2005, randint(1, 12), randint(1, 28)),
-#             staff_id=5
-#         )
-#         students.append(student)
-#
-#     # Thêm vào session và commit
-#     session.add_all(students)
-#     session.commit()  # Đảm bảo commit để lưu thay đổi vào DB
-#     print("Đã thêm 20 học sinh vào cơ sở dữ liệu.")
+from datetime import date
+from random import randint
+
+def create_students(session):
+    students = []
+
+    # Tạo học sinh nam
+    for i in range(10):
+        student = Student(
+            name=f"Nguyễn Văn Nam {i + 1}",
+            address="Hồ Chí Minh",
+            email=f"nam{i + 1}@example.com",
+            gender=GenderEnum.MALE,
+            phone_number=f"090{randint(1000000, 9999999)}",
+            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),
+            staff_id=1  # Thay đổi ID staff phù hợp với dữ liệu trong DB
+        )
+        students.append(student)
+
+    # Tạo học sinh nữ
+    for i in range(10):
+        student = Student(
+            name=f"Hà Kiều Nữ {i + 1}",
+            address="Hồ Chí Minh",
+            email=f"nu{i + 1}@example.com",
+            gender=GenderEnum.FEMALE,
+            phone_number=f"091{randint(1000000, 9999999)}",
+            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),
+            staff_id=1
+        )
+        students.append(student)
+
+    # Thêm vào session và commit
+    session.add_all(students)
+    session.commit()
+    print("Đã thêm 20 học sinh vào cơ sở dữ liệu.")
 
 
 if __name__ == '__main__':
     with app.app_context():
         # db.drop_all()  # Xóa tất cả các bảng
-        db.create_all()  # Tạo lại bảng với cấu trúc mới
+        # db.create_all()  # Tạo lại bảng với cấu trúc mới
+        session = db.session
+        create_students(session)
 
-        # with Session(engine) as session:  # Đảm bảo bạn đã kết nối đúng engine
-        #     create_students(session)
+
