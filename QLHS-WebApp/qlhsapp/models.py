@@ -126,6 +126,7 @@ class Teacher(db.Model):
 
     subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
 
+    is_homeroom_teacher = Column(Boolean, default=False)
     # 1 - 1: teacher homeroom
     homeroom_class = relationship('Class', back_populates='homeroom_teacher', uselist=False,
                                   foreign_keys='Class.homeroom_teacher_id')  # done
@@ -137,6 +138,9 @@ class Teacher(db.Model):
     teach_classes = relationship('Class', secondary='teacher_class', back_populates='teachers')  # done
     # 1 - N: A teacher enter scores for many scoreboards
     enter_scores = relationship('ScoreBoard', back_populates='teacher')  # done
+
+    def __str__(self):
+        return self.name
 
 
 class Class(BaseModel):
@@ -235,6 +239,9 @@ class SchoolYear(BaseModel):
     # 1 - N: A school year has two semesters
     semesters = relationship('Semester', back_populates='school_year')  # done
     classes = relationship('Class', back_populates='school_year')  # done
+
+    def __str__(self):
+        return self.name
 
 
 # Mon hoc
