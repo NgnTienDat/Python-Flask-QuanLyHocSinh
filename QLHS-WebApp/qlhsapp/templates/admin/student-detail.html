@@ -1,0 +1,67 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    .info {
+        margin-bottom: 15px;
+    }
+    .info span {
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
+                <li class="breadcrumb-item"><a href="/find-student">Tra cứu học sinh</a></li>
+            </ol>
+        </nav>
+        <div class="container">
+            <h1>Chi tiết học sinh</h1>
+            <div class="info">
+                <span>Mã học sinh:</span> {{student.id}}
+            </div>
+            <div class="info">
+                <span>Họ và Tên:</span> {{student.name}}
+            </div>
+             <div class="info">
+                <span>Giới tính:</span> {{student.gender}}
+            </div>
+            <div class="info">
+                <span>Lớp đang học:</span> 10A1
+            </div>
+            <div class="info">
+                <span>Ngày sinh:</span> {{student.date_of_birth}}
+            </div>
+            <div class="info">
+                <span>Số điện thoại:</span> {{student.phone_number}}
+            </div>
+            <div class="info">
+                <span>Email:</span> {{student.email}}
+            </div>
+            <div class="info">
+                <span>Địa chỉ:</span> {{student.address}}
+            </div>
+            <div>
+                <a href="/students">
+                    <button>Trở về</button>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+
+
+

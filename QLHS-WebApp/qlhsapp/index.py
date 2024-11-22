@@ -1,6 +1,10 @@
+import math
+
 
 from flask import render_template, request, url_for, redirect, flash
-from qlhsapp.models import ScoreType, Score, Regulation
+
+from qlhsapp.models import ScoreType, Score, Regulation, Student
+
 from qlhsapp import app,db
 import dao
 
@@ -17,9 +21,15 @@ def get_login_page():
 
 
 # Trung code: Tra cuu hoc sinh
-@app.route("/find-student")
+@app.route("/students")
 def find_student_page():
-    return render_template('admin/find-student.html')
+    kw = request.args.get("key-name")
+    page = request.args.get("page", 1)
+    stu = dao.load_student(kw=kw, page=int(page))
+    counter = dao.count_student()
+    return render_template('admin/find-student.html',
+                           students=stu,
+                           pages=math.ceil(counter/app.config['PAGE_SIZE']))
 
 
 # Tiếp nhận học sinh
@@ -167,6 +177,13 @@ def subject_summary_score():
 @app.route("/class-summary-score")
 def class_summary_score():
     return render_template('admin/class-summary.html')
+
+
+@app.route("/students/<int:student_id>")
+def student_detail(student_id):
+    student = dao.get_student_by_id(student_id)
+
+    return render_template('admin/student-detail.html', student=student)
 
 
 if __name__ == '__main__':
