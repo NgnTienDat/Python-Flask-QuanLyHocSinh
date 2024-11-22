@@ -97,8 +97,12 @@
                     <a href="{{ url_for('student_detail', student_id=s.id) }}">
                         <button>Xem</button>
                     </a>
-                    <button class="btn btn-edit">Cập nhật</button>
-                    <button class="btn-cancel">Xóa</button>
+                    <a href="{{ url_for('student_update', student_id=s.id) }}">
+                        <button class="btn btn-edit">Cập nhật</button>
+                    </a>
+                    <a href="{{ url_for('student_delete', student_id=s.id) }}">
+                        <button class="btn-cancel">Xóa</button>
+                    </a>
                 </td>
             </tr>
             {% endfor %}
@@ -107,7 +111,8 @@
 
         <ul class="pagination">
             {% for idx in range(1, pages+1) %}
-            <li class="page-item"><a class="page-link" href="{{ url_for('find_student_page', page=idx)}}">{{ idx }}</a></li>
+            <li class="page-item"><a class="page-link" href="{{ url_for('find_student_page', page=idx)}}">{{ idx }}</a>
+            </li>
             {% endfor %}
         </ul>
     </div>

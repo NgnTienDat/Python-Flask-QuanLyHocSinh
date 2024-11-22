@@ -37,50 +37,39 @@ form .form-group select {
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
-                <li class="breadcrumb-item"><a href="/add-student">Tiếp nhận học sinh</a></li>
+                <li class="breadcrumb-item"><a href="/add-student">Cập nhật học sinh</a></li>
             </ol>
         </nav>
-         <h1>Tiếp nhận học sinh</h1>
-        <form class="form-container" action="{{ url_for('add_student_page') }}" method="post" >
+        <h1>Cập nhật học sinh</h1>
+        <form action="{{ url_for('student_update', student_id=student.id) }}" method="post" class="form-container">
             <!-- Họ và tên -->
             <div class="form-group">
                 <label for="name">Họ và tên</label>
-                <input type="text" id="name" placeholder="Nhập họ và tên">
+                <input type="text" id="name" name="name" value="{{student.name}}">
             </div>
             <!-- Địa chỉ -->
             <div class="form-group">
                 <label for="address">Địa chỉ</label>
-                <input type="text" id="address" placeholder="Nhập địa chỉ">
-            </div>
-            <!-- Giới tính -->
-            <div class="form-group">
-                <label for="gender">Giới tính</label>
-                <select id="gender">
-                    <option value="Nam">Nam</option>
-                    <option value="Nữ">Nữ</option>
-                    <option value="Khác">Khác</option>
-                </select>
+                <input type="text" id="address" name="address" value="{{student.address}}">
             </div>
             <!-- Ngày sinh -->
             <div class="form-group">
                 <label for="date_of_birth">Ngày sinh</label>
-                <input type="date" id="date_of_birth">
+                <input type="date" id="date_of_birth" name="date_of_birth" value="{{student.date_of_birth}}">
             </div>
             <!-- Email -->
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" placeholder="Nhập email">
+                <input type="email" id="email" name="email" value="{{student.email}}">
             </div>
             <!-- Số điện thoại -->
             <div class="form-group">
                 <label for="phone_number">Số điện thoại</label>
-                <input type="tel" id="phone_number" placeholder="Nhập số điện thoại">
+                <input type="tel" id="phone_number" name="phone_number" value="{{student.phone_number}}">
             </div>
             <div class="button-group">
                 <button type="submit">Lưu</button>
-                <a href="/">
-                    <button class="btn-cancel">Hủy</button>
-                </a>
+                <a href="{{ url_for('find_student_page') }}" class="btn btn-danger">Hủy</a>
             </div>
         </form>
 

@@ -1,0 +1,40 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+
+{% endblock %}
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
+                <li class="breadcrumb-item"><a href="/add-student">Cập nhật học sinh</a></li>
+            </ol>
+        </nav>
+        <form action="{{ url_for('student_delete', student_id=student.id) }}" method="POST">
+            <div class="alert alert-danger">
+                <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa học sinh <strong>{{ student.name }}</strong>?
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-danger">Xóa</button>
+                <a href="{{ url_for('find_student_page') }}" class="btn btn-secondary">Hủy</a>
+            </div>
+        </form>
+
+
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+
+
