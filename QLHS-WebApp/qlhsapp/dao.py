@@ -3,7 +3,9 @@ from flask import flash
 
 from qlhsapp import app, db
 
+
 from qlhsapp.models import ScoreType, Score, Regulation, Student
+from datetime import datetime
 
 
 
@@ -89,3 +91,43 @@ def get_student_by_id(student_id):
 def count_student():
     return Student.query.count()
 
+
+# Trung code: cập nhật thông tin học sinh
+def update_student(student_id, name, address, email, date_of_birth, phone_number):
+    student = Student.query.get(student_id)  # Lấy học sinh muốn cập nhật
+    # Chuyển đổi ngày sinh từ chuỗi sang date trước khi lưu xuống database
+    date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
+
+    try:
+        # Cập nhật thông tin học sinh
+        student.name = name
+        student.address = address
+        student.email = email
+        student.date_of_birth = date_of_birth
+        student.phone_number = phone_number
+
+        #luu thong tin xuong csdl
+        if db.session.is_modified(student):
+            db.session.commit()
+            print("Changes committed successfully.")
+        else:
+            print("No changes detected.")
+    except Exception as e:
+        db.session.rollback()  # Rollback nếu có lỗi
+        print(f"An error occurred: {str(e)}")
+        flash(f"An error occurred while updating: {str(e)}", "danger")
+
+
+#Trung code: Xóa học sinh
+def delete_student(student_id):
+    student = Student.query.get(student_id)
+    if student:
+        db.session.delete(student)
+        db.session.commit()
+    else:
+        raise ValueError("Không tìm thấy học sinh cần xóa")
+
+
+#Trung code: Tiếp nhận học sinh
+def add_sutdent():
+    pass
