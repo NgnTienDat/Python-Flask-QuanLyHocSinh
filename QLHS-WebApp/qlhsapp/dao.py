@@ -3,7 +3,7 @@ from flask import flash
 
 from qlhsapp import app, db
 
-from qlhsapp.models import ScoreType, Score, Student
+from qlhsapp.models import ScoreType, Score, Regulation, Student
 
 
 
@@ -42,6 +42,17 @@ def update_score_regulation(score_type, score_quantity, coefficient):
         st.score_quantity = int(score_quantity)
         st.coefficient = int(coefficient)
         db.session.commit()
+        return True
+
+def update_regulation(key_name, value):
+    if value > 100 or value < 10:
+        flash('Sĩ số phải trong khoảng từ 10 đến 100', 'warning')
+        return False
+    regulation = Regulation.query.filter_by(key_name=key_name).first()
+    if regulation:
+        regulation.value = value
+        db.session.commit()
+        flash('Cập nhật sĩ số tối đa thành công!', 'success')
         return True
 
 
