@@ -4,7 +4,7 @@ from flask import flash
 from qlhsapp import app, db
 
 
-from qlhsapp.models import ScoreType, Score, Regulation, Student
+from qlhsapp.models import ScoreType, Score, Regulation, Student, Class, Teacher
 from datetime import datetime
 
 
@@ -71,6 +71,23 @@ def update_age_regulation(min_age, max_age):
         db.session.commit()
         flash('Cập nhật số tuổi thành công!', 'success')
         return True
+
+def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_id, school_year_name):
+    if Class.query.filter_by(name=name, school_year_id=school_year_id).first():
+        flash(f'Lớp {name} thuộc năm học {school_year_name} đã tồn tại trong hệ thống!', 'warning')
+        return False
+
+    teacher = Teacher.query.filter_by(teacher_id=homeroom_teacher_id).first()
+    teacher.is_homeroom_teacher = True
+
+    new_class = Class(name=name, grade_level_id=grade_level_id,
+                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id)
+    db.session.add(new_class)
+    db.session.commit()
+    flash('Thêm mới lớp học thành công!', 'success')
+    return True
+
+
 
 def load_student(kw=None, page=1):
     page_size = app.config['PAGE_SIZE']
