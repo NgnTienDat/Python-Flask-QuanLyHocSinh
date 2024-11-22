@@ -173,6 +173,34 @@ def student_detail(student_id):
     return render_template('admin/student-detail.html', student=student)
 
 
+@app.route("/students/update/<int:student_id>", methods=['get', 'post'])
+def student_update(student_id):
+    student = dao.get_student_by_id(student_id)
+    if request.method.__eq__('POST'):
+        dao.update_student(student_id, request.form.get('name'),
+                           request.form.get('address'),
+                           request.form.get('email'),
+                           request.form.get('date_of_birth'),
+                           request.form.get('phone_number'))
+        flash("Student updated successfully!", "success")
+        return redirect(url_for('find_student_page'))
+
+    return render_template('admin/update-student.html', student=student)
+
+
+@app.route("/students/delete/<int:student_id>", methods=['get', 'post'])
+def student_delete(student_id):
+    student = dao.get_student_by_id(student_id)
+    if request.method.__eq__('POST'):
+        try:
+            dao.delete_student(student_id)
+            return redirect(url_for('find_student_page'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('find_student_page'))
+    return render_template('admin/delete-student.html', student=student)
+
+
 if __name__ == '__main__':
     from qlhsapp.admin import *
 
