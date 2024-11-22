@@ -44,13 +44,6 @@
     table th {
         background-color: #f2f2f2;
     }
-    .btn {
-        padding: 5px 10px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
     .btn-edit {
         background-color: #ffc107;
         color: black;
@@ -76,84 +69,47 @@
         </nav>
         <h1>Tra cứu học sinh</h1>
         <div class="search-bar">
-            <input type="text" placeholder="Tên học sinh cần tìm...">
-            <button>Tìm kiếm</button>
+            <form>
+                <input type="text" name="key-name" placeholder="Tên học sinh cần tìm...">
+                <button>Tìm kiếm</button>
+            </form>
         </div>
         <table>
             <thead>
             <tr>
-                <th>STT</th>
-                <th>Họ tên</th>
+                <th>Mã HS</th>
+                <th>Họ và Tên</th>
                 <th>Lớp</th>
                 <th>Giới tính</th>
                 <th>Ngày sinh</th>
-                <th>SĐT</th>
                 <th>Chi tiết</th>
             </tr>
             </thead>
             <tbody>
+            {% for s in students %}
             <tr>
-                <td>1</td>
-                <td>Nguyễn Văn A</td>
+                <td>{{s.id}}</td>
+                <td>{{s.name}}</td>
                 <td>10A1</td>
-                <td>Nam</td>
-                <td>15/01/2008</td>
-                <td>0987654321</td>
+                <td>{{s.gender}}</td>
+                <td>{{s.date_of_birth}}</td>
                 <td>
-                    <button >Xem</button>
+                    <a href="{{ url_for('student_detail', student_id=s.id) }}">
+                        <button>Xem</button>
+                    </a>
                     <button class="btn btn-edit">Cập nhật</button>
+                    <button class="btn-cancel">Xóa</button>
                 </td>
             </tr>
-            <tr>
-                <td>2</td>
-                <td>Trần Thị B</td>
-                <td>10A2</td>
-                <td>Nữ</td>
-                <td>23/03/2008</td>
-                <td>0988888888</td>
-                <td>
-                    <button >Xem</button>
-                    <button class="btn btn-edit">Cập nhật</button>
-                </td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>Lê Văn C</td>
-                <td>11B1</td>
-                <td>Nam</td>
-                <td>02/09/2007</td>
-                <td>0977777777</td>
-                <td>
-                    <button >Xem</button>
-                    <button class="btn btn-edit">Cập nhật</button>
-                </td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>Phạm Thị D</td>
-                <td>12C1</td>
-                <td>Nữ</td>
-                <td>30/12/2006</td>
-                <td>0966666666</td>
-                <td>
-                    <button >Xem</button>
-                    <button class="btn btn-edit">Cập nhật</button>
-                </td>
-            </tr>
-            <tr>
-                <td>5</td>
-                <td>Hoàng Văn E</td>
-                <td>10A1</td>
-                <td>Nam</td>
-                <td>17/04/2008</td>
-                <td>0955555555</td>
-                <td>
-                    <button>Xem</button>
-                    <button class="btn btn-edit">Cập nhật</button>
-                </td>
-            </tr>
+            {% endfor %}
             </tbody>
         </table>
+
+        <ul class="pagination">
+            {% for idx in range(1, pages+1) %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('find_student_page', page=idx)}}">{{ idx }}</a></li>
+            {% endfor %}
+        </ul>
     </div>
 </div>
 
