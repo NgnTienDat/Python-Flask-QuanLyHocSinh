@@ -2,6 +2,7 @@
 {% block title %} Trang chủ {% endblock %}
 
 {% block css %}
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -25,6 +26,21 @@
         margin-top: 10px;
         text-align: right; /* Căn nút sang bên phải */
     }
+
+    table input {
+        border: none; /* Xóa viền */
+        background-color: transparent; /* Làm nền trong suốt */
+        text-align: center; /* Căn chỉnh văn bản */
+    }
+    .delete-button {
+        background-color: #ff4d4d; /* Màu nền đỏ nhạt */
+        color: white; /* Màu chữ trắng */
+        border: none; /* Xóa viền */
+        padding: 4px 8px; /* Giảm kích thước nút */
+        font-size: 12px; /* Giảm kích thước chữ */
+        border-radius: 4px; /* Bo góc nút */
+        cursor: pointer; /* Thêm con trỏ dạng nút */
+    }
 </style>
 {% endblock %}
 
@@ -39,9 +55,18 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
-                <li class="breadcrumb-item"><a href="/find-student">Quy định số cột điểm</a></li>
+                <li class="breadcrumb-item">Quy định số cột điểm</li>
             </ol>
         </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <h3>Quy định cột điểm</h3>
         <!-- Form -->
         <form action="{{ url_for('score_regulations_page') }}" method="post">
@@ -51,21 +76,27 @@
                     <th>Loại điểm</th>
                     <th>Số cột</th>
                     <th>Hệ số</th>
+                    <th>Hành động</th>
                 </tr>
                 </thead>
                 <tbody id="score-table-body">
-                {% for s in score_regulation %}
+                {% for s in score_types %}
                 <tr>
                     <td>
-                        <input type="text" value="{{ s.score_type.name }}" name="score_type_{{ loop.index }}" readonly>
+                        <input type="text" value="{{ s.name }}" name="score_type_{{ loop.index }}" readonly>
                     </td>
                     <td>
                         <input type="number" value="{{ s.score_quantity }}" class="edit-input"
-                               name="score_quantity_{{ loop.index }}" readonly>
+                               name="score_quantity_{{ loop.index }}" readonly min="1" max="10" step="1">
                     </td>
                     <td>
                         <input type="number" value="{{ s.coefficient }}" class="edit-input"
-                               name="coefficient_{{ loop.index }}" readonly>
+                               name="coefficient_{{ loop.index }}" readonly min="1" max="10" step="1">
+                    </td>
+                    <td>
+                        <button type="button" class="delete-button" data-id="{{ s.id }}">
+                            <a href="{{ url_for('delete_score_type', score_type_id=s.id) }}">Xóa</a>
+                        </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -73,11 +104,10 @@
             </table>
 
             <div class="button-container">
-                <!-- Nút sửa và lưu -->
                 <button id="edit-button" type="button">Thay đổi</button>
                 <button type="submit" id="save-button" style="display:none;">Lưu</button>
-                <!-- Nút thêm mới -->
-                <button id="add-button">
+
+                <button id="add-button" type="button">
                     <a href="{{ url_for('new_score_regulation') }}" style="text-decoration: none; color: white;">
                         Thêm mới
                     </a>
@@ -87,10 +117,10 @@
     </div>
 </div>
 
-{% block js %}
+
 <script>
     // Kích hoạt chế độ chỉnh sửa
-    document.getElementById("edit-button").addEventListener("click", function() {
+    document.getElementById("edit-button").addEventListener("click", function () {
         // Bật chế độ chỉnh sửa cho các ô input
         const inputs = document.querySelectorAll(".edit-input");
         inputs.forEach(input => {
@@ -102,14 +132,41 @@
         document.getElementById("save-button").style.display = "inline";
     });
 
-    // Sau khi submit form, các ô input sẽ trở lại chế độ chỉ đọc
-    document.getElementById("save-button").addEventListener("click", function() {
-        const inputs = document.querySelectorAll("#score-table-body input");
-        inputs.forEach(input => {
-            input.readOnly = true;
-        });
+
+    // Sau khi bấm Lưu
+    document.getElementById("save-button").addEventListener("click", function (event) {
+        // Lấy danh sách các ô input
+        const inputs = document.querySelectorAll(".edit-input");
+        let isValid = true;
+
+        // Kiểm tra giá trị các ô input
+        for (let input of inputs) {
+            const value = parseInt(input.value, 10);
+
+            // Kiểm tra nếu giá trị không hợp lệ
+            if (isNaN(value) || value < 1 || value > 10) {
+                alert("Giá trị phải nằm trong khoảng từ 1 đến 10."); // Hiển thị thông báo 1 lần
+                input.focus(); // Đặt con trỏ vào ô bị lỗi
+                isValid = false;
+                event.preventDefault(); // Ngăn form gửi nếu giá trị không hợp lệ
+                break; // Thoát khỏi vòng lặp ngay khi gặp lỗi
+            }
+        }
+
+        // Nếu tất cả giá trị hợp lệ
+        if (isValid) {
+            inputs.forEach(input => {
+                input.readOnly = true; // Đặt lại chỉ đọc sau khi lưu
+            });
+
+            // Hiển thị nút Thay đổi và ẩn nút Lưu
+            document.getElementById("edit-button").style.display = "inline";
+            document.getElementById("save-button").style.display = "none";
+        }
     });
+
 </script>
+{% block js %}
 {% endblock %}
 
 {% endblock %}

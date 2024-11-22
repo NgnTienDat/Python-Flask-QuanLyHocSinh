@@ -22,13 +22,6 @@ class UserRole(PyEnum):
     def __str__(self):
         return self.value
 
-# Loai diem
-class ScoreType(BaseModel):
-    name = Column(String(30), nullable=False, unique=True)
-
-    def __str__(self):
-        return self.name
-
 
 # Gioi tinh
 class GenderEnum(PyEnum):
@@ -223,13 +216,16 @@ class Score(BaseModel):
     score_board = relationship('ScoreBoard', back_populates='scores')  # done
 
 
+
 # Cau hinh so cot diem
-class ScoreRegulation(BaseModel):
-    score_type_id = Column(Integer, ForeignKey('score_type.id'), nullable=False)
+class ScoreType(BaseModel):
+    name = Column(String(30), nullable=False, unique=True)
     score_quantity = Column(Integer, nullable=False)
     # Hệ số
     coefficient = Column(Integer, nullable=False)
-    score_type = relationship('ScoreType', backref='score_regulations')
+
+
+
 
 # Quy dinh
 class Regulation(BaseModel):
