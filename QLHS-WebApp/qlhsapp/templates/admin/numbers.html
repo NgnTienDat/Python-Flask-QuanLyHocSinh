@@ -9,6 +9,7 @@
 
     }
     .container {
+        margin-top: 30px;
         border: 1px solid #ccc;
         padding: 20px;
         border-radius: 10px;
@@ -20,14 +21,15 @@
     .display {
         font-size: 24px;
         font-weight: bold;
-        border: 1px solid #ccc;
         padding: 30px;
-        width: 100px;
         margin: 20px auto;
-        background-color: #eee;
         text-align: center;
     }
-
+    input {
+        border-radius: 7px;
+        background-color: transparent;
+        text-align: center;
+    }
     .button-container {
         margin-top: 10px;
     }
@@ -48,16 +50,45 @@
                 <li class="breadcrumb-item"><a href="/find-student">Quy định số học sinh</a></li>
             </ol>
         </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
         <h3>Sĩ số học sinh tối đa trong một lớp học</h3>
         <div class="container">
-            <div class="display">40</div>
-            <button>Thay đổi</button>
-            <button>Lưu</button>
+            <form action="{{ url_for('numbers_regulations_page') }}" method="post" novalidate>
+                <div class="display">
+                    <input type="number" class="edit-input" value="{{ class_size.value }}"
+                           name="class_max_size" min="1" max="100" step="1" readonly>
+                </div>
+                <button id="edit-button" type="button">Thay đổi</button>
+                <button type="submit">Lưu</button>
+            </form>
         </div>
 
     </div>
 </div>
+<script>
+    document.getElementById("edit-button").addEventListener("click", function () {
+        // Bật chế độ chỉnh sửa cho các ô input
+        const inputs = document.querySelectorAll(".edit-input");
+        inputs.forEach(input => {
+            input.readOnly = false; // Cho phép chỉnh sửa
+        });
 
+
+
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+        alert.style.display = "none"; // Ẩn thông báo
+        });
+    });
+</script>
 
 {% endblock %}
 

@@ -1,6 +1,6 @@
 
 from flask import render_template, request, url_for, redirect, flash
-from qlhsapp.models import ScoreType, Score
+from qlhsapp.models import ScoreType, Score, Regulation
 from qlhsapp import app,db
 import dao
 
@@ -60,12 +60,6 @@ def score_regulations_page():
             score_quantity=data['score_quantity']
             coefficient=data['coefficient']
 
-            # st = ScoreType.query.filter_by(name=score_type).first()
-            # if st: #Thay thi cap nhat
-            #     st.score_quantity = int(score_quantity)
-            #     st.coefficient = int(coefficient)
-            #
-            #     db.session.commit()
             dao.update_score_regulation(score_type, score_quantity, coefficient)
 
         flash('Cập nhật thay đổi thành công!', 'success')
@@ -111,9 +105,20 @@ def delete_score_type(score_type_id):
 
 
 # Quy định số học sinh
-@app.route("/numbers-regulation")
+@app.route("/numbers-regulation", methods=['get', 'post'])
 def numbers_regulations_page():
-    return render_template('admin/numbers.html')
+    if request.method == 'POST':
+        try:
+            class_max_size = int(request.form.get('class_max_size'))
+        except (ValueError, TypeError):
+            flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
+            return redirect(url_for('numbers_regulations_page'))
+
+        if dao.update_regulation(key_name='CLASS_MAX_SIZE', value=class_max_size):
+            return redirect(url_for('numbers_regulations_page'))
+
+    class_size = Regulation.query.filter_by(key_name='CLASS_MAX_SIZE').first()
+    return render_template('admin/numbers.html', class_size=class_size)
 
 
 # Quy định tuổi
