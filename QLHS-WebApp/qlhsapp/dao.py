@@ -34,6 +34,13 @@ def handle_add_score_regulation(score_type, score_quantity, coefficient):
 def get_score_type_by_name(name):
     return ScoreType.query.filter_by(name=name).first()
 
+def update_score_regulation(score_type, score_quantity, coefficient):
+    st = check_exist_score_type(score_type)
+    if st:
+        st.score_quantity = int(score_quantity)
+        st.coefficient = int(coefficient)
+        db.session.commit()
+        return True
 
 
 

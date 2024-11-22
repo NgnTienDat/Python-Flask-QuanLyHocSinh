@@ -24,22 +24,26 @@
 
     .button-container {
         margin-top: 10px;
-        text-align: right; /* Căn nút sang bên phải */
+        text-align: right;
     }
 
     table input {
-        border: none; /* Xóa viền */
-        background-color: transparent; /* Làm nền trong suốt */
-        text-align: center; /* Căn chỉnh văn bản */
+        border: none;
+        background-color: transparent;
+        text-align: center;
     }
     .delete-button {
-        background-color: #ff4d4d; /* Màu nền đỏ nhạt */
-        color: white; /* Màu chữ trắng */
-        border: none; /* Xóa viền */
-        padding: 4px 8px; /* Giảm kích thước nút */
-        font-size: 12px; /* Giảm kích thước chữ */
-        border-radius: 4px; /* Bo góc nút */
-        cursor: pointer; /* Thêm con trỏ dạng nút */
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        font-size: 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .delete-button a {
+        color: white;
+        text-decoration: none;
     }
 </style>
 {% endblock %}
@@ -59,13 +63,13 @@
             </ol>
         </nav>
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
         <h3>Quy định cột điểm</h3>
         <!-- Form -->
@@ -130,6 +134,11 @@
         // Hiển thị nút Lưu và ẩn nút Thay đổi
         document.getElementById("edit-button").style.display = "none";
         document.getElementById("save-button").style.display = "inline";
+
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+        alert.style.display = "none"; // Ẩn thông báo
+        });
     });
 
 

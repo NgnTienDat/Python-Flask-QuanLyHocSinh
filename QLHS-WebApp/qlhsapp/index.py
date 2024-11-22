@@ -37,32 +37,38 @@ def set_class_page():
 # Quy định số cột điểm
 @app.route("/score-regulation", methods=['get', 'post'])
 def score_regulations_page():
-    # Update score regulation changes
+
     if request.method.__eq__('POST'):
         scores_update = []
-        for index in range(1, len(request.form)//3+1):  # chia nguyen de lay so dong, vi du 9 o input thi 9//3=3 dong, lap tung dong
-            score_type = request.form.get(f'score_type_{index}')
-            score_quantity = request.form.get(f'score_quantity_{index}')
-            coefficient = request.form.get(f'coefficient_{index}')
+        try:
+            for index in range(1, len(request.form)//3+1):  # chia nguyen de lay so dong, vi du 9 o input thi 9//3=3 dong, lap tung dong
+                score_type = request.form.get(f'score_type_{index}')
+                score_quantity = int(request.form.get(f'score_quantity_{index}'))
+                coefficient = int(request.form.get(f'coefficient_{index}'))
 
-            scores_update.append({
-                'score_type':score_type,
-                'score_quantity':score_quantity,
-                'coefficient':coefficient
-            })
-
+                scores_update.append({
+                    'score_type':score_type,
+                    'score_quantity':score_quantity,
+                    'coefficient':coefficient
+                })
+        except (TypeError, ValueError):
+            flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
+            return redirect(url_for('score_regulations_page'))
+        print('im pass')
         for data in scores_update:
             score_type = data['score_type'] # chỉ gửi lên chuỗi ví dụ '15 phút'
             score_quantity=data['score_quantity']
             coefficient=data['coefficient']
 
-            st = ScoreType.query.filter_by(name=score_type).first()
-            if st: #Thay thi cap nhat
-                st.score_quantity = int(score_quantity)
-                st.coefficient = int(coefficient)
+            # st = ScoreType.query.filter_by(name=score_type).first()
+            # if st: #Thay thi cap nhat
+            #     st.score_quantity = int(score_quantity)
+            #     st.coefficient = int(coefficient)
+            #
+            #     db.session.commit()
+            dao.update_score_regulation(score_type, score_quantity, coefficient)
 
-                db.session.commit()
-
+        flash('Cập nhật thay đổi thành công!', 'success')
         return redirect(url_for('score_regulations_page'))
 
     score_types = dao.load_score_regulation()
