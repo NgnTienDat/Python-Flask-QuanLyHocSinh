@@ -42,7 +42,7 @@
         </nav>
 
         <h3>Xóa loại điểm</h3>
-        <div class="alert alert-danger">
+        <div class="alert alert-warning">
             Bạn muốn xóa loại điểm {{ score.name }}?
         </div>
         <form action="{{ url_for('delete_score_type', score_type_id=score.id) }}" method="post">
