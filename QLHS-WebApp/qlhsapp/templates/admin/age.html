@@ -56,23 +56,78 @@
                 <li class="breadcrumb-item"><a href="/find-student">Quy định độ tuổi</a></li>
             </ol>
         </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
         <h3>Quy định số tuổi học sinh</h3>
         <div class="container">
-            <div class="age-row">
-                <label for="min-age">Tuổi tối thiểu:</label>
-                <input type="number" id="min-age" value="6" min="1"/>
-            </div>
-            <div class="age-row">
-                <label for="max-age">Tuổi tối đa:</label>
-                <input type="number" id="max-age" value="18" min="1"/>
-            </div>
-            <button>Thay đổi</button>
-            <button>Lưu</button>
+            <form action="{{ url_for('age_regulations_page') }}" method="post" novalidate>
+                <div class="age-row">
+                    <label for="min-age">Tuổi tối thiểu:</label>
+                    <input type="number" id="min-age" class="edit-input" name="min_age"
+                           value="{{ min_age.value }}" min="14" max="50" readonly/>
+                </div>
+                <div class="age-row">
+                    <label for="max-age">Tuổi tối đa:</label>
+                    <input type="number" id="max-age" class="edit-input" name="max_age"
+                           value="{{ max_age.value }}" min="14" max="50" readonly/>
+                </div>
+                <button id="edit-button" type="button">Thay đổi</button>
+                <button id="save-button" type="submit">Lưu</button>
+            </form>
         </div>
 
     </div>
 </div>
+<script>
+    document.getElementById("edit-button").addEventListener("click", function () {
+        // Bật chế độ chỉnh sửa cho các ô input
+        const inputs = document.querySelectorAll(".edit-input");
+        inputs.forEach(input => {
+            input.readOnly = false; // Cho phép chỉnh sửa
+        });
 
+
+
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+        alert.style.display = "none"; // Ẩn thông báo
+        });
+    });
+
+    document.getElementById("save-button").addEventListener("click", function (event) {
+        // Lấy danh sách các ô input
+        const inputs = document.querySelectorAll(".edit-input");
+        let isValid = true;
+
+        // Kiểm tra giá trị các ô input
+        for (let input of inputs) {
+            const value = parseInt(input.value, 10);
+
+            // Kiểm tra nếu giá trị không hợp lệ
+            if (isNaN(value) || value < 14 || value > 50) {
+                alert("Giá trị phải nằm trong khoảng từ 14 đến 50."); // Hiển thị thông báo 1 lần
+                input.focus(); // Đặt con trỏ vào ô bị lỗi
+                isValid = false;
+                event.preventDefault(); // Ngăn form gửi nếu giá trị không hợp lệ
+                break; // Thoát khỏi vòng lặp ngay khi gặp lỗi
+            }
+        }
+
+        // Nếu tất cả giá trị hợp lệ
+        if (isValid) {
+            inputs.forEach(input => {
+                input.readOnly = true; // Đặt lại chỉ đọc sau khi lưu
+            });
+        }
+    });
+</script>
 
 {% endblock %}
 

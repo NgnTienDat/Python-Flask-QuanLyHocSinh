@@ -1,6 +1,5 @@
 import math
 
-
 from flask import render_template, request, url_for, redirect, flash
 
 from qlhsapp.models import ScoreType, Score, Regulation, Student
@@ -124,7 +123,7 @@ def numbers_regulations_page():
             flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
             return redirect(url_for('numbers_regulations_page'))
 
-        if dao.update_regulation(key_name='CLASS_MAX_SIZE', value=class_max_size):
+        if dao.update_class_size(key_name='CLASS_MAX_SIZE', value=class_max_size):
             return redirect(url_for('numbers_regulations_page'))
 
     class_size = Regulation.query.filter_by(key_name='CLASS_MAX_SIZE').first()
@@ -132,9 +131,25 @@ def numbers_regulations_page():
 
 
 # Quy định tuổi
-@app.route("/age-regulation")
+@app.route("/age-regulation", methods=['get', 'post'])
 def age_regulations_page():
-    return render_template('admin/age.html')
+    if request.method == 'POST':
+        print(request.form.get('max_age'))
+        print(request.form.get('min_age'))
+        try:
+            max_age=int(request.form.get('max_age'))
+            min_age=int(request.form.get('min_age'))
+        except (ValueError, TypeError):
+            flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
+            return redirect(url_for('age_regulations_page'))
+
+        if dao.update_age_regulation(min_age=min_age, max_age=max_age):
+            return redirect(url_for('age_regulations_page'))
+
+    max_age = Regulation.query.filter_by(key_name='MAX_AGE').first()
+    min_age = Regulation.query.filter_by(key_name='MIN_AGE').first()
+
+    return render_template('admin/age.html', max_age=max_age, min_age=min_age)
 
 
 # Nhập điểm
