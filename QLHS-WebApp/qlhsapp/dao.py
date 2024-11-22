@@ -44,7 +44,7 @@ def update_score_regulation(score_type, score_quantity, coefficient):
         db.session.commit()
         return True
 
-def update_regulation(key_name, value):
+def update_class_size(key_name, value):
     if value > 100 or value < 10:
         flash('Sĩ số phải trong khoảng từ 10 đến 100', 'warning')
         return False
@@ -55,6 +55,20 @@ def update_regulation(key_name, value):
         flash('Cập nhật sĩ số tối đa thành công!', 'success')
         return True
 
+
+def update_age_regulation(min_age, max_age):
+    if min_age >= max_age:
+        flash('Số tuổi tối thiểu phải nhỏ hơn số tuổi tối đa!!', 'warning')
+        return False
+    max_age_reg = Regulation.query.filter_by(key_name='MAX_AGE').first()
+    min_age_reg = Regulation.query.filter_by(key_name='MIN_AGE').first()
+
+    if min_age_reg and max_age_reg:
+        min_age_reg.value = min_age
+        max_age_reg.value = max_age
+        db.session.commit()
+        flash('Cập nhật số tuổi thành công!', 'success')
+        return True
 
 def load_student(kw=None, page=1):
     page_size = app.config['PAGE_SIZE']
