@@ -51,32 +51,30 @@
             <!-- Thanh Breadcrumb -->
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
-                    <li class="breadcrumb-item"><a href="/update-student/{{ student.id }}">Cập nhật học sinh</a></li>
+                    <li class="breadcrumb-item"><a href="/">Ngươ dùng</a></li>
+                    <li class="breadcrumb-item"><a href="/update-user/{{ user.id }}">Cập nhật người dùng</a></li>
                 </ol>
             </nav>
-            <h1>Cập nhật học sinh</h1>
+            <h1>Cập nhật người dùng</h1>
 
-            <form action="/update-student/{{ student.id }}" method="post">
+            <form action="/update-user/{{ user.id }}" method="post">
                 <div class="row">
                     <div class="col-md-6">
-                        <!-- Họ và tên -->
+                        <!-- Họ -->
                         <div class="form-group">
-                            <label for="name">Họ và tên</label>
-                            <input type="text" id="name" name="name" value="{{ student.name }}" placeholder="Nhập họ và tên" required>
+                            <label for="fisrt_name">Họ và tên</label>
+                            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" placeholder="Nhập họ" required>
                         </div>
-                        <!-- Giới tính -->
+                        <!-- Họ -->
                         <div class="form-group">
-                            <label for="gender">Giới tính</label>
-                            <select id="gender" name="gender" required>
-                                <option value="Nam" {% if student.gender == 'MALE' %} selected {% endif %}>Nam</option>
-                                <option value="Nữ" {% if student.gender == 'FEMALE' %} selected {% endif %}>Nữ</option>
-                            </select>
+                            <label for="last_name">Họ và tên</label>
+                            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" placeholder="Nhập tên" required>
                         </div>
+
                         <!-- Địa chỉ -->
                         <div class="form-group">
                             <label for="address">Địa chỉ</label>
-                            <input type="text" id="address" name="address" value="{{ student.address }}" placeholder="Nhập địa chỉ" required>
+                            <input type="text" id="address" name="address" value="{{ user.address }}" placeholder="Nhập địa chỉ" required>
                         </div>
                     </div>
 
@@ -85,17 +83,12 @@
                         <!-- Email -->
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="email" value="{{ student.email }}" placeholder="Nhập email" required>
-                        </div>
-                        <!-- Ngày sinh -->
-                        <div class="form-group">
-                            <label for="date_of_birth">Ngày sinh</label>
-                            <input type="date" id="date_of_birth" name="date_of_birth" value="{{ student.date_of_birth }}" required>
+                            <input type="email" id="email" name="email" value="{{ user.email }}" placeholder="Nhập email" required>
                         </div>
                         <!-- Số điện thoại -->
                         <div class="form-group">
                             <label for="phone_number">Số điện thoại</label>
-                            <input type="tel" id="phone_number" name="phone_number" value="{{ student.phone_number }}" placeholder="Nhập số điện thoại"
+                            <input type="tel" id="phone_number" name="phone_number" value="{{ user.phone_number }}" placeholder="Nhập số điện thoại"
                                    required>
                         </div>
                     </div>

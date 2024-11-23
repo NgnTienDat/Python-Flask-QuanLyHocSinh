@@ -1,12 +1,11 @@
-import hashlib
+from cloudinary.uploader import remove_all_tags
+from flask_login import UserMixin
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
-from qlhsapp import db, app
+from qlhsapp import db, app, engine
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
-from datetime import datetime, date
-from faker import Faker
-from random import choice, randint
+from datetime import datetime
 
 
 class BaseModel(db.Model):
@@ -18,16 +17,6 @@ class UserRole(PyEnum):
     ADMIN = 'ADMIN'
     STAFF = 'STAFF'
     TEACHER = 'TEACHER'
-
-    def __str__(self):
-        return self.value
-
-
-# Loai diem
-class ScoreType(PyEnum):
-    FIFTEEN = '15 phút'
-    FORTY_FIVE = '45 phút'
-    END_TERM = 'Cuối kỳ'
 
     def __str__(self):
         return self.value
@@ -51,7 +40,6 @@ class Action(PyEnum):
 
 
 class User(BaseModel):
-    __tablename__ = "user"
     first_name = Column(String(20), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(50), unique=True, nullable=False)
@@ -72,10 +60,12 @@ class User(BaseModel):
     admin_creator = relationship('Administrator', back_populates='manage_users',
                                  foreign_keys=[create_by_Id])  # done
 
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
 
 # Tai khoan
-class Account(db.Model):
-    __tablename__ = "account"
+class Account(db.Model, UserMixin):
     account_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
     username = Column(String(100), unique=True, nullable=False)
     password = Column(String(50), nullable=False)
@@ -86,22 +76,24 @@ class Account(db.Model):
     # OneToOne voi User
     user = relationship('User', back_populates='account')  # done
 
+    # Phương thức để lấy ID người dùng
+    def get_id(self):
+        return str(self.account_id)
+
 
 # Nhan vien
 class Staff(db.Model):
-    __tablename__ = "staff"
     staff_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
     user = relationship('User', back_populates='staff')  # done
 
-    classes = relationship('Class', secondary='staff_class', back_populates='staff')  # done
+    classes = relationship('Class', back_populates='staff')  # done
 
     students = relationship('Student', back_populates='staff')
 
 
 # Quan tri vien
 class Administrator(db.Model):
-    __tablename__ = "administrator"
     admin_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
     user = relationship('User', back_populates='administrator', uselist=False, foreign_keys=[admin_id])  # done
@@ -112,11 +104,17 @@ class Administrator(db.Model):
     # create_subject = relationship('Subject', back_populates='admin_creator')  # done
 
 
-student_class = db.Table('student_class',
-                         Column('id', Integer, primary_key=True, autoincrement=True),
-                         Column('student_id', Integer, ForeignKey('student.id')),
-                         Column('class_id', Integer, ForeignKey('class.id'))
-                         )
+
+
+class StudentClass(BaseModel):
+    student_id = Column(Integer, ForeignKey('student.id'))
+    class_id = Column(Integer, ForeignKey('class.id'))
+    is_active = Column(Boolean, default=True)
+
+    students = relationship('Student', back_populates='student_classes')
+    classes = relationship('Class', back_populates='student_classes')
+
+
 
 teacher_class = db.Table('teacher_class',
                          Column('id', Integer, primary_key=True, autoincrement=True),
@@ -124,22 +122,15 @@ teacher_class = db.Table('teacher_class',
                          Column('class_id', Integer, ForeignKey('class.id'))
                          )
 
-staff_class = db.Table('staff_class',
-                       Column('id', Integer, primary_key=True, autoincrement=True),
-                       Column('staff_if', Integer, ForeignKey('staff.staff_id')),
-                       Column('subject_id', Integer, ForeignKey('class.id')),
-                       Column('time', DateTime, default=datetime.now()),
-                       Column('action', Enum(Action), nullable=False)
-                       )
 
 
 # Giao vien
 class Teacher(db.Model):
-    __tablename__ = "teacher"
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
     subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
 
+    is_homeroom_teacher = Column(Boolean, default=False)
     # 1 - 1: teacher homeroom
     homeroom_class = relationship('Class', back_populates='homeroom_teacher', uselist=False,
                                   foreign_keys='Class.homeroom_teacher_id')  # done
@@ -152,55 +143,65 @@ class Teacher(db.Model):
     # 1 - N: A teacher enter scores for many scoreboards
     enter_scores = relationship('ScoreBoard', back_populates='teacher')  # done
 
+    def __str__(self):
+        return self.name
+
 
 class Class(BaseModel):
-    __tablename__ = "class"
     name = Column(String(20), nullable=False, unique=True)
     grade_level_id = Column(Integer, ForeignKey('grade_level.id'), nullable=False)
     # Number of students (Sĩ số)
     student_numbers = Column(Integer, nullable=True)
+
+    school_year_id = Column(Integer, ForeignKey('school_year.id'), nullable=False)
+
+    staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
+
+    school_year = relationship('SchoolYear', back_populates='classes')  # done
 
     grade_level = relationship('GradeLevel', back_populates='classes')  # done
     # this class is homeroom_ed by this teacher ;)
     homeroom_teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), unique=True, nullable=False)
     # N - N: Subject teachers
     teachers = relationship('Teacher', secondary='teacher_class', back_populates='teach_classes')  # done
-    # N - N: Students
-    students = relationship('Student', secondary='student_class', back_populates='classes')  # done
+
     # 1 - 1: A class is homeroom_ed by one teacher
     homeroom_teacher = relationship('Teacher', back_populates='homeroom_class',
                                     foreign_keys=[homeroom_teacher_id])  # done
 
-    staff = relationship('Staff', secondary='staff_class', back_populates='classes')  # done
+    staff = relationship('Staff', back_populates='classes')  # done
 
+    student_classes = relationship('StudentClass', back_populates='classes')
 
 # Khoi lop
 class GradeLevel(BaseModel):
-    __tablename__ = "grade_level"
+    __tablename__ = 'grade_level'
     name = Column(String(50), nullable=False)
     classes = relationship('Class', back_populates='grade_level', lazy=True)  # done
 
 
 class Student(BaseModel):
-    __tablename__ = "student"
     name = Column(String(50), nullable=False)
     address = Column(String(100))
     email = Column(String(50))
     gender = Column(Enum(GenderEnum, name="gender_enum"), nullable=False)
     phone_number = Column(String(10))
     date_of_birth = Column(Date, nullable=False)
+    in_assigned = Column(Boolean, default=False) # Da duoc phan vao lop hay chua
+
     staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
     # N - N: A student can study in many classes
-    classes = relationship('Class', secondary='student_class', back_populates='students', lazy=True)  # done
+
     # 1 - N: A student is admitted by one user (staff)
     staff = relationship('Staff', back_populates='students')  # done
     # 1 - N: A student has many scoreboards
     score_boards = relationship('ScoreBoard', back_populates='student')  # done
 
+    student_classes = relationship('StudentClass', back_populates='students')
+
 
 # Bang diem
 class ScoreBoard(BaseModel):
-    __tablename__ = "score_board"
     student_id = Column(Integer, ForeignKey('student.id'), nullable=False)
     subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
     semester_id = Column(Integer, ForeignKey('semester.id'), nullable=False)
@@ -219,8 +220,7 @@ class ScoreBoard(BaseModel):
 
 # Diem
 class Score(BaseModel):
-    __tablename__ = "score"
-    score_type = Column(Enum(ScoreType), nullable=False)
+    score_type = Column(Integer, ForeignKey('score_type.id'), nullable=False)
     score_value = Column(Float, nullable=False)
     score_board_id = Column(Integer, ForeignKey('score_board.id'), nullable=False)
     # 1 - N: A score belongs to one scoreboard
@@ -228,49 +228,32 @@ class Score(BaseModel):
 
 
 # Cau hinh so cot diem
-class ScoreRegulation(BaseModel):
-    __tablename__ = "score_regulation"
-
-    # Cột kiểu Enum được đổi tên
-    score_type_enum = Column(Enum(ScoreType), nullable=False)
-
+class ScoreType(BaseModel):
+    name = Column(String(30), nullable=False, unique=True)
     score_quantity = Column(Integer, nullable=False)
+    # Hệ số
     coefficient = Column(Integer, nullable=False)
-
-    # Khóa ngoại tới ScoreType
-    score_type_id = Column(Integer, ForeignKey('score_type.id'), nullable=False)
-
-    # Mối quan hệ với ScoreType
-    score_type = relationship('ScoreType', back_populates='score_regulations')
 
 
 # Quy dinh
 class Regulation(BaseModel):
-    __tablename__ = "regulation"
     key_name = Column(String(50), unique=True, nullable=False)
     value = Column(String(50), unique=True)
 
 
-class ScoreType(BaseModel):
-    __tablename__ = "score_type"
-
-    name = Column(String(30), nullable=False, unique=True)
-
-    # Mối quan hệ ngược tới ScoreRegulation
-    score_regulations = relationship('ScoreRegulation', back_populates='score_type')
-
-
 # Nam hoc
 class SchoolYear(BaseModel):
-    __tablename__ = "school_year"
     name = Column(String(50), unique=True, nullable=False)
     # 1 - N: A school year has two semesters
     semesters = relationship('Semester', back_populates='school_year')  # done
+    classes = relationship('Class', back_populates='school_year')  # done
+
+    def __str__(self):
+        return self.name
 
 
 # Mon hoc
 class Subject(BaseModel):
-    __tablename__ = "subject"
     name = Column(String(50), unique=True, nullable=False)
     # creator_admin_id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=False)
     # admin_creator = relationship('Administrator', back_populates='create_subject')  # done
@@ -282,7 +265,6 @@ class Subject(BaseModel):
 
 # Hoc Ky
 class Semester(BaseModel):
-    __tablename__ = "semester"
     name = Column(String(20), nullable=False)
     school_year_id = Column(Integer, ForeignKey('school_year.id'), nullable=False)
     # 1 - N: A semester belongs to one school year
@@ -293,11 +275,14 @@ class Semester(BaseModel):
 
 from datetime import date
 from random import randint
+from sqlalchemy.orm import Session
 
-def create_students(session):
+
+def create_students(session: Session):
+    # Danh sách các học sinh
     students = []
 
-    # Tạo học sinh nam
+    # Tạo 10 học sinh nam
     for i in range(10):
         student = Student(
             name=f"Nguyễn Văn Nam {i + 1}",
@@ -305,12 +290,12 @@ def create_students(session):
             email=f"nam{i + 1}@example.com",
             gender=GenderEnum.MALE,
             phone_number=f"090{randint(1000000, 9999999)}",
-            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),
-            staff_id=1  # Thay đổi ID staff phù hợp với dữ liệu trong DB
+            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
+            staff_id=1
         )
         students.append(student)
 
-    # Tạo học sinh nữ
+    # Tạo 10 học sinh nữ
     for i in range(10):
         student = Student(
             name=f"Hà Kiều Nữ {i + 1}",
@@ -318,12 +303,12 @@ def create_students(session):
             email=f"nu{i + 1}@example.com",
             gender=GenderEnum.FEMALE,
             phone_number=f"091{randint(1000000, 9999999)}",
-            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),
+            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
             staff_id=1
         )
         students.append(student)
 
-    # Thêm vào session và commit
+    # Thêm danh sách vào session
     session.add_all(students)
     session.commit()
     print("Đã thêm 20 học sinh vào cơ sở dữ liệu.")
@@ -331,9 +316,6 @@ def create_students(session):
 
 if __name__ == '__main__':
     with app.app_context():
-        # db.drop_all()  # Xóa tất cả các bảng
-        # db.create_all()  # Tạo lại bảng với cấu trúc mới
-        session = db.session
-        create_students(session)
-
-
+        # db.create_all()
+        with Session(engine) as session:  # Đảm bảo bạn đã kết nối đúng engine
+            create_students(session)

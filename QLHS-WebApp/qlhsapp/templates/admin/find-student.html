@@ -1,97 +1,103 @@
-{% extends 'layout/base.html'%}
+{% extends 'layout/base.html' %}
 {% block title %} Trang chủ {% endblock %}
 
 {% block css %}
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-    }
-    .breadcrumb {
-        margin-bottom: 20px;
-        font-size: 16px;
-    }
-    .breadcrumb a {
-        text-decoration: none;
-        color: #007bff;
-    }
-    .breadcrumb a:hover {
-        text-decoration: underline;
-    }
-    .breadcrumb span {
-        color: #6c757d;
-    }
-    .search-bar {
-        margin-bottom: 20px;
-    }
-    .search-bar input[type="text"] {
-        padding: 8px;
-        width: 300px;
-        margin-right: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    table th, table td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: center;
-    }
-    table th {
-        background-color: #f2f2f2;
-    }
-    .btn {
-        padding: 5px 10px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
 
-    .btn-edit {
-        background-color: #ffc107;
-        color: black;
-    }
-    .btn-edit:hover {
-        background-color: #e0a800;
-    }
-</style>
+        .breadcrumb a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            color: #6c757d;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-bar input[type="text"] {
+            padding: 8px;
+            width: 300px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #e0a800;
+        }
+    </style>
 {% endblock %}
 {% block sidebar %}
-{% include 'layout/sidebar-admin.html'%}
+    {% include 'layout/sidebar-admin.html' %}
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid pt-4 px-4">
-    <div class="row g-4">
-        <!-- Thanh Breadcrumb -->
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
-                <li class="breadcrumb-item"><a href="/find-student">Tra cứu học sinh</a></li>
-            </ol>
-        </nav>
-        <h1>Tra cứu học sinh</h1>
-        <form class="search-bar" method="get" action="/find-student">
-            <input type="text" name="kw" placeholder="Tên học sinh cần tìm..." value="{{ request.args.get('kw', '') }}">
-            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
-        </form>
-        <table>
-            <thead>
-            <tr>
-                <th>STT</th>
-                <th>Họ tên</th>
-                <th>Email</th>
-                <th>Giới tính</th>
-                <th>Ngày sinh</th>
-                <th>SĐT</th>
-                <th>Hành động</th>
-            </tr>
-            </thead>
-            <tbody id="student-table-body">
+    <div class="container-fluid pt-4 px-4">
+        <div class="row g-4">
+            <!-- Thanh Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
+                    <li class="breadcrumb-item"><a href="/find-student">Tra cứu học sinh</a></li>
+                </ol>
+            </nav>
+            <h1>Tra cứu học sinh</h1>
+            <form class="search-bar" method="get" action="/find-student">
+                <input type="text" name="kw" placeholder="Tên học sinh cần tìm..."
+                       value="{{ request.args.get('kw', '') }}">
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+            </form>
+            <table>
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>Giới tính</th>
+                    <th>Ngày sinh</th>
+                    <th>SĐT</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="student-table-body">
                 {% for s in students.items %}
                     <tr>
                         <td>{{ s.id }}</td>
@@ -101,15 +107,17 @@
                         <td>{{ s.date_of_birth }}</td>
                         <td>{{ s.phone_number }}</td>
                         <td>
-                            <button class="btn btn-danger delete-btn" data-id="{{ s.id }}"><i class="fa fa-trash"></i></button>
-                            <a href="{{ url_for('edit_student', id=s.id) }}" class="btn btn-primary"><i class="fa fa-edit"></i></a>
+                            <button class="btn btn-danger delete-btn" data-id="{{ s.id }}"><i class="fa fa-trash"></i>
+                            </button>
+                            <a href="{{ url_for('edit_student', id=s.id) }}" class="btn btn-primary"><i
+                                    class="fa fa-edit"></i></a>
                         </td>
                     </tr>
                 {% endfor %}
-            </tbody>
+                </tbody>
 
-        </table>
-        <!-- Pagination -->
+            </table>
+            <!-- Pagination -->
             <nav>
                 <ul class="pagination justify-content-center">
                     <li class="page-item">
@@ -117,16 +125,45 @@
                             <a class="page-link" href="{{ url_for('find_student_page', page=students.prev_num) }}">Previous</a>
                         {% endif %}
                     </li>
-                    <li class="page-item active"><span class="page-link">Trang {{ students.page }} trên {{ students.pages }}</span></li>
+                    <li class="page-item active"><span
+                            class="page-link">Trang {{ students.page }} trên {{ students.pages }}</span></li>
                     <li class="page-item">
                         {% if students.has_next %}
-                            <a class="page-link" href="{{ url_for('find_student_page', page=students.next_num) }}">Next</a>
+                            <a class="page-link"
+                               href="{{ url_for('find_student_page', page=students.next_num) }}">Next</a>
                         {% endif %}
                     </li>
                 </ul>
             </nav>
+        </div>
     </div>
-</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const deleteButtons = document.querySelectorAll(".delete-btn");
+
+            deleteButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+
+                    if (confirm("Bạn có chắc chắn muốn học sinh này?")) {
+                        fetch(`/delete-student/${id}`, {
+                            method: 'DELETE'
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    this.closest('tr').remove(); // Xóa hàng khỏi bảng nếu thành công
+                                    alert("Đã xóa thành công!");
+                                } else {
+                                    alert("Xóa không thành công. Vui lòng thử lại.");
+                                }
+                            })
+                            .catch(error => console.error("Error:", error));
+                    }
+                });
+            });
+        });
+    </script>
 
 
 {% endblock %}
