@@ -1,12 +1,9 @@
-
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
 from qlhsapp import db, app
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 from datetime import datetime
-
-
 
 
 class BaseModel(db.Model):
@@ -39,6 +36,7 @@ class Action(PyEnum):
     def __str__(self):
         return self.value
 
+
 class User(BaseModel):
     first_name = Column(String(20), nullable=False)
     last_name = Column(String(50), nullable=False)
@@ -59,6 +57,9 @@ class User(BaseModel):
     # 1-N: User are managed by an admin
     admin_creator = relationship('Administrator', back_populates='manage_users',
                                  foreign_keys=[create_by_Id])  # done
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
 
 # Tai khoan
@@ -97,11 +98,11 @@ class Administrator(db.Model):
     # create_subject = relationship('Subject', back_populates='admin_creator')  # done
 
 
-
 student_class = db.Table('student_class',
                          Column('id', Integer, primary_key=True, autoincrement=True),
                          Column('student_id', Integer, ForeignKey('student.id')),
-                         Column('class_id', Integer, ForeignKey('class.id'))
+                         Column('class_id', Integer, ForeignKey('class.id')),
+                         Column('is_active', Boolean, default=True)
                          )
 
 teacher_class = db.Table('teacher_class',
@@ -109,8 +110,6 @@ teacher_class = db.Table('teacher_class',
                          Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
                          Column('class_id', Integer, ForeignKey('class.id'))
                          )
-
-
 
 staff_class = db.Table('staff_class',
                        Column('id', Integer, primary_key=True, autoincrement=True),
@@ -121,15 +120,13 @@ staff_class = db.Table('staff_class',
                        )
 
 
-
-
-
 # Giao vien
 class Teacher(db.Model):
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
     subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
 
+    is_homeroom_teacher = Column(Boolean, default=False)
     # 1 - 1: teacher homeroom
     homeroom_class = relationship('Class', back_populates='homeroom_teacher', uselist=False,
                                   foreign_keys='Class.homeroom_teacher_id')  # done
@@ -142,6 +139,9 @@ class Teacher(db.Model):
     # 1 - N: A teacher enter scores for many scoreboards
     enter_scores = relationship('ScoreBoard', back_populates='teacher')  # done
 
+    def __str__(self):
+        return self.name
+
 
 class Class(BaseModel):
     name = Column(String(20), nullable=False, unique=True)
@@ -149,6 +149,9 @@ class Class(BaseModel):
     # Number of students (Sĩ số)
     student_numbers = Column(Integer, nullable=True)
 
+    school_year_id = Column(Integer, ForeignKey('school_year.id'), nullable=False)
+
+    school_year = relationship('SchoolYear', back_populates='classes')  # done
 
     grade_level = relationship('GradeLevel', back_populates='classes')  # done
     # this class is homeroom_ed by this teacher ;)
@@ -158,12 +161,10 @@ class Class(BaseModel):
     # N - N: Students
     students = relationship('Student', secondary='student_class', back_populates='classes')  # done
     # 1 - 1: A class is homeroom_ed by one teacher
-    homeroom_teacher = relationship('Teacher', back_populates='homeroom_class', foreign_keys=[homeroom_teacher_id])  # done
+    homeroom_teacher = relationship('Teacher', back_populates='homeroom_class',
+                                    foreign_keys=[homeroom_teacher_id])  # done
 
     staff = relationship('Staff', secondary='staff_class', back_populates='classes')  # done
-
-
-
 
 
 # Khoi lop
@@ -180,6 +181,8 @@ class Student(BaseModel):
     gender = Column(Enum(GenderEnum, name="gender_enum"), nullable=False)
     phone_number = Column(String(10))
     date_of_birth = Column(Date, nullable=False)
+    in_assigned = Column(Boolean, default=False) # Da duoc phan vao lop hay chua
+
     staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
     # N - N: A student can study in many classes
     classes = relationship('Class', secondary='student_class', back_populates='students', lazy=True)  # done
@@ -202,9 +205,9 @@ class ScoreBoard(BaseModel):
     # 1 - N: A scoreboard belongs to a student
     student = relationship('Student', back_populates='score_boards')  # done
     # 1 - N: A scoreboard belongs to a subject
-    subject = relationship('Subject', back_populates='score_boards') # done
+    subject = relationship('Subject', back_populates='score_boards')  # done
     # 1 - N: A scoreboard belongs to one semester
-    semester = relationship('Semester', back_populates='score_boards') # done
+    semester = relationship('Semester', back_populates='score_boards')  # done
 
 
 # Diem
@@ -216,15 +219,12 @@ class Score(BaseModel):
     score_board = relationship('ScoreBoard', back_populates='scores')  # done
 
 
-
 # Cau hinh so cot diem
 class ScoreType(BaseModel):
     name = Column(String(30), nullable=False, unique=True)
     score_quantity = Column(Integer, nullable=False)
     # Hệ số
     coefficient = Column(Integer, nullable=False)
-
-
 
 
 # Quy dinh
@@ -237,8 +237,11 @@ class Regulation(BaseModel):
 class SchoolYear(BaseModel):
     name = Column(String(50), unique=True, nullable=False)
     # 1 - N: A school year has two semesters
-    semesters = relationship('Semester', back_populates='school_year') # done
+    semesters = relationship('Semester', back_populates='school_year')  # done
+    classes = relationship('Class', back_populates='school_year')  # done
 
+    def __str__(self):
+        return self.name
 
 
 # Mon hoc
@@ -249,8 +252,7 @@ class Subject(BaseModel):
     # N - N
     teachers = relationship('Teacher', back_populates='subject')  # done
     # 1 - N: A subject has many scoreboards
-    score_boards = relationship('ScoreBoard', back_populates='subject') # done
-
+    score_boards = relationship('ScoreBoard', back_populates='subject')  # done
 
 
 # Hoc Ky
@@ -258,13 +260,9 @@ class Semester(BaseModel):
     name = Column(String(20), nullable=False)
     school_year_id = Column(Integer, ForeignKey('school_year.id'), nullable=False)
     # 1 - N: A semester belongs to one school year
-    school_year = relationship('SchoolYear', back_populates='semesters') # done
+    school_year = relationship('SchoolYear', back_populates='semesters')  # done
     # 1 - N: A semester has many scoreboard
-    score_boards = relationship('ScoreBoard', back_populates='semester') # done
-
-
-
-
+    score_boards = relationship('ScoreBoard', back_populates='semester')  # done
 
 
 if __name__ == '__main__':

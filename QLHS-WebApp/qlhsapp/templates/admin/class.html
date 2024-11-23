@@ -21,11 +21,19 @@
     }
 
     h1 {
-        font-size: 24px;
-        color: #333;
-        margin-bottom: 20px;
-        text-align: center;
+    margin: 0;
+    font-size: 24px;
+    color: #333;
     }
+
+    select {
+        padding: 5px;
+        border-radius: 5px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        background-color: #f8f9fa;
+    }
+
 
     table {
         width: 100%;
@@ -73,7 +81,26 @@
             </ol>
         </nav>
         <div class="container">
-            <h1>Danh Sách Lớp Học</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+                <h1>Danh Sách Lớp Học</h1>
+                <select name="filter-options" id="filter-options"
+                        style="padding: 5px; border-radius: 5px; font-size: 14px;">
+                    <option value="all">Tất cả</option>
+                    <option value="grade-10">Khối 10</option>
+                    <option value="grade-11">Khối 11</option>
+                    <option value="grade-12">Khối 12</option>
+                </select>
+            </div>
+
             <table>
                 <thead>
                 <tr>
@@ -84,36 +111,23 @@
                 </tr>
                 </thead>
                 <tbody>
+                {% for c in classes %}
                 <tr>
-                    <td>10A1</td>
-                    <td>Lớp 10A1</td>
-                    <td>Nguyễn Văn A</td>
-                    <td>45</td>
+                    <td>{{ c.id }}</td>
+                    <td>{{ c.name }}</td>
+                    <td>{{ c.homeroom_teacher.user }}</td>
+                    <td>{{ c.student_numbers }}</td>
                 </tr>
-                <tr>
-                    <td>10A2</td>
-                    <td>Lớp 10A2</td>
-                    <td>Trần Thị B</td>
-                    <td>42</td>
-                </tr>
-                <tr>
-                    <td>11B1</td>
-                    <td>Lớp 11B1</td>
-                    <td>Phạm Văn C</td>
-                    <td>40</td>
-                </tr>
-                <tr>
-                    <td>12C1</td>
-                    <td>Lớp 12C1</td>
-                    <td>Hoàng Thị D</td>
-                    <td>38</td>
-                </tr>
+                {% endfor %}
                 </tbody>
             </table>
-             <!-- Nút lưu -->
             <div class="button-group">
-                <button>Thêm</button>
-                <button> Cập nhật</button>
+                <a href="{{ url_for('add_new_class') }}">
+                    <button>Thêm</button>
+                </a>
+                <a href="">
+                    <button> Cập nhật</button>
+                </a>
 
             </div>
         </div>
@@ -121,6 +135,15 @@
 
     </div>
 </div>
+
+<script>
+    document.getElementById('filter-options').addEventListener('change', function() {
+        const selectedValue = this.value;
+        // Xử lý logic lọc dữ liệu dựa trên selectedValue
+        console.log("Người dùng chọn:", selectedValue);
+    });
+</script>
+
 {% endblock %}
 
 
