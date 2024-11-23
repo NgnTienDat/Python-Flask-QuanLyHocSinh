@@ -40,22 +40,33 @@ form .form-group select {
                 <li class="breadcrumb-item"><a href="/add-student">Tiếp nhận học sinh</a></li>
             </ol>
         </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
          <h1>Tiếp nhận học sinh</h1>
-        <form class="form-container" action="{{ url_for('add_student_page') }}" method="post" >
+        <form class="form-container" action="{{ url_for('add_student_page') }}" method="post" novalidate>
             <!-- Họ và tên -->
             <div class="form-group">
                 <label for="name">Họ và tên</label>
-                <input type="text" id="name" placeholder="Nhập họ và tên">
+                <input type="text" id="name" placeholder="Nhập họ và tên" name="name" required>
             </div>
             <!-- Địa chỉ -->
             <div class="form-group">
                 <label for="address">Địa chỉ</label>
-                <input type="text" id="address" placeholder="Nhập địa chỉ">
+                <input type="text" id="address" placeholder="Nhập địa chỉ" name="address" required>
             </div>
             <!-- Giới tính -->
             <div class="form-group">
                 <label for="gender">Giới tính</label>
-                <select id="gender">
+                <select id="gender" name="gender" required>
                     <option value="Nam">Nam</option>
                     <option value="Nữ">Nữ</option>
                     <option value="Khác">Khác</option>
@@ -64,30 +75,26 @@ form .form-group select {
             <!-- Ngày sinh -->
             <div class="form-group">
                 <label for="date_of_birth">Ngày sinh</label>
-                <input type="date" id="date_of_birth">
+                <input type="date" id="date_of_birth" name="date_of_birth" required>
             </div>
             <!-- Email -->
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" placeholder="Nhập email">
+                <input type="email" id="email" placeholder="Nhập email" name="email">
             </div>
             <!-- Số điện thoại -->
             <div class="form-group">
                 <label for="phone_number">Số điện thoại</label>
-                <input type="tel" id="phone_number" placeholder="Nhập số điện thoại">
+                <input type="tel" id="phone_number" placeholder="Nhập số điện thoại" name="phone_number">
             </div>
             <div class="button-group">
                 <button type="submit">Lưu</button>
-                <a href="/">
-                    <button class="btn-cancel">Hủy</button>
-                </a>
+                <a href="{{ url_for('get_home_page') }}" class="btn btn-danger">Hủy</a>
             </div>
         </form>
 
     </div>
 </div>
-
-
 {% endblock %}
 
 

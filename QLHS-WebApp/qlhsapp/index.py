@@ -4,9 +4,8 @@ from flask import render_template, request, url_for, redirect, flash
 
 from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, GradeLevel, SchoolYear, Class
 
-from qlhsapp import app,db
+from qlhsapp import app, db
 import dao
-
 
 
 @app.route("/")
@@ -23,17 +22,41 @@ def get_login_page():
 @app.route("/students")
 def find_student_page():
     kw = request.args.get("key-name")
-    page = request.args.get("page", 1)
-    stu = dao.load_student(kw=kw, page=int(page))
-    counter = dao.count_student()
+    stu = dao.list_students(kw=kw)
     return render_template('admin/find-student.html',
-                           students=stu,
-                           pages=math.ceil(counter/app.config['PAGE_SIZE']))
+                           students=stu)
 
 
 # Tiếp nhận học sinh
-@app.route("/add-student")
+@app.route("/add-student", methods=['get', 'post'])
 def add_student_page():
+    if request.method.__eq__('POST'):
+        try:
+            name = request.form.get('name')
+            address = request.form.get('address')
+            email = request.form.get('email')
+            gender = request.form.get('gender')
+            date_of_birth = request.form.get('date_of_birth')
+            phone_number = request.form.get('phone_number')
+            staff_id = '2'
+            print(f"Received data: name={name}, address={address}, email={email}, "
+                  f"gender={gender}, date_of_birth={date_of_birth}, phone_number={phone_number}")
+            # kiểm tra tính hợp lệ của thông tin nhập vào
+            # Gọi hàm validate từ dao
+            if not dao.validate_input(name, address, phone_number, email):
+                return redirect(url_for('add_student_page'))
+            if dao.check_email_student(email):
+                flash("Email đã tồn tại !!!", "warning")
+                return redirect(url_for('add_student_page'))
+
+            dao.add_student(name=name, address=address, gender=gender, date_of_birth=date_of_birth, staff_id=staff_id,
+                            email=email,
+                            phone_number=phone_number)
+            flash("Thêm học sinh thành công!", "success")
+        except Exception as ex:
+            print(f"Error occurred: {ex}")
+            flash(f"Đã xảy ra lỗi khi thêm học sinh: {ex}", "error")
+
     return render_template('admin/add-student.html')
 
 
@@ -68,28 +91,28 @@ def set_class_page():
 # Quy định số cột điểm
 @app.route("/score-regulation", methods=['get', 'post'])
 def score_regulations_page():
-
     if request.method.__eq__('POST'):
         scores_update = []
         try:
-            for index in range(1, len(request.form)//3+1):  # chia nguyen de lay so dong, vi du 9 o input thi 9//3=3 dong, lap tung dong
+            for index in range(1,
+                               len(request.form) // 3 + 1):  # chia nguyen de lay so dong, vi du 9 o input thi 9//3=3 dong, lap tung dong
                 score_type = request.form.get(f'score_type_{index}')
                 score_quantity = int(request.form.get(f'score_quantity_{index}'))
                 coefficient = int(request.form.get(f'coefficient_{index}'))
 
                 scores_update.append({
-                    'score_type':score_type,
-                    'score_quantity':score_quantity,
-                    'coefficient':coefficient
+                    'score_type': score_type,
+                    'score_quantity': score_quantity,
+                    'coefficient': coefficient
                 })
         except (TypeError, ValueError):
             flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
             return redirect(url_for('score_regulations_page'))
         print('im pass')
         for data in scores_update:
-            score_type = data['score_type'] # chỉ gửi lên chuỗi ví dụ '15 phút'
-            score_quantity=data['score_quantity']
-            coefficient=data['coefficient']
+            score_type = data['score_type']  # chỉ gửi lên chuỗi ví dụ '15 phút'
+            score_quantity = data['score_quantity']
+            coefficient = data['coefficient']
 
             dao.update_score_regulation(score_type, score_quantity, coefficient)
 
@@ -98,7 +121,6 @@ def score_regulations_page():
 
     score_types = dao.load_score_regulation()
     return render_template('admin/score.html', score_types=score_types)
-
 
 
 @app.route("/add-new-score-type", methods=['get', 'post'])
@@ -116,6 +138,7 @@ def new_score_regulation():
             return redirect(url_for('score_regulations_page'))
 
     return render_template('admin/new-score-regulation.html')
+
 
 @app.route('/score-regulation/<int:score_type_id>', methods=['get', 'post'])
 def delete_score_type(score_type_id):
@@ -159,8 +182,8 @@ def age_regulations_page():
         print(request.form.get('max_age'))
         print(request.form.get('min_age'))
         try:
-            max_age=int(request.form.get('max_age'))
-            min_age=int(request.form.get('min_age'))
+            max_age = int(request.form.get('max_age'))
+            min_age = int(request.form.get('min_age'))
         except (ValueError, TypeError):
             flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
             return redirect(url_for('age_regulations_page'))
@@ -193,7 +216,33 @@ def list_teacher():
 
 @app.route("/list-subject")
 def list_subject():
-    return render_template('admin/subject.html')
+    subjects = dao.load_subject()
+    return render_template('admin/subject.html', subjects=subjects)
+
+
+@app.route("/list-subject/add-subject", methods=['get', 'post'])
+def add_new_subject():
+    if request.method.__eq__('POST'):
+        name = request.form.get('subject_name')
+        if dao.handel_save_subject(name):
+            flash("Môn học đã có trong hệ thống!", "warning")
+            return redirect(url_for('add_new_subject'))
+        dao.save_subject(name)
+        flash("Thêm môn học thành công!", "success")
+    return render_template('admin/add-subject.html')
+
+
+@app.route("/list-subject/delete-subject/<int:subject_id>", methods=['get', 'post'])
+def delete_subject(subject_id):
+    subject = dao.get_subject_by_id(subject_id)
+    if request.method.__eq__('POST'):
+        try:
+            dao.delete_subject(subject_id)
+            return redirect(url_for('list_subject'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('list_subject'))
+    return render_template('admin/delete-subject.html', subject=subject)
 
 
 @app.route("/list-class")
@@ -225,13 +274,10 @@ def add_new_class():
         if dao.handle_add_new_class(class_name, grade_level_id, homeroom_teacher_id, school_year_id, school_year):
             return redirect(url_for('add_new_class'))
 
-
     teachers = Teacher.query.filter_by(is_homeroom_teacher=False).all()
     print(teachers)
     grade_level = GradeLevel.query.all()
     school_year = SchoolYear.query.order_by(SchoolYear.id.desc()).first()
-
-
 
     return render_template('admin/add-class.html',
                            teachers=teachers, grade_level=grade_level, school_year=school_year)
@@ -284,12 +330,21 @@ def student_detail(student_id):
 def student_update(student_id):
     student = dao.get_student_by_id(student_id)
     if request.method.__eq__('POST'):
-        dao.update_student(student_id, request.form.get('name'),
-                           request.form.get('address'),
-                           request.form.get('email'),
-                           request.form.get('date_of_birth'),
-                           request.form.get('phone_number'))
-        flash("Student updated successfully!", "success")
+        name = request.form.get('name')
+        address = request.form.get('address')
+        email = request.form.get('email')
+        date_of_birth = request.form.get('date_of_birth')
+        phone_number = request.form.get('phone_number')
+
+        # Gọi hàm validate từ dao
+        if not dao.validate_input(name, address, phone_number, email):
+            return redirect(url_for('student_update', student_id=student_id))
+
+        dao.update_student(student_id, name=name,
+                           address=address,
+                           email=email,
+                           date_of_birth=date_of_birth,
+                           phone_number=phone_number)
         return redirect(url_for('find_student_page'))
 
     return render_template('admin/update-student.html', student=student)
