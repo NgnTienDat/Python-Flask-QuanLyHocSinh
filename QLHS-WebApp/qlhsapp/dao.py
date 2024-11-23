@@ -3,7 +3,7 @@ from flask import flash
 
 from qlhsapp import app, db
 
-from qlhsapp.models import ScoreType, Score, Regulation, Student, GenderEnum, Class, Teacher, Subject
+from qlhsapp.models import ScoreType, Score, Regulation, Student, GenderEnum, Class, Teacher, Subject, StudentClass
 from datetime import datetime
 import re
 
@@ -90,20 +90,20 @@ def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_
     return True
 
 
-def load_student(kw=None, page=1):
-    page_size = app.config['PAGE_SIZE']
-    start = (page - 1) * page_size
-
-    students = Student.query.offset(start).limit(page_size).all()
-
-    if kw:
-        students = [s for s in students if s.name.lower().find(kw.lower()) >= 0]
-
-    return students
-
-
 def get_student_by_id(student_id):
-    return Student.query.get(student_id)
+    return (db.session.query(Student.id,
+                             Student.name,
+                             Student.address,
+                             Student.email,
+                             Student.gender,
+                             Student.date_of_birth,
+                             Student.phone_number,
+                             Class.name.label("current_class"))
+            .join(StudentClass, StudentClass.student_id == Student.id)
+            .join(Class, StudentClass.class_id == Class.id)
+            .filter(Student.id == student_id)
+            .first()
+            )
 
 
 def count_student():
@@ -170,13 +170,10 @@ def add_student(name, address, gender, date_of_birth, staff_id, **kwargs):
 
 def check_email_student(current_email):
     existing_student = Student.query.filter_by(email=current_email).first()
-    return existing_student is not None # cần check lại chỗ này !!!!!
+    return existing_student is not None  # cần check lại chỗ này !!!!!
 
 
 def validate_input(name, address, phone_number, email):
-    if not re.match(r"^[a-zA-Z\s]+$", name):
-        flash("Tên không được chứa ký tự đặc biệt.", "warning")
-        return False
     if len(name) < 3 or len(name) > 50:
         flash("Tên học sinh phải có độ dài từ 3 đến 50 ký tự.", "warning")
         return False
@@ -221,17 +218,23 @@ def delete_subject(subject_id):
         raise ValueError("Không tìm thấy môn học cần xóa")
 
 
+def list_students(kw=None):
+    students = (
+        db.session.query(Student.id,
+                         Student.name,
+                         Student.address,
+                         Student.email,
+                         Student.gender,
+                         Student.date_of_birth,
+                         Student.phone_number,
+                         Class.name.label("current_class"))
+        .join(StudentClass, StudentClass.student_id == Student.id)
+        .join(Class, StudentClass.class_id == Class.id)
+        .filter(StudentClass.is_active == True)
+        .all()
+    )
 
+    if kw:
+        students = [s for s in students if s.name.lower().find(kw.lower()) >= 0]
 
-
-
-
-
-
-
-
-
-
-
-
-
+    return students
