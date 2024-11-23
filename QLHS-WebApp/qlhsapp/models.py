@@ -159,8 +159,7 @@ class Class(BaseModel):
     homeroom_teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), unique=True, nullable=False)
     # N - N: Subject teachers
     teachers = relationship('Teacher', secondary='teacher_class', back_populates='teach_classes')  # done
-    # N - N: Students
-    students = relationship('Student', secondary='student_class', back_populates='classes')  # done
+
     # 1 - 1: A class is homeroom_ed by one teacher
     homeroom_teacher = relationship('Teacher', back_populates='homeroom_class',
                                     foreign_keys=[homeroom_teacher_id])  # done
@@ -187,7 +186,7 @@ class Student(BaseModel):
 
     staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
     # N - N: A student can study in many classes
-    classes = relationship('Class', secondary='student_class', back_populates='students', lazy=True)  # done
+
     # 1 - N: A student is admitted by one user (staff)
     staff = relationship('Staff', back_populates='students')  # done
     # 1 - N: A student has many scoreboards
