@@ -41,7 +41,9 @@ def add_student_page():
             gender = request.form.get('gender')
             date_of_birth = request.form.get('date_of_birth')
             phone_number = request.form.get('phone_number')
-            staff_id = '3'
+            staff_id = '2'
+            print(f"Received data: name={name}, address={address}, email={email}, "
+                  f"gender={gender}, date_of_birth={date_of_birth}, phone_number={phone_number}")
             # kiểm tra tính hợp lệ của thông tin nhập vào
             # Gọi hàm validate từ dao
             if not dao.validate_input(name, address, phone_number, email):
@@ -195,7 +197,33 @@ def list_teacher():
 
 @app.route("/list-subject")
 def list_subject():
-    return render_template('admin/subject.html')
+    subjects = dao.load_subject()
+    return render_template('admin/subject.html', subjects=subjects)
+
+
+@app.route("/list-subject/add-subject", methods=['get', 'post'])
+def add_new_subject():
+    if request.method.__eq__('POST'):
+        name = request.form.get('subject_name')
+        if dao.handel_save_subject(name):
+            flash("Môn học đã có trong hệ thống!", "warning")
+            return redirect(url_for('add_new_subject'))
+        dao.save_subject(name)
+        flash("Thêm môn học thành công!", "success")
+    return render_template('admin/add-subject.html')
+
+
+@app.route("/list-subject/delete-subject/<int:subject_id>", methods=['get', 'post'])
+def delete_subject(subject_id):
+    subject = dao.get_subject_by_id(subject_id)
+    if request.method.__eq__('POST'):
+        try:
+            dao.delete_subject(subject_id)
+            return redirect(url_for('list_subject'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('list_subject'))
+    return render_template('admin/delete-subject.html', subject=subject)
 
 
 @app.route("/list-class")
@@ -220,12 +248,9 @@ def add_new_class():
         if dao.handle_add_new_class(class_name, grade_level_id, homeroom_teacher_id, school_year_id, school_year):
             return redirect(url_for('add_new_class'))
 
-
     teachers = Teacher.query.filter_by(is_homeroom_teacher=False).all()
     grade_level = GradeLevel.query.all()
     school_year = SchoolYear.query.order_by(SchoolYear.id.desc()).first()
-
-
 
     return render_template('admin/add-class.html',
                            teachers=teachers, grade_level=grade_level, school_year=school_year)

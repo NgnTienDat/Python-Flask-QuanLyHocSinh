@@ -3,7 +3,7 @@ from flask import flash
 
 from qlhsapp import app, db
 
-from qlhsapp.models import ScoreType, Score, Regulation, Student, GenderEnum, Class, Teacher
+from qlhsapp.models import ScoreType, Score, Regulation, Student, GenderEnum, Class, Teacher, Subject
 from datetime import datetime
 import re
 
@@ -73,6 +73,7 @@ def update_age_regulation(min_age, max_age):
         flash('Cập nhật số tuổi thành công!', 'success')
         return True
 
+
 def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_id, school_year_name):
     if Class.query.filter_by(name=name, school_year_id=school_year_id).first():
         flash(f'Lớp {name} thuộc năm học {school_year_name} đã tồn tại trong hệ thống!', 'warning')
@@ -87,7 +88,6 @@ def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_
     db.session.commit()
     flash('Thêm mới lớp học thành công!', 'success')
     return True
-
 
 
 def load_student(kw=None, page=1):
@@ -190,3 +190,48 @@ def validate_input(name, address, phone_number, email):
         flash("Số điện thoại phải có đúng 10 chữ số", "warning")
         return False
     return True
+
+
+def load_subject():
+    subjects = Subject.query.all()
+    return subjects
+
+
+def save_subject(name):
+    subject = Subject(name=name)
+    db.session.add(subject)
+    db.session.commit()
+
+
+def handel_save_subject(name):
+    existing_subject = Subject.query.filter_by(name=name).first()
+    return existing_subject is not None
+
+
+def get_subject_by_id(subject_id):
+    return Subject.query.get(subject_id)
+
+
+def delete_subject(subject_id):
+    subject = Subject.query.get(subject_id)
+    if subject:
+        db.session.delete(subject)
+        db.session.commit()
+    else:
+        raise ValueError("Không tìm thấy môn học cần xóa")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
