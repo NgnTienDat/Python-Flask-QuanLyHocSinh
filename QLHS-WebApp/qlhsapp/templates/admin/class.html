@@ -21,9 +21,9 @@
     }
 
     h1 {
-    margin: 0;
-    font-size: 24px;
-    color: #333;
+        margin: 0;
+        font-size: 24px;
+        color: #333;
     }
 
     select {
@@ -57,10 +57,38 @@
         background-color: #f1f1f1;
     }
     .button-group {
-    width: 100%;
-    text-align: right; /* Căn nút sang bên phải */
-    margin-top: 20px;
-}
+        width: 100%;
+        text-align: right; /* Căn nút sang bên phải */
+        margin-top: 20px;
+    }
+    ul.pagination {
+        display: flex;
+        justify-content: center; /* Căn giữa các nút phân trang */
+        margin-top: 15px; /* Thêm khoảng cách phía trên */
+        padding: 0;
+    }
+
+    ul.pagination li {
+        margin: 0 5px; /* Thêm một chút khoảng cách giữa các nút */
+    }
+
+    ul.pagination .page-item {
+        list-style: none;
+    }
+
+    ul.pagination .page-link {
+        text-decoration: none;
+        padding: 8px 16px; /* Điều chỉnh kích thước nút */
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        color: #007bff;
+    }
+
+    ul.pagination .page-link:hover {
+        background-color: #007bff;
+        color: white;
+    }
 
 
 </style>
@@ -80,6 +108,7 @@
 
             </ol>
         </nav>
+
         <div class="container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -92,13 +121,17 @@
                 {% endif %}
                 {% endwith %}
                 <h1>Danh Sách Lớp Học</h1>
-                <select name="filter-options" id="filter-options"
-                        style="padding: 5px; border-radius: 5px; font-size: 14px;">
-                    <option value="all">Tất cả</option>
-                    <option value="grade-10">Khối 10</option>
-                    <option value="grade-11">Khối 11</option>
-                    <option value="grade-12">Khối 12</option>
+                <select name="filter-options" id="filter-options">
+                    <option value="all" {% if selected_filter=='all' %}selected{% endif %}>Tất cả</option>
+                    {% for grade_level in grade_levels %}
+                    <option value="{{ grade_level.id }}" {% if selected_filter== grade_level.id|string %}selected{%endif
+                            %}>
+                        Khối {{ grade_level.name }}
+                    </option>
+                    {% endfor %}
                 </select>
+
+
             </div>
 
             <table>
@@ -108,6 +141,7 @@
                     <th>Tên Lớp</th>
                     <th>Giáo Viên Chủ Nhiệm</th>
                     <th>Số Lượng Học Sinh</th>
+                    <th>Hành động</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -117,6 +151,11 @@
                     <td>{{ c.name }}</td>
                     <td>{{ c.homeroom_teacher.user }}</td>
                     <td>{{ c.student_numbers }}</td>
+                    <td>
+                        <a href="{{ url_for('update_class', class_id=c.id) }}">
+                            <button>Chỉnh sửa</button>
+                        </a>
+                    </td>
                 </tr>
                 {% endfor %}
                 </tbody>
@@ -125,11 +164,16 @@
                 <a href="{{ url_for('add_new_class') }}">
                     <button>Thêm</button>
                 </a>
-                <a href="">
-                    <button> Cập nhật</button>
-                </a>
+
 
             </div>
+            <ul class="pagination">
+                {% for idx in range(1, pages+1) %}
+                <li class="page-item {% if idx == page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('list_class', page=idx)}}">{{ idx }}</a>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
 
 
@@ -137,10 +181,11 @@
 </div>
 
 <script>
+
     document.getElementById('filter-options').addEventListener('change', function() {
-        const selectedValue = this.value;
-        // Xử lý logic lọc dữ liệu dựa trên selectedValue
-        console.log("Người dùng chọn:", selectedValue);
+       const selectedValue = this.value;
+       // Điều hướng đến URL với tham số filter
+       window.location.href = "{{ url_for('list_class') }}?filter=" + selectedValue;
     });
 </script>
 

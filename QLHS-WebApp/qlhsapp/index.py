@@ -38,9 +38,31 @@ def add_student_page():
 
 
 # Phân lớp học sinh
-@app.route("/set-class")
+@app.route("/set-class", methods=['get', 'post'])
 def set_class_page():
-    return render_template('admin/set-class.html')
+    page = request.args.get('page', 1)
+    if request.method == 'POST':
+
+        try:
+            # lay gia tri cua cac checkbox gui len duoi dang list
+            selected_students = request.form.getlist('student_id')
+            class_ = request.form.get('class_')
+
+
+
+
+
+        except (TypeError, ValueError):
+            flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
+            return redirect(url_for('score_regulations_page'))
+
+
+
+
+    classes = Class.query.all()
+    students, pages = dao.load_student_no_assigned(page=int(page))
+    return render_template('admin/set-class.html',
+                           classes=classes, students=students, pages=pages, page=int(page))
 
 
 # Quy định số cột điểm
@@ -176,8 +198,15 @@ def list_subject():
 
 @app.route("/list-class")
 def list_class():
-    classes = Class.query.all()
-    return render_template('admin/class.html', classes=classes)
+    page = request.args.get('page', 1)
+    grade_level_id = request.args.get('filter', 'all') # mac dinh la lay tat ca
+
+    classes, pages = dao.filter_class_by_grade_level_id(grade_level_id, page=int(page))
+
+    grade_levels=GradeLevel.query.all()
+    selected_filter = grade_level_id
+    return render_template('admin/class.html', classes=classes,
+                           grade_levels=grade_levels, selected_filter=selected_filter, pages=pages, page=int(page))
 
 
 @app.route("/list-class/new-class", methods=['get', 'post'])
@@ -198,6 +227,7 @@ def add_new_class():
 
 
     teachers = Teacher.query.filter_by(is_homeroom_teacher=False).all()
+    print(teachers)
     grade_level = GradeLevel.query.all()
     school_year = SchoolYear.query.order_by(SchoolYear.id.desc()).first()
 
@@ -205,6 +235,27 @@ def add_new_class():
 
     return render_template('admin/add-class.html',
                            teachers=teachers, grade_level=grade_level, school_year=school_year)
+
+
+
+@app.route("/list-class/update-class/<int:class_id>", methods=['get', 'post'])
+def update_class(class_id):
+    class_ = Class.query.get(class_id)
+    if request.method == 'POST':
+        class_name = request.form.get('class_name')
+        homeroom_teacher_id = int(request.form.get('homeroom_teacher'))
+
+
+        if dao.update_class(class_id, homeroom_teacher_id, class_name):
+            return redirect(url_for('update_class', class_id=class_id))
+
+    homeroom_teacher_id = class_.homeroom_teacher_id
+    school_year = SchoolYear.query.order_by(SchoolYear.id.desc()).first()
+    teachers = Teacher.query.filter_by(is_homeroom_teacher=False).all()
+    return render_template('admin/update-class.html',
+                           school_year=school_year, class_=class_, teachers=teachers,
+                           homeroom_teacher_id=homeroom_teacher_id)
+
 
 
 @app.route("/list-user")
