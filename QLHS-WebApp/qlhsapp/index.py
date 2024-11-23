@@ -2,7 +2,7 @@ import math
 
 from flask import render_template, request, url_for, redirect, flash
 
-from qlhsapp.models import ScoreType, Score, Regulation, Student
+from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, GradeLevel, SchoolYear, Class
 
 from qlhsapp import app, db
 import dao
@@ -200,7 +200,35 @@ def list_subject():
 
 @app.route("/list-class")
 def list_class():
-    return render_template('admin/class.html')
+    classes = Class.query.all()
+    return render_template('admin/class.html', classes=classes)
+
+
+@app.route("/list-class/new-class", methods=['get', 'post'])
+def add_new_class():
+    if request.method == 'POST':
+        class_name = request.form.get('class_name')
+        grade_level_id = int(request.form.get('grade_level'))
+        homeroom_teacher_id = int(request.form.get('homeroom_teacher'))
+        school_year = request.form.get('school_year')
+        school_year_id = int(request.form.get('school_year_id'))
+
+        print(type(grade_level_id))
+        print(type(homeroom_teacher_id))
+        print(type(school_year_id))
+
+        if dao.handle_add_new_class(class_name, grade_level_id, homeroom_teacher_id, school_year_id, school_year):
+            return redirect(url_for('add_new_class'))
+
+
+    teachers = Teacher.query.filter_by(is_homeroom_teacher=False).all()
+    grade_level = GradeLevel.query.all()
+    school_year = SchoolYear.query.order_by(SchoolYear.id.desc()).first()
+
+
+
+    return render_template('admin/add-class.html',
+                           teachers=teachers, grade_level=grade_level, school_year=school_year)
 
 
 @app.route("/list-user")
