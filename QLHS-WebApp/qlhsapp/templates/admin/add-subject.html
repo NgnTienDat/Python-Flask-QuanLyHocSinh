@@ -1,0 +1,134 @@
+{% extends 'layout/base.html'%}
+{% block title %} Tạo lớp học {% endblock %}
+
+{% block css %}
+<style>
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-width: 600px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 13px;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .button-group button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .button-group button[type="submit"] {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .button-group button.btn-cancel {
+        background-color: #6c757d;
+        color: #fff;
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        margin-top: -10px;
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('list_class') }}">Lớp học</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tạo lớp học</li>
+            </ol>
+        </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <h1 class="text-center">Tạo môn học mới</h1>
+
+        <form id="create-class-form" action="{{ url_for('add_new_subject') }}" method="post" novalidate>
+
+            <div class="form-group">
+                <label for="subject_name">Tên môn học</label>
+                <input type="text" id="subject_name" name="subject_name" placeholder="Nhập tên môn học" required>
+                <div class="error" id="error-class-name"></div>
+            </div>
+
+            <div class="button-group">
+                <button id="save-button" type="submit">Lưu</button>
+                <a href="{{ url_for('list_subject') }}">
+                    <button type="button" class="btn-cancel">Quay lại</button>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('create-class-form').addEventListener('submit', function (e) {
+        const subjectName = document.getElementById('subject_name').value.trim();
+
+        // Clear previous error messages
+        document.getElementById('error-class-name').innerText = '';
+
+        let isValid = true;
+
+        // Validate the subject name
+        if (!subjectName) {
+            document.getElementById('error-class-name').innerText = 'Vui lòng nhập tên môn học.';
+            isValid = false;
+        }
+
+        // Prevent form submission if validation fails
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+</script>
+
+
+{% endblock %}
