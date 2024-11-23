@@ -25,7 +25,13 @@
         background-color: #f1f1f1;
     }
 
-
+    .btn-edit {
+        background-color: #ffc107;
+        color: black;
+    }
+    .btn-edit:hover {
+        background-color: #e0a800;
+    }
 </style>
 
 {% endblock %}
@@ -59,34 +65,13 @@
                     <td>Toán</td>
                     <td class="action-btns">
                         <div>
-                            <button>Chỉnh sửa</button>
+                            <button>Xem</button>
+                            <button class="btn btn-edit">Cập nhật</button>
                             <button class="btn-cancel">Xóa</button>
                         </div>
                     </td>
                 </tr>
-                <tr>
-                    <td>GV002</td>
-                    <td>Trần Thị B</td>
-                    <td>Văn</td>
-                    <td class="action-btns">
-                        <div>
-                            <button>Chỉnh sửa</button>
-                            <button class="btn-cancel">Xóa</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td>GV003</td>
-                    <td>Phạm Minh C</td>
-                    <td>Vật Lý</td>
-                    <td class="action-btns">
-                        <div>
-                            <button>Chỉnh sửa</button>
-                            <button class="btn-cancel">Xóa</button>
-                        </div>
-                    </td>
-                </tr>
-                <!-- Thêm các giáo viên khác nếu cần -->
+
                 </tbody>
             </table>
             <div class="button-group">

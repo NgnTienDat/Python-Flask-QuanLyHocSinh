@@ -22,12 +22,9 @@ def get_login_page():
 @app.route("/students")
 def find_student_page():
     kw = request.args.get("key-name")
-    page = request.args.get("page", 1)
-    stu = dao.load_student(kw=kw, page=int(page))
-    counter = dao.count_student()
+    stu = dao.list_students(kw=kw)
     return render_template('admin/find-student.html',
-                           students=stu,
-                           pages=math.ceil(counter / app.config['PAGE_SIZE']))
+                           students=stu)
 
 
 # Tiếp nhận học sinh
