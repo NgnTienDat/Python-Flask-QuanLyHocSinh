@@ -1,3 +1,4 @@
+from cloudinary.uploader import remove_all_tags
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
 from qlhsapp import db, app
@@ -81,7 +82,7 @@ class Staff(db.Model):
 
     user = relationship('User', back_populates='staff')  # done
 
-    classes = relationship('Class', secondary='staff_class', back_populates='staff')  # done
+    classes = relationship('Class', back_populates='staff')  # done
 
     students = relationship('Student', back_populates='staff')
 
@@ -98,12 +99,17 @@ class Administrator(db.Model):
     # create_subject = relationship('Subject', back_populates='admin_creator')  # done
 
 
-student_class = db.Table('student_class',
-                         Column('id', Integer, primary_key=True, autoincrement=True),
-                         Column('student_id', Integer, ForeignKey('student.id')),
-                         Column('class_id', Integer, ForeignKey('class.id')),
-                         Column('is_active', Boolean, default=True)
-                         )
+
+
+class StudentClass(BaseModel):
+    student_id = Column(Integer, ForeignKey('student.id'))
+    class_id = Column(Integer, ForeignKey('class.id'))
+    is_active = Column(Boolean, default=True)
+
+    students = relationship('Student', back_populates='student_classes')
+    classes = relationship('Class', back_populates='student_classes')
+
+
 
 teacher_class = db.Table('teacher_class',
                          Column('id', Integer, primary_key=True, autoincrement=True),
@@ -111,13 +117,6 @@ teacher_class = db.Table('teacher_class',
                          Column('class_id', Integer, ForeignKey('class.id'))
                          )
 
-staff_class = db.Table('staff_class',
-                       Column('id', Integer, primary_key=True, autoincrement=True),
-                       Column('staff_if', Integer, ForeignKey('staff.staff_id')),
-                       Column('subject_id', Integer, ForeignKey('class.id')),
-                       Column('time', DateTime, default=datetime.now()),
-                       Column('action', Enum(Action), nullable=False)
-                       )
 
 
 # Giao vien
@@ -151,6 +150,8 @@ class Class(BaseModel):
 
     school_year_id = Column(Integer, ForeignKey('school_year.id'), nullable=False)
 
+    staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
+
     school_year = relationship('SchoolYear', back_populates='classes')  # done
 
     grade_level = relationship('GradeLevel', back_populates='classes')  # done
@@ -164,8 +165,9 @@ class Class(BaseModel):
     homeroom_teacher = relationship('Teacher', back_populates='homeroom_class',
                                     foreign_keys=[homeroom_teacher_id])  # done
 
-    staff = relationship('Staff', secondary='staff_class', back_populates='classes')  # done
+    staff = relationship('Staff', back_populates='classes')  # done
 
+    student_classes = relationship('StudentClass', back_populates='classes')
 
 # Khoi lop
 class GradeLevel(BaseModel):
@@ -190,6 +192,8 @@ class Student(BaseModel):
     staff = relationship('Staff', back_populates='students')  # done
     # 1 - N: A student has many scoreboards
     score_boards = relationship('ScoreBoard', back_populates='student')  # done
+
+    student_classes = relationship('StudentClass', back_populates='students')
 
 
 # Bang diem
