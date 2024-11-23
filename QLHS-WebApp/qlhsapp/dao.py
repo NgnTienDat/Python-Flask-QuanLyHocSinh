@@ -3,10 +3,9 @@ from flask import flash
 
 from qlhsapp import app, db
 
-
-from qlhsapp.models import ScoreType, Score, Regulation, Student
+from qlhsapp.models import ScoreType, Score, Regulation, Student, GenderEnum
 from datetime import datetime
-
+import re
 
 
 def load_score_regulation():
@@ -28,7 +27,7 @@ def handle_add_score_regulation(score_type, score_quantity, coefficient):
 
     new_score_type = ScoreType(name=score_type,
                                score_quantity=score_quantity,
-                                coefficient=coefficient)
+                               coefficient=coefficient)
     db.session.add(new_score_type)
     db.session.commit()
     flash('Thêm loại điểm mới thành công!', 'success')
@@ -38,6 +37,7 @@ def handle_add_score_regulation(score_type, score_quantity, coefficient):
 def get_score_type_by_name(name):
     return ScoreType.query.filter_by(name=name).first()
 
+
 def update_score_regulation(score_type, score_quantity, coefficient):
     st = check_exist_score_type(score_type)
     if st:
@@ -45,6 +45,7 @@ def update_score_regulation(score_type, score_quantity, coefficient):
         st.coefficient = int(coefficient)
         db.session.commit()
         return True
+
 
 def update_class_size(key_name, value):
     if value > 100 or value < 10:
@@ -71,6 +72,7 @@ def update_age_regulation(min_age, max_age):
         db.session.commit()
         flash('Cập nhật số tuổi thành công!', 'success')
         return True
+
 
 def load_student(kw=None, page=1):
     page_size = app.config['PAGE_SIZE']
@@ -106,7 +108,7 @@ def update_student(student_id, name, address, email, date_of_birth, phone_number
         student.date_of_birth = date_of_birth
         student.phone_number = phone_number
 
-        #luu thong tin xuong csdl
+        # luu thong tin xuong csdl
         if db.session.is_modified(student):
             db.session.commit()
             print("Changes committed successfully.")
@@ -118,7 +120,7 @@ def update_student(student_id, name, address, email, date_of_birth, phone_number
         flash(f"An error occurred while updating: {str(e)}", "danger")
 
 
-#Trung code: Xóa học sinh
+# Trung code: Xóa học sinh
 def delete_student(student_id):
     student = Student.query.get(student_id)
     if student:
@@ -128,6 +130,47 @@ def delete_student(student_id):
         raise ValueError("Không tìm thấy học sinh cần xóa")
 
 
-#Trung code: Tiếp nhận học sinh
-def add_sutdent():
-    pass
+# Trung code: Tiếp nhận học sinh
+def add_student(name, address, gender, date_of_birth, staff_id, **kwargs):
+    gender = GenderEnum(gender)
+    date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
+    try:
+        student = Student(name=name,
+                          address=address,
+                          gender=gender,
+                          date_of_birth=date_of_birth,
+                          staff_id=staff_id,
+                          email=kwargs.get('email'),
+                          phone_number=kwargs.get('phone_number'))
+        db.session.add(student)
+        db.session.commit()
+    except ValueError as ve:
+        db.session.rollback()
+        print(f"Lỗi thêm giới tính: {gender}. Error: {ve}")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Lỗi thêm học sinh: {e}")
+
+
+def check_email_student(current_email):
+    existing_student = Student.query.filter_by(email=current_email).first()
+    return existing_student is not None # cần check lại chỗ này !!!!!
+
+
+def validate_input(name, address, phone_number, email):
+    if not re.match(r"^[a-zA-Z\s]+$", name):
+        flash("Tên không được chứa ký tự đặc biệt.", "warning")
+        return False
+    if len(name) < 3 or len(name) > 50:
+        flash("Tên học sinh phải có độ dài từ 3 đến 50 ký tự.", "warning")
+        return False
+    if email and len(email) > 50:
+        flash("email phải ít hơn 50 ký tự.", "warning")
+        return False
+    if len(address) < 3 or len(address) > 50:
+        flash("Địa chỉ phải có độ dài từ 3 đến 50 ký tự.", "warning")
+        return False
+    if phone_number and len(phone_number) != 10:
+        flash("Số điện thoại phải có đúng 10 chữ số", "warning")
+        return False
+    return True
