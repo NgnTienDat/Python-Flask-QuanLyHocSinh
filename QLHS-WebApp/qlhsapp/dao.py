@@ -26,7 +26,15 @@ def delete_user_from_db(user_id):
         db.session.delete(user)
         db.session.commit()
     else:
-        raise ValueError("Không tìm thấy học sinh cần xóa")
+        raise ValueError("Không tìm thấy người dùng cần xóa")
+
+def delete_account_from_db(user_id):
+    account = Account.query.get(user_id)
+    if account:
+        db.session.delete(account)
+        db.session.commit()
+    else:
+        raise ValueError("Không tìm thấy tài khoản cần xóa")
 
 def find_user(id):
     return User.query.get(id)
@@ -64,4 +72,6 @@ def add_user(first_name, last_name, address, email, phone_number, avatar=None):
     db.session.commit()
     return u.id
 
+def find_user_by_email(email):
+    return db.session.query(User).filter_by(email=email).first()
 

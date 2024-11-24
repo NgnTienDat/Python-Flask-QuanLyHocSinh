@@ -59,22 +59,29 @@
 
             <form action="/update-user/{{ user.id }}" method="post">
                 <div class="row">
+                    {% if err_msg %}
+                        <div class="alert alert-danger">
+                        {{ err_msg }}
+                    {% endif %}
                     <div class="col-md-6">
                         <!-- Họ -->
                         <div class="form-group">
                             <label for="fisrt_name">Họ và tên</label>
-                            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" placeholder="Nhập họ" required>
+                            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}"
+                                   placeholder="Nhập họ" required>
                         </div>
                         <!-- Họ -->
                         <div class="form-group">
                             <label for="last_name">Họ và tên</label>
-                            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" placeholder="Nhập tên" required>
+                            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}"
+                                   placeholder="Nhập tên" required>
                         </div>
 
                         <!-- Địa chỉ -->
                         <div class="form-group">
                             <label for="address">Địa chỉ</label>
-                            <input type="text" id="address" name="address" value="{{ user.address }}" placeholder="Nhập địa chỉ" required>
+                            <input type="text" id="address" name="address" value="{{ user.address }}"
+                                   placeholder="Nhập địa chỉ" required>
                         </div>
                     </div>
 
@@ -83,18 +90,21 @@
                         <!-- Email -->
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="email" value="{{ user.email }}" placeholder="Nhập email" required>
+                            <input type="email" id="email" name="email" value="{{ user.email }}"
+                                   placeholder="Nhập email" required>
                         </div>
                         <!-- Số điện thoại -->
                         <div class="form-group">
                             <label for="phone_number">Số điện thoại</label>
-                            <input type="tel" id="phone_number" name="phone_number" value="{{ user.phone_number }}" placeholder="Nhập số điện thoại"
+                            <input type="tel" id="phone_number" name="phone_number" value="{{ user.phone_number }}"
+                                   placeholder="Nhập số điện thoại"
                                    required>
                         </div>
                     </div>
 
                     <div class="button-group">
                         <button type="submit" class="btn btn-warning">Cập nhật</button>
+                    </div>
                     </div>
                 </div>
             </form>

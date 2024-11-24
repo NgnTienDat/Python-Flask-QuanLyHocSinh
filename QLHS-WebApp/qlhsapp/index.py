@@ -65,7 +65,6 @@ def register_process():
     return render_template('register.html', err_msg=err_msg, user_id=user_id)
 
 
-
 # Phân lớp học sinh
 @app.route("/set-class")
 def set_class_page():
@@ -127,6 +126,7 @@ def list_user():
 @app.route("/delete-user/<int:id>", methods=['DELETE'])
 def delete_user(id):
     try:
+        dao.delete_account_from_db(id)
         dao.delete_user_from_db(id)
         print("Xóa thành công")
         return {"message": "Xóa thành công"}
@@ -137,11 +137,7 @@ def delete_user(id):
 # Route để cập nhật thông tin khách hàng
 @app.route('/update-user/<int:id>', methods=['GET', 'POST'])
 def update_user(id):
-    """
-        Cập nhật thông tin người dùng dựa trên ID.
-
-        :param id: ID của người dùng cần cập nhật
-        """
+    err_msg = ''
     user = dao.find_user(id)  # Lấy thông tin người dùng theo ID
 
     if request.method == 'POST':
@@ -151,29 +147,33 @@ def update_user(id):
         address = request.form['address']
         email = request.form['email']
         phone_number = request.form['phone_number']
+        # Kiểm tra xem email có bị trùng với người dùng khác không
+        existing_user = dao.find_user_by_email(email)
+        if existing_user and existing_user.id != id:  # Kiểm tra email trùng với người khác
+            err_msg = "Email này đã có người dùng! Vui lòng nhập lại."
+        else:
+            # Cập nhật thông tin người dùng
+            user.first_name = first_name
+            user.last_name = last_name
+            user.address = address
+            user.email = email
+            user.phone_number = phone_number
 
-        # Cập nhật thông tin người dùng
-        user.first_name = first_name
-        user.last_name = last_name
-        user.address = address
-        user.email = email
-        user.phone_number = phone_number
-
-        try:
-            # Lưu thay đổi vào database
-            db.session.commit()
-            print(f"Đã cập nhật thông tin người dùng có ID {id} thành công.")
-            return redirect(url_for('get_home_page'))  # Chuyển hướng về trang chủ
-        except Exception as e:
-            db.session.rollback()
-            print(f"Lỗi khi cập nhật thông tin người dùng có ID {id}: {e}")
+            try:
+                # Lưu thay đổi vào database
+                db.session.commit()
+                return redirect(url_for('get_home_page'))  # Chuyển hướng về trang chủ
+            except Exception as e:
+                db.session.rollback()
+                err_msg = "Đã xảy ra lỗi trong quá trình cập nhật."
 
     # Truyền thông tin người dùng vào template để hiển thị
-    return render_template('admin/update-user.html', user=user)
+    return render_template('admin/update-user.html', user=user, err_msg=err_msg)
 
 
 @app.route("/add-user", methods=['GET', 'POST'])
 def add_user_page():
+    err_msg = ''
     if request.method == 'POST':
         first_name = request.form['first_name']
         last_name = request.form['last_name']
@@ -185,14 +185,11 @@ def add_user_page():
             user_id = dao.add_user(first_name=first_name, last_name=last_name, address=address, email=email,
                                    phone_number=phone_number, avatar=request.files.get('avatar'))
             return redirect(url_for('register_process', user_id=user_id))
-        except ValueError as e:
-            # Hiển thị lỗi chi tiết cho người dùng
-            flash(str(e), 'error')  # Dùng flash để hiển thị lỗi
         except Exception as e:
-            flash("Lỗi khi thêm người dùng", 'error')
-            print(f"Lỗi chi tiết: {e}")
+            err_msg = "Email này đã có người dùng! Vui lòng nhập lại."
 
-    return render_template('admin/add-user.html')
+    return render_template('admin/add-user.html', err_msg=err_msg)
+
 
 if __name__ == '__main__':
     from qlhsapp.admin import *
