@@ -45,26 +45,18 @@
 {% block content %}
     <div class="container-fluid pt-4 px-4">
         <div class="row g-4">
-            <!-- Thanh Breadcrumb -->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
-                    <li class="breadcrumb-item"><a href="/add-student">Tiếp nhận học sinh</a></li>
-                </ol>
-            </nav>
-            <h1>Thêm</h1>
 
             <form action="/add-user" method="post" enctype="multipart/form-data">
                 <div class="row">
                     <div class="col-md-6">
                         <!-- Họ -->
                         <div class="form-group">
-                            <label for="fisrt_name">Họ và tên</label>
+                            <label for="fisrt_name">Họ</label>
                             <input type="text" id="first_name" name="first_name" placeholder="Nhập họ" required>
                         </div>
                         <!-- Họ -->
                         <div class="form-group">
-                            <label for="last_name">Họ và tên</label>
+                            <label for="last_name">Tên</label>
                             <input type="text" id="last_name" name="last_name" placeholder="Nhập tên" required>
                         </div>
 

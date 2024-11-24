@@ -28,7 +28,7 @@
                 {% endif %}
                 <div class="tab-pane fade show active" id="register" role="tabpanel">
                     <form action="/register" method="post">
-                        <input type="text" id="user_id" name="user_id" value="{{ user_id }}">
+                        <input type="hidden" id="user_id" name="user_id" value="{{ user_id }}">
                         <div class="mb-3">
                             <label for="registerUsername" class="form-label">Tài khoản</label>
                             <input type="text" class="form-control" id="registerUsername" name="registerUsername" placeholder="Nhập tài khoản" required>
