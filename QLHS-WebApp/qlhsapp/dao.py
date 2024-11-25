@@ -3,7 +3,9 @@ from flask import flash
 
 from qlhsapp import app, db
 
-from qlhsapp.models import ScoreType, Score, Regulation, Student, GenderEnum, Class, Teacher, Subject, StudentClass
+from qlhsapp.models import (ScoreType, Score, Regulation, Student,
+                            GenderEnum, Class, Teacher, Subject, StudentClass, User,
+                            Account, UserRole)
 from datetime import datetime
 import re
 
@@ -133,7 +135,7 @@ def update_student(student_id, name, address, email, date_of_birth, phone_number
     except Exception as e:
         db.session.rollback()  # Rollback nếu có lỗi
         print(f"An error occurred: {str(e)}")
-        flash(f"An error occurred while updating: {str(e)}", "danger")
+        flash(f"Lỗi update: {str(e)}", "danger")
 
 
 # Trung code: Xóa học sinh
@@ -238,3 +240,71 @@ def list_students(kw=None):
         students = [s for s in students if s.name.lower().find(kw.lower()) >= 0]
 
     return students
+
+
+def list_teacher():
+    teachers = (
+        db.session.query(User.id,
+                         User.last_name,
+                         User.first_name,
+                         User.email,
+                         User.phone_number,
+                         User.address,
+                         User.avatar,
+                         Subject.name.label('subject_teacher'))
+        .join(Account, Account.account_id == User.id)
+        .join(Teacher, Teacher.teacher_id == User.id)
+        .join(Subject, Teacher.subject_id == Subject.id)
+        .filter(Account.role == UserRole.TEACHER)
+        .all()
+    )
+    return teachers
+
+
+def get_teacher_by_id(teacher_id):
+    return (db.session.query(User.id,
+                             User.last_name,
+                             User.first_name,
+                             User.email,
+                             User.phone_number,
+                             User.address,
+                             User.avatar,
+                             Subject.name.label('subject_teacher'))
+            .join(Account, Account.account_id == User.id)
+            .join(Teacher, Teacher.teacher_id == User.id)
+            .join(Subject, Teacher.subject_id == Subject.id)
+            .filter(Teacher.teacher_id == teacher_id)
+            .first()
+            )
+
+
+def update_teacher(teacher_id, last_name, first_name, email, address, phone_number, avatar):
+    teacher = User.query.get(teacher_id)
+    try:
+        # Cập nhật thông qua mối quan hệ user
+        teacher.last_name = last_name
+        teacher.first_name = first_name
+        teacher.email = email
+        teacher.address = address
+        teacher.phone_number = phone_number
+        teacher.avatar = avatar
+
+        # Kiểm tra nếu có thay đổi trong session
+        if db.session.is_modified(teacher):
+            db.session.commit()
+            print("Changes committed successfully.")
+        else:
+            print("No changes detected.")
+    except Exception as e:
+        db.session.rollback()  # Rollback nếu có lỗi
+        print(f"An error occurred: {str(e)}")
+        flash(f"Lỗi cập nhật: {str(e)}", "danger")
+
+
+def delete_teacher(teacher_id):
+    teacher = User.query.get(teacher_id)
+    if teacher:
+        db.session.delete(teacher)
+        db.session.commit()
+    else:
+        raise ValueError("Không tìm thấy giáo viên cần xóa")

@@ -32,6 +32,16 @@
     .btn-edit:hover {
         background-color: #e0a800;
     }
+    .search-bar {
+        margin-bottom: 20px;
+    }
+    .search-bar input[type="text"] {
+        padding: 8px;
+        width: 300px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
 </style>
 
 {% endblock %}
@@ -59,24 +69,26 @@
                 </tr>
                 </thead>
                 <tbody>
+                {% for t in teachers %}
                 <tr>
-                    <td>GV001</td>
-                    <td>Nguyễn Văn A</td>
-                    <td>Toán</td>
+                    <td>{{t.id}}</td>
+                    <td>{{t.last_name}} {{t.first_name}}</td>
+                    <td>{{t.subject_teacher}}</td>
                     <td class="action-btns">
-                        <div>
+                        <a href="{{ url_for('teacher_detail', teacher_id=t.id) }}">
                             <button>Xem</button>
+                        </a>
+                        <a href="{{ url_for('teacher_update', teacher_id=t.id) }}">
                             <button class="btn btn-edit">Cập nhật</button>
+                        </a>
+                        <a href="{{ url_for('delete_teacher', teacher_id=t.id) }}">
                             <button class="btn-cancel">Xóa</button>
-                        </div>
+                        </a>
                     </td>
                 </tr>
-
+                {% endfor %}
                 </tbody>
             </table>
-            <div class="button-group">
-                <button>Thêm giáo viên</button>
-            </div>
         </div>
 
 
