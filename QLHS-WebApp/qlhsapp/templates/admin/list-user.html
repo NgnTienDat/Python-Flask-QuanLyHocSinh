@@ -45,11 +45,14 @@
                     <li class="breadcrumb-item"><a href="/list-user">Quản lý người dùng</a></li>
                 </ol>
             </nav>
-            <form class="search-bar" method="get" action="/list-user">
+            <div class="d-flex justify-content-between mb-3">
+                <form class="search-bar" method="get" action="/list-user">
                 <input type="text" name="kw" placeholder="Tên người dùng cần tìm..."
                        value="{{ request.args.get('kw', '') }}">
                 <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                <a href="/add-user" class="btn btn-primary"><i class="fa fa-plus"></i> Thêm người dùng</a>
             </form>
+            </div>
             <div class="container">
                 <h1>Danh Sách Người Dùng</h1>
                 <table>

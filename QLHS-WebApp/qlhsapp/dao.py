@@ -1,7 +1,11 @@
 # DAO chứa các phương thức tương tác xuống CSDL
-from sqlalchemy import func
+import random
+import string
 
-from qlhsapp import app, db
+import unicodedata
+from sqlalchemy import func
+from flask_mail import Message
+from qlhsapp import app, db, mail
 from qlhsapp.models import Student, User, Account
 import hashlib
 import cloudinary.uploader
@@ -75,3 +79,54 @@ def add_user(first_name, last_name, address, email, phone_number, avatar=None):
 def find_user_by_email(email):
     return db.session.query(User).filter_by(email=email).first()
 
+def send_email(user_email, username, password):
+    """
+    Gửi email chứa thông tin tài khoản đến user.email.
+    """
+    try:
+        # Tạo nội dung email
+        msg = Message(
+            subject="Thông tin tài khoản của bạn",
+            sender=app.config['MAIL_DEFAULT_SENDER'],  # Sử dụng cấu hình mặc định của ứng dụng
+            recipients=[user_email]  # Email người nhận
+        )
+        # Nội dung email
+        msg.body = f"""
+        Chào bạn,
+
+        Chúc mừng bạn đã đăng ký tài khoản thành công.
+
+        Username: {username}
+        Mật khẩu: {password}
+
+        Vui lòng đăng nhập và thay đổi mật khẩu của bạn ngay sau khi đăng nhập.
+
+        Trân trọng,
+        Đội ngũ hỗ trợ.
+        """
+        # Gửi email
+        mail.send(msg)
+        print(f"Email đã được gửi đến {user_email}")
+    except Exception as e:
+        print(f"Không thể gửi email: {e}")
+
+
+def remove_accents(input_str):
+    # Loại bỏ dấu tiếng Việt
+    nfkd_form = unicodedata.normalize('NFKD', input_str)
+    return ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
+
+
+def generate_username(last_name):
+    # Chuyển last_name thành chữ thường và không có dấu
+    last_name = remove_accents(last_name.lower())
+
+    # Tạo username = last_name + 6 chữ số ngẫu nhiên
+    random_numbers = ''.join(random.choices(string.digits, k=6))
+    return f"{last_name}{random_numbers}"
+
+def generate_password():
+    # Tạo password ngẫu nhiên gồm chữ cái và số
+    characters = string.ascii_letters + string.digits
+    password = ''.join(random.choices(characters, k=10))  # Password dài 10 ký tự
+    return password

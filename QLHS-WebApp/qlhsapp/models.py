@@ -39,7 +39,7 @@ class Action(PyEnum):
         return self.value
 
 
-class User(BaseModel):
+class User(BaseModel, UserMixin):
     first_name = Column(String(20), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(50), unique=True, nullable=False)

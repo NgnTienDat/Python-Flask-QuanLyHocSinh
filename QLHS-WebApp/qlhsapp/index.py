@@ -36,35 +36,6 @@ def logout_process():
     return redirect('/login')
 
 
-@app.route('/register', methods=['get', 'post'])
-def register_process():
-    err_msg = ''
-    user_id = request.args.get('user_id')
-    if request.method.__eq__('POST'):
-        username = request.form.get('registerUsername')
-        password = request.form.get('registerPassword')
-        confirm = request.form.get('confirmPassword')
-        role = request.form.get('user_role')
-        user_id = request.form.get('user_id')
-        account_id = user_id
-        print(f"User ID from URL: {user_id}")  # In ra giá trị user_id từ query string
-        # Kiểm tra xem mật khẩu có khớp không
-        if password == confirm:
-            if password and username:  # Kiểm tra nếu mật khẩu và tài khoản không phải là None
-                try:
-                    # Thêm người dùng vào cơ sở dữ liệu với mật khẩu đã mã hóa
-                    dao.add_account(account_id=account_id, username=username, password=password, role=role)
-                    return redirect('/login')  # Chuyển hướng đến trang quản lý người dùng
-                except Exception as e:
-                    err_msg = f"Lỗi khi thêm tài khoản: {str(e)}"
-            else:
-                err_msg = 'Vui lòng nhập đầy đủ thông tin tài khoản và mật khẩu.'
-        else:
-            err_msg = 'Mật khẩu không khớp!'
-
-    return render_template('register.html', err_msg=err_msg, user_id=user_id)
-
-
 # Phân lớp học sinh
 @app.route("/set-class")
 def set_class_page():
@@ -180,13 +151,33 @@ def add_user_page():
         address = request.form['address']
         email = request.form['email']
         phone_number = request.form['phone_number']
+        role = request.form['user_role']
+
+        # Kiểm tra xem email có tồn tại trong bảng User hoặc Account hay không
+        existing_user = dao.find_user_by_email(email)
+        if existing_user:
+            err_msg = "Email này đã có người dùng! Vui lòng nhập lại."
+            return render_template('admin/add-user.html', err_msg=err_msg)
 
         try:
+            # Thêm user vào bảng User
             user_id = dao.add_user(first_name=first_name, last_name=last_name, address=address, email=email,
                                    phone_number=phone_number, avatar=request.files.get('avatar'))
-            return redirect(url_for('register_process', user_id=user_id))
+
+            # Tạo username và password
+            username = dao.generate_username(last_name)
+            password = dao.generate_password()
+
+            # Thêm tài khoản vào bảng Account
+            dao.add_account(account_id=user_id, username=username, password=password, role=role)
+
+            # Gửi thông tin tài khoản về email
+            dao.send_email(email, username, password)
+
+            # Chuyển hướng sau khi thành công
+            return redirect(url_for('get_home_page'))
         except Exception as e:
-            err_msg = "Email này đã có người dùng! Vui lòng nhập lại."
+            err_msg = f"Đã có lỗi xảy ra: {e}"
 
     return render_template('admin/add-user.html', err_msg=err_msg)
 

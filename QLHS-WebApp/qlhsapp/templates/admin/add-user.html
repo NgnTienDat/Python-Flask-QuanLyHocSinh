@@ -42,9 +42,22 @@
     </style>
 {% endblock %}
 
+{% block sidebar %}
+    {% include 'layout/sidebar-admin.html' %}
+{% endblock %}
+
+
 {% block content %}
     <div class="container-fluid pt-4 px-4">
         <div class="row g-4">
+            <!-- Thanh Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/list-user">Quản lý người dùng</a></li>
+                    <li class="breadcrumb-item"><a href="/add-user">Thêm người dùng</a></li>
+                </ol>
+            </nav>
+            <h1>Thêm người dùng</h1>
 
             <form action="/add-user" method="post" enctype="multipart/form-data">
                 <div class="row">
@@ -68,6 +81,14 @@
                         <div class="form-group">
                             <label for="address">Địa chỉ</label>
                             <input type="text" id="address" name="address" placeholder="Nhập địa chỉ" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="user_role">Loại người dùng</label>
+                            <select id="user_role" name="user_role" class="form-control" required>
+                                <option value="STAFF">Nhân viên (STAFF)</option>
+                                <option value="TEACHER">Giáo viên (TEACHER)</option>
+                            </select>
                         </div>
                     </div>
 
