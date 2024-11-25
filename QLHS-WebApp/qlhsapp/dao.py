@@ -1,8 +1,8 @@
 # DAO chứa các phương thức tương tác xuống CSDL
+import math
+
 from flask import flash
-
 from qlhsapp import app, db
-
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
                             GenderEnum, Class, Teacher, Subject, StudentClass, User,
                             Account, UserRole)
@@ -83,13 +83,100 @@ def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_
 
     teacher = Teacher.query.filter_by(teacher_id=homeroom_teacher_id).first()
     teacher.is_homeroom_teacher = True
-
+    # tam thoi dung staff_id = 5 -> Sau nay dang nhap dc se sua
     new_class = Class(name=name, grade_level_id=grade_level_id,
-                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id)
+                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id, staff_id=5)
     db.session.add(new_class)
     db.session.commit()
     flash('Thêm mới lớp học thành công!', 'success')
     return True
+
+
+
+def filter_class_by_grade_level_id(grade_level_id, page=1):
+
+    page_size = 1
+    start = (page - 1) * page_size
+
+    query = Class.query
+
+    if grade_level_id != 'all':
+        query = query.filter_by(grade_level_id=int(grade_level_id))
+
+    total_records = query.count()  # Tong so ban ghi
+    total_pages = (total_records + page_size - 1) // page_size
+
+    classes = query.offset(start).limit(page_size).all()
+    return classes, total_pages
+
+def load_student_no_assigned(kw=None, page=1):
+    page_size = app.config['PAGE_SIZE']
+    start = (page - 1) * page_size
+
+    query = Student.query.filter_by(in_assigned=False)
+
+    total_records = query.count()  # Tong so ban ghi
+    total_pages = math.ceil(total_records / page_size)
+
+    if kw:
+
+        query = query.filter(Student.name.contains(kw))
+
+    students = query.offset(start).limit(page_size).all()
+    return students, total_pages
+
+
+def update_class(class_id, new_homeroom_teacher_id, class_name):
+    try:
+        class_ = Class.query.get(class_id)
+
+        if class_.name != class_name or class_.homeroom_teacher_id != new_homeroom_teacher_id:
+
+            hr_old = Teacher.query.get(class_.homeroom_teacher_id)
+            hr_old.is_homeroom_teacher = False  # cap nhat cho gvcn hien tai thanh false
+
+            hr_new = Teacher.query.get(new_homeroom_teacher_id)
+            hr_new.is_homeroom_teacher = True  # cap nhat cho gvcn moi thanh true
+
+
+            class_.homeroom_teacher_id = new_homeroom_teacher_id
+            class_.name = class_name
+
+            db.session.commit()
+            flash('Cập nhật lớp học thành công!', 'success')
+        return True
+
+    except Exception as e:
+        db.session.rollback()  # Rollback nếu có lỗi
+        print(f"An error occurred: {str(e)}")
+        return False
+
+
+def add_student_to_class(student_list_id, class_id):
+    class_ = Class.query.get(class_id)
+    if class_:
+        for student_id in student_list_id:
+            student = Student.query.get(student_id)
+            if student:
+                student_class = StudentClass(student_id=student_id, class_id=class_id, is_active=True)
+                db.session.add(student_class)
+                db.session.flush()
+        db.session.commit()
+    return True
+
+
+
+def load_student(kw=None, page=1):
+    page_size = app.config['PAGE_SIZE']
+    start = (page - 1) * page_size
+
+    students = Student.query.offset(start).limit(page_size).all()
+
+    if kw:
+        students = [s for s in students if s.name.lower().find(kw.lower()) >= 0]
+
+    return students
+
 
 
 def get_student_by_id(student_id):
