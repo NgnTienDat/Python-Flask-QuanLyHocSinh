@@ -1,0 +1,130 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    }
+
+    form .form-group {
+    flex: 1 1 calc(50% - 10px);
+    display: flex;
+    flex-direction: column;
+}
+form .form-group label {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+form .form-group input,
+form .form-group select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+    .avatar-preview {
+        flex: 1 1 100%;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .avatar-preview img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 10px;
+    }
+    .avatar-placeholder {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background-color: #d3d3d3;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+    .avatar-preview input {
+        display: block;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
+                <li class="breadcrumb-item"><a href="/add-student">Cập nhật học sinh</a></li>
+            </ol>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <h1>Cập nhật giáo viên</h1>
+        <form action="{{ url_for('teacher_update', teacher_id=teacher.id) }}" method="post" class="form-container"
+              enctype="multipart/form-data">
+            <!-- Họ và tên -->
+            <div class="form-group">
+                <label for="last_name">Họ</label>
+                <input type="text" id="last_name" name="last_name" value="{{teacher.last_name}} ">
+            </div>
+            <div class="form-group">
+                <label for="first_name">Tên</label>
+                <input type="text" id="first_name" name="first_name" value="{{teacher.first_name}} ">
+            </div>
+            <!-- Địa chỉ -->
+            <div class="form-group">
+                <label for="address">Địa chỉ</label>
+                <input type="text" id="address" name="address" value="{{teacher.address}}">
+            </div>
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{teacher.email}}" readonly>
+            </div>
+            <!-- Số điện thoại -->
+            <div class="form-group">
+                <label for="phone_number">Số điện thoại</label>
+                <input type="tel" id="phone_number" name="phone_number" value="{{teacher.phone_number}}">
+            </div>
+            <!-- Avatar -->
+            <div class="avatar-preview" style="display: flex;">
+                <label for="avatar">Avatar hiện tại</label>
+                {% if teacher.avatar %}
+                <img src="{{ teacher.avatar }}" alt="Avatar">
+                {% else %}
+                <div class="avatar-placeholder"></div>
+                {% endif %}
+                <input type="file" id="avatar" name="avatar" accept="image/*">
+            </div>
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="submit">Lưu</button>
+                <a href="{{ url_for('list_teacher') }}" class="btn btn-danger">Hủy</a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+
+
