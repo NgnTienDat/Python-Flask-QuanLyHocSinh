@@ -48,7 +48,7 @@ def auth_account(username, password):
     return Account.query.filter(Account.username.__eq__(username.strip()),
                              Account.password.__eq__(password)).first()
 
-def add_account(account_id,username,password,role):
+def add_account(account_id, username, password, role):
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
     a = Account(account_id=account_id, username=username, password=password, role=role)
     db.session.add(a)
@@ -129,4 +129,14 @@ def generate_password():
     # Tạo password ngẫu nhiên gồm chữ cái và số
     characters = string.ascii_letters + string.digits
     password = ''.join(random.choices(characters, k=10))  # Password dài 10 ký tự
+    return password
+
+def get_password_by_account_id(account_id):
+    account = Account.query.get(account_id)
+    if account:
+        return account.password  # Trả về mật khẩu đã lưu trong cơ sở dữ liệu
+    return None  # Trường hợp không tìm thấy tài khoản
+
+def password_encryption(password):
+    password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
     return password

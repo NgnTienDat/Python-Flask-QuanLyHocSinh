@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for
 from qlhsapp import app, db, login_manager
 import dao
 from flask_login import login_user, logout_user
@@ -19,6 +19,7 @@ def get_user_by_id(user_id):
 
 @app.route("/login", methods=['get', 'post'])
 def login_process():
+    err_msg = ''
     if request.method.__eq__("POST"):
         username = request.form.get('username')
         password = request.form.get('password')
@@ -26,8 +27,10 @@ def login_process():
         if user:
             login_user(user)
             return redirect('/')
+        else:
+            err_msg="username or password error"
 
-    return render_template('login.html')
+    return render_template('login.html',err_msg=err_msg)
 
 
 @app.route("/logout")
@@ -181,6 +184,36 @@ def add_user_page():
 
     return render_template('admin/add-user.html', err_msg=err_msg)
 
+@app.route('/change-password/<int:id>', methods=['GET', 'POST'])
+def change_password(id):
+    account = dao.get_account_by_id(id)
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        current = dao.password_encryption(current_password)
+        new = dao.password_encryption(new_password)
+
+        # Kiểm tra tính hợp lệ
+        if not current_password or not new_password or not confirm_password:
+            return render_template('admin/change_password.html', account=account, err_msg="Vui lòng nhập đầy đủ thông tin!")
+
+        if new_password != confirm_password:
+            return render_template('admin/change_password.html', account=account, err_msg="Mật khẩu mới không khớp!")
+
+        # Giả lập kiểm tra mật khẩu hiện tại (dùng database trong thực tế)
+        if current != account.password:  # Thay bằng mật khẩu hiện tại của user từ DB
+            return render_template('admin/change_password.html', account=account, err_msg="Mật khẩu hiện tại không đúng!")
+
+        account.password = new
+        try:
+            db.session.commit()
+            return render_template('admin/change_password.html', account=account, success_msg="Mật khẩu đã được cập nhật thành công!")
+        except Exception as ex:
+            db.session.rollback()
+            return render_template('admin/change_password.html', account=account, err_msg="Có lỗi xảy ra, vui lòng thử lại sau!")
+
+    return render_template('admin/change_password.html', account=account)
 
 if __name__ == '__main__':
     from qlhsapp.admin import *
