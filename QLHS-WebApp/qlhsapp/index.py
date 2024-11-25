@@ -6,6 +6,7 @@ from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, Grade
 
 from qlhsapp import app, db
 import dao
+import cloudinary.uploader
 
 
 @app.route("/")
@@ -211,7 +212,58 @@ def export_score():
 
 @app.route("/list-teacher")
 def list_teacher():
-    return render_template('admin/teacher.html')
+    teachers = dao.list_teacher()
+    return render_template('admin/teacher.html', teachers=teachers)
+
+
+@app.route("/list-teacher/<int:teacher_id>")
+def teacher_detail(teacher_id):
+    teacher = dao.get_teacher_by_id(teacher_id)
+    return render_template('admin/teacher-detail.html', teacher=teacher)
+
+
+@app.route("/list-teacher//update/<int:teacher_id>", methods=['get', 'post'])
+def teacher_update(teacher_id):
+    teacher = dao.get_teacher_by_id(teacher_id)
+    if request.method.__eq__('POST'):
+        last_name = request.form.get('last_name')
+        first_name = request.form.get('first_name')
+        email = request.form.get('email')
+        address = request.form.get('address')
+        phone_number = request.form.get('phone_number')
+        avatar_path = None
+        avatar = request.files.get('avatar')
+        if avatar and avatar.filename != '':
+            try:
+                res = cloudinary.uploader.upload(avatar)
+                avatar_path = res['secure_url']
+            except Exception as e:
+                print(f"Avatar upload error: {str(e)}")
+                flash(f"Lỗi tải ảnh: {str(e)}", "danger")
+        print(f"Uploaded avatar path: {avatar_path}")
+
+        dao.update_teacher(teacher_id=teacher_id,
+                           last_name=last_name,
+                           first_name=first_name,
+                           email=email,
+                           address=address,
+                           phone_number=phone_number,
+                           avatar=avatar_path)
+        return redirect(url_for('list_teacher'))
+    return render_template('admin/update-teacher.html', teacher=teacher)
+
+
+@app.route("/list-teacher//delete/<int:teacher_id>", methods=['get', 'post'])
+def delete_teacher(teacher_id):
+    teacher = dao.get_teacher_by_id(teacher_id)
+    if request.method.__eq__('POST'):
+        try:
+            dao.delete_teacher(teacher_id)
+            return redirect(url_for('list_teacher'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('list_teacher'))
+    return render_template('admin/delete-teacher.html', teacher=teacher)
 
 
 @app.route("/list-subject")

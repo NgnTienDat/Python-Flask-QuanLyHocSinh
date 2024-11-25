@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+import cloudinary
 
 app = Flask(__name__)
 
@@ -12,3 +13,8 @@ app.config['PAGE_SIZE'] = 8
 
 
 db = SQLAlchemy(app=app)
+cloudinary.config(
+    cloud_name='derx1izam',
+    api_key='826692895649512',
+    api_secret='aEf9hn_PrTeOXTOOJCz6k8Ucf3U',
+)
