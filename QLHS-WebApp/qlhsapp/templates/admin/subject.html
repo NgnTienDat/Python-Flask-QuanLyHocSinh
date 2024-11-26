@@ -1,80 +1,69 @@
-    {% extends 'layout/base.html'%}
-    {% block title %} Trang chủ {% endblock %}
-
-    {% block css %}
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table th, table td {
-            text-align: center;
-            padding: 12px;
-            border: 1px solid #ddd;
-        }
-
-        table th {
-            background-color: #f8f9fa;
-            color: #333;
-            font-weight: bold;
-        }
-
-        table tr:hover {
-            background-color: #f1f1f1;
-        }
-
-
-    </style>
-
-    {% endblock %}
-
-    {% block sidebar %}
-    {% include 'layout/sidebar-admin.html'%}
-    {% endblock %}
-
-    {% block content %}
-    <div class="container-fluid pt-4 px-4">
-        <div class="row g-4">
-            <!-- Thanh Breadcrumb -->
-            <nav aria-label="breadcrumb">
-                <!-- Thêm nội dung breadcrumb nếu cần -->
-            </nav>
-
-            <div class="container" style=" text-align: center;">
-                <h1>Danh Sách Môn Học</h1>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Mã Môn Học</th>
-                        <th>Tên Môn Học</th>
-                        <th>Thao Tác</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for s in subjects %}
-                    <tr>
-                        <td>{{s.id}}</td>
-                        <td>{{s.name}}</td>
-                        <td class="action-btns">
-                            <div>
-                                <a href="{{ url_for('delete_subject', subject_id=s.id) }}"> <button class="btn-cancel">Xóa môn học</button></a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-                <div class="button-group">
-                    <a href="{{ url_for('add_new_subject') }}"><button>Thêm môn học mới</button></a>
-                </div>
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+{% block css %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    table th, table td {
+        text-align: center;
+        padding: 12px;
+        border: 1px solid #ddd;
+    }
+    table th {
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+    }
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+{% endblock %}
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <!-- Thêm nội dung breadcrumb nếu cần -->
+        </nav>
+        <div class="container" style=" text-align: center;">
+            <h1>Danh Sách Môn Học</h1>
+            <table>
+                <thead>
+                <tr>
+                    <th>Mã Môn Học</th>
+                    <th>Tên Môn Học</th>
+                    <th>Thao Tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for s in subjects %}
+                <tr>
+                    <td>{{s.id}}</td>
+                    <td>{{s.name}}</td>
+                    <td class="action-btns">
+                        <div>
+                            <a href="{{ url_for('delete_subject', subject_id=s.id) }}">
+                                <button class="btn-cancel">Xóa môn học</button>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div class="button-group">
+                <a href="{{ url_for('add_new_subject') }}">
+                    <button>Thêm môn học mới</button>
+                </a>
             </div>
         </div>
     </div>
-    {% endblock %}
-
-
-
-
-
+</div>
+{% endblock %}
