@@ -4,8 +4,6 @@
 {% block css %}
 
 <style>
-
-
     select {
         padding: 5px;
         border-radius: 5px;
@@ -13,33 +11,23 @@
         border: 1px solid #ddd;
         background-color: #f8f9fa;
     }
-
-
     table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
     }
-
     table th, table td {
         text-align: center;
         padding: 12px;
         border: 1px solid #ddd;
     }
-
     table th {
         background-color: #f8f9fa;
         color: #333;
         font-weight: bold;
     }
-
     table tr:hover {
         background-color: #f1f1f1;
-    }
-    .button-group {
-        width: 100%;
-        text-align: right; /* Căn nút sang bên phải */
-        margin-top: 20px;
     }
     ul.pagination {
         display: flex;
@@ -47,15 +35,12 @@
         margin-top: 15px; /* Thêm khoảng cách phía trên */
         padding: 0;
     }
-
     ul.pagination li {
         margin: 0 5px; /* Thêm một chút khoảng cách giữa các nút */
     }
-
     ul.pagination .page-item {
         list-style: none;
     }
-
     ul.pagination .page-link {
         text-decoration: none;
         padding: 8px 16px; /* Điều chỉnh kích thước nút */
@@ -64,13 +49,10 @@
         background-color: #f8f9fa;
         color: #007bff;
     }
-
     ul.pagination .page-link:hover {
         background-color: #007bff;
         color: white;
     }
-
-
 </style>
 {% endblock %}
 
@@ -100,6 +82,7 @@
                 {% endfor %}
                 {% endif %}
                 {% endwith %}
+
                 <h1>Danh Sách Lớp Học</h1>
                 <select name="filter-options" id="filter-options">
                     <option value="all" {% if selected_filter=='all' %}selected{% endif %}>Tất cả</option>
@@ -109,6 +92,7 @@
                         Khối {{ grade_level.name }}
                     </option>
                     {% endfor %}
+
                 </select>
 
 
@@ -161,7 +145,6 @@
 </div>
 
 <script>
-
     document.getElementById('filter-options').addEventListener('change', function() {
        const selectedValue = this.value;
        // Điều hướng đến URL với tham số filter

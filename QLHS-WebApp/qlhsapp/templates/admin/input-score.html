@@ -64,7 +64,7 @@
     }
 
     .student-table input {
-        width: 100%;
+        width: 80%;
         padding: 5px;
         border: 1px solid #ddd;
         border-radius: 5px;
@@ -95,34 +95,37 @@
             <div class="row select-row">
                 <div class="col">
                     <label for="subject-select">Môn học</label>
-                    <select id="subject-select" class="form-control">
-                        <option value="math">Toán</option>
-                        <option value="literature">Văn</option>
-                        <option value="physics">Lý</option>
+                    <select id="subject-select" class="form-control" disabled>
+                        <!--Tạm thời chưa đăng nhập nên chưa hiện môn học của giáo viên đang đăng nhập-->
+                        <option value="subject">Chưa xác định</option>
                     </select>
                 </div>
                 <div class="col">
                     <label for="class-select">Lớp</label>
                     <select id="class-select" class="form-control">
-                        <option value="10a1">10A1</option>
-                        <option value="10a2">10A2</option>
-                        <option value="10a3">10A3</option>
+                        <option value="all" {% if selected_filter=='all' %}selected{% endif %}>Chọn lớp</option>
+                        {% for cls in classes %}
+                        <option value="{{cls.id}}" {% if selected_filter== cls.id|string %}selected{%endif%}>
+                            {{cls.name}}
+                        </option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col">
                     <label for="semester-select">Học kỳ</label>
                     <select id="semester-select" class="form-control">
-                        <option value="1">Học kỳ 1</option>
-                        <option value="2">Học kỳ 2</option>
+                        {% for semester in semesters %}
+                        <option value="{{semester.id}}">{{semester.name}}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col">
                     <label for="school-year-select">Niên khóa</label>
-                    <select id="school-year-select" class="form-control">
-                        <option value="2023-2024">2023-2024</option>
-                        <option value="2024-2025">2024-2025</option>
+                    <select id="school-year-select" class="form-control" disabled>
+                        <option>{{current_year.name}}</option>
                     </select>
                 </div>
+
             </div>
 
             <!-- Bảng danh sách học sinh -->
@@ -130,42 +133,32 @@
                 <table class="student-table">
                     <thead>
                     <tr>
-                        <th>STT</th>
-                        <th>Họ và Tên</th>
-                        <th>15p (1)</th>
-                        <th>15p (2)</th>
-                        <th>15p (3)</th>
-                        <th>45p (1)</th>
-                        <th>45p (2)</th>
-                        <th>Cuối kỳ</th>
+                        <th>Mã HS</th>
+                        <th style="width: 200px">Họ và Tên</th>
+                        {% for col in score_columns %}
+                        {% for i in range(col.score_quantity) %}
+                        <th>{{col.name}} ({{i+1}})</th>
+                        {% endfor %}
+                        {% endfor %}
                         <th>Trung bình</th>
                     </tr>
                     </thead>
                     <tbody>
+                    {% for student in students %}
                     <tr>
-                        <td>1</td>
-                        <td>Nguyễn Văn A</td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
+                        <td>{{ student.id }}</td>
+                        <td>{{ student.students.name }}</td>
+                        {% for col in score_columns %}
+                        {% for i in range(col.score_quantity) %}
+                        <td><input min="0" max="10"  type="number" class="score-input"
+                                   name="score_{{ col.id }}_{{ i + 1 }}"></td>
+                        {% endfor %}
+                        {% endfor %}
                         <td><input type="number" class="average-input" disabled></td>
                     </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Trần Thị B</td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="average-input" disabled></td>
-                    </tr>
-                    <!-- Thêm học sinh khác -->
+                    {% endfor %}
                     </tbody>
+
                 </table>
             </div>
 
@@ -175,10 +168,17 @@
                 <button class="btn-cancel">Hủy</button>
             </div>
         </div>
-
-
     </div>
 </div>
+
+<script>
+    document.getElementById('class-select').addEventListener('change', function () {
+    const selectedClassId = this.value;
+    // Điều hướng đến URL với tham số lớp được chọn
+    window.location.href = "{{ url_for('input_score') }}?class_id=" + selectedClassId;
+});
+
+</script>
 {% endblock %}
 
 

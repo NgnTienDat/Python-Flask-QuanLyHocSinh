@@ -71,17 +71,17 @@
                 <tbody>
                 {% for t in teachers %}
                 <tr>
-                    <td>{{t.id}}</td>
-                    <td>{{t.last_name}} {{t.first_name}}</td>
-                    <td>{{t.subject_teacher}}</td>
+                    <td>{{t.teacher_id}}</td>
+                    <td>{{t.user}}</td>
+                    <td>{{t.subject.name}}</td>
                     <td class="action-btns">
-                        <a href="{{ url_for('teacher_detail', teacher_id=t.id) }}">
+                        <a href="{{ url_for('teacher_detail', teacher_id=t.teacher_id) }}">
                             <button>Xem</button>
                         </a>
-                        <a href="{{ url_for('teacher_update', teacher_id=t.id) }}">
+                        <a href="{{ url_for('teacher_update', teacher_id=t.teacher_id) }}">
                             <button class="btn btn-edit">Cập nhật</button>
                         </a>
-                        <a href="{{ url_for('delete_teacher', teacher_id=t.id) }}">
+                        <a href="{{ url_for('delete_teacher', teacher_id=t.teacher_id) }}">
                             <button class="btn-cancel">Xóa</button>
                         </a>
                     </td>

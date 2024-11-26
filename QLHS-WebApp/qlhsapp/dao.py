@@ -6,7 +6,7 @@ from qlhsapp import app, db
 
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
                             GenderEnum, Class, Teacher, Subject, StudentClass, User,
-                            Account, UserRole, GradeLevel)
+                            SchoolYear, Semester, GradeLevel)
 
 from datetime import datetime
 
@@ -92,7 +92,6 @@ def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_
     db.session.commit()
     flash('Thêm mới lớp học thành công!', 'success')
     return True
-
 
 
 def filter_class_by_grade_level_id(grade_level_id, page=1):
@@ -237,7 +236,6 @@ def automatic_assign_students_to_class():
             break
         curr_class = classes[idx]
         if curr_class.student_numbers < int(class_max_size.value):
-
             stu_class = StudentClass(student_id=male_students[i].id,
                                      class_id=curr_class.id, is_active=True)
             classes[idx].student_numbers += 1
@@ -246,7 +244,6 @@ def automatic_assign_students_to_class():
             print('for1')
         if (i + 1) % male_numbers_in_class == 0:  # vong lap chay tu 0 -> i = 8 la du 9 nam
             idx += 1
-
 
     print('pass for1')
     idx = 0
@@ -267,22 +264,21 @@ def automatic_assign_students_to_class():
         if (i + 1) % female_numbers_in_class == 0:
             idx += 1
     # dau : la lay phan con lai
-    remaining_male = male_students[male_numbers_in_class*min_numbers_class:] # 11*3=33 lay tu 33 cho den end
-    remaining_female = female_students[female_numbers_in_class*min_numbers_class:] # 8*3=24
+    remaining_male = male_students[male_numbers_in_class * min_numbers_class:]  # 11*3=33 lay tu 33 cho den end
+    remaining_female = female_students[female_numbers_in_class * min_numbers_class:]  # 8*3=24
     print(f'reamain male {len(remaining_male)}')
     print(f'reamain male {len(remaining_female)}')
     remain_student = remaining_male + remaining_female
     idx = 0
     for student in remain_student:
         while classes[idx].student_numbers >= int(class_max_size.value):
-            idx+=1
+            idx += 1
         stu_class = StudentClass(student_id=student.id,
                                  class_id=classes[idx].id, is_active=True)
         classes[idx].student_numbers += 1
         student.in_assigned = True
         db.session.add(stu_class)
         print('for3')
-
 
     db.session.commit()
     print('commit')
@@ -305,7 +301,6 @@ def load_student(kw=None, page=1):
         students = [s for s in students if s.name.lower().find(kw.lower()) >= 0]
 
     return students
-
 
 
 def get_student_by_id(student_id):
@@ -345,6 +340,7 @@ def update_student(student_id, name, address, email, date_of_birth, phone_number
         # luu thong tin xuong csdl
         if db.session.is_modified(student):
             db.session.commit()
+            flash('Cập nhật học sinh thành công!', 'success')
             print("Changes committed successfully.")
         else:
             print("No changes detected.")
@@ -458,46 +454,13 @@ def list_students(kw=None):
     return students
 
 
-def list_teacher():
-    teachers = (
-        db.session.query(User.id,
-                         User.last_name,
-                         User.first_name,
-                         User.email,
-                         User.phone_number,
-                         User.address,
-                         User.avatar,
-                         Subject.name.label('subject_teacher'))
-        .join(Account, Account.account_id == User.id)
-        .join(Teacher, Teacher.teacher_id == User.id)
-        .join(Subject, Teacher.subject_id == Subject.id)
-        .filter(Account.role == UserRole.TEACHER)
-        .all()
-    )
-    return teachers
-
-
 def get_teacher_by_id(teacher_id):
-    return (db.session.query(User.id,
-                             User.last_name,
-                             User.first_name,
-                             User.email,
-                             User.phone_number,
-                             User.address,
-                             User.avatar,
-                             Subject.name.label('subject_teacher'))
-            .join(Account, Account.account_id == User.id)
-            .join(Teacher, Teacher.teacher_id == User.id)
-            .join(Subject, Teacher.subject_id == Subject.id)
-            .filter(Teacher.teacher_id == teacher_id)
-            .first()
-            )
+    return Teacher.query.filter(Teacher.teacher_id == teacher_id).first()
 
 
 def update_teacher(teacher_id, last_name, first_name, email, address, phone_number, avatar):
     teacher = User.query.get(teacher_id)
     try:
-        # Cập nhật thông qua mối quan hệ user
         teacher.last_name = last_name
         teacher.first_name = first_name
         teacher.email = email
@@ -524,3 +487,25 @@ def delete_teacher(teacher_id):
         db.session.commit()
     else:
         raise ValueError("Không tìm thấy giáo viên cần xóa")
+
+
+def get_current_school_year():
+    return SchoolYear.query.order_by(SchoolYear.id.desc()).first()
+
+
+def get_all_class():
+    return Class.query.all()
+
+
+def get_semester(school_year_id):
+    semesters = Semester.query.filter(Semester.school_year_id == school_year_id).all()
+    return semesters
+
+
+def load_score_columns():
+    return ScoreType.query.all()
+
+
+def get_students_by_class(class_id):
+    students = StudentClass.query.filter_by(class_id=class_id).all()
+    return students

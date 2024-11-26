@@ -6,6 +6,7 @@ from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, Grade
 
 from qlhsapp import app, db
 import dao
+import cloudinary
 
 
 @app.route("/")
@@ -22,17 +23,41 @@ def get_login_page():
 @app.route("/students")
 def find_student_page():
     kw = request.args.get("key-name")
-    page = request.args.get("page", 1)
-    stu = dao.load_student(kw=kw, page=int(page))
-    counter = dao.count_student()
+    stu = dao.list_students(kw=kw)
     return render_template('admin/find-student.html',
-                           students=stu,
-                           pages=math.ceil(counter / app.config['PAGE_SIZE']))
+                           students=stu)
 
 
 # Tiếp nhận học sinh
-@app.route("/add-student")
+@app.route("/add-student", methods=['get', 'post'])
 def add_student_page():
+    if request.method.__eq__('POST'):
+        try:
+            name = request.form.get('name')
+            address = request.form.get('address')
+            email = request.form.get('email')
+            gender = request.form.get('gender')
+            date_of_birth = request.form.get('date_of_birth')
+            phone_number = request.form.get('phone_number')
+            staff_id = '2'
+            print(f"Received data: name={name}, address={address}, email={email}, "
+                  f"gender={gender}, date_of_birth={date_of_birth}, phone_number={phone_number}")
+            # kiểm tra tính hợp lệ của thông tin nhập vào
+            # Gọi hàm validate từ dao
+            if not dao.validate_input(name, address, phone_number, email):
+                return redirect(url_for('add_student_page'))
+            if dao.check_email_student(email):
+                flash("Email đã tồn tại !!!", "warning")
+                return redirect(url_for('add_student_page'))
+
+            dao.add_student(name=name, address=address, gender=gender, date_of_birth=date_of_birth, staff_id=staff_id,
+                            email=email,
+                            phone_number=phone_number)
+            flash("Thêm học sinh thành công!", "success")
+        except Exception as ex:
+            print(f"Error occurred: {ex}")
+            flash(f"Đã xảy ra lỗi khi thêm học sinh: {ex}", "error")
+
     return render_template('admin/add-student.html')
 
 
@@ -199,7 +224,22 @@ def age_regulations_page():
 # Nhập điểm
 @app.route("/input-score")
 def input_score():
-    return render_template('admin/input-score.html')
+    class_id = request.args.get('class_id')  # Lấy ID lớp từ tham số URL
+    current_year = dao.get_current_school_year()
+    subjects = dao.load_subject()
+    classes = dao.get_all_class()
+    semesters = dao.get_semester(current_year.id) if current_year else []
+    score_columns = dao.load_score_columns()
+    print("Selected Class ID:", class_id)
+    students = dao.get_students_by_class(class_id)
+    return render_template('admin/input-score.html',
+                           current_year=current_year,
+                           subjects=subjects,
+                           classes=classes,
+                           semesters=semesters,
+                           score_columns=score_columns,
+                           students=students,
+                           selected_filter=class_id)
 
 
 # Xuất điểm
@@ -210,7 +250,57 @@ def export_score():
 
 @app.route("/list-teacher")
 def list_teacher():
-    return render_template('admin/teacher.html')
+    teachers = dao.Teacher.query.all()
+    return render_template('admin/teacher.html', teachers=teachers)
+
+
+@app.route("/list-teacher/<int:teacher_id>")
+def teacher_detail(teacher_id):
+    teacher = dao.get_teacher_by_id(teacher_id)
+    return render_template('admin/teacher-detail.html', teacher=teacher)
+
+
+@app.route("/list-teacher//update/<int:teacher_id>", methods=['get', 'post'])
+def teacher_update(teacher_id):
+    teacher = dao.get_teacher_by_id(teacher_id)
+    if request.method.__eq__('POST'):
+        last_name = request.form.get('last_name')
+        first_name = request.form.get('first_name')
+        email = request.form.get('email')
+        address = request.form.get('address')
+        phone_number = request.form.get('phone_number')
+        avatar_path = teacher.user.avatar
+        avatar = request.files.get('avatar')
+        if avatar and avatar.filename != '':
+            try:
+                res = cloudinary.uploader.upload(avatar)
+                avatar_path = res['secure_url']
+            except Exception as e:
+                print(f"Avatar upload error: {str(e)}")
+                flash(f"Lỗi tải ảnh: {str(e)}", "danger")
+
+        dao.update_teacher(teacher_id=teacher_id,
+                           last_name=last_name,
+                           first_name=first_name,
+                           email=email,
+                           address=address,
+                           phone_number=phone_number,
+                           avatar=avatar_path)
+        return redirect(url_for('list_teacher'))
+    return render_template('admin/update-teacher.html', teacher=teacher)
+
+
+@app.route("/list-teacher//delete/<int:teacher_id>", methods=['get', 'post'])
+def delete_teacher(teacher_id):
+    teacher = dao.get_teacher_by_id(teacher_id)
+    if request.method.__eq__('POST'):
+        try:
+            dao.delete_teacher(teacher_id)
+            return redirect(url_for('list_teacher'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('list_teacher'))
+    return render_template('admin/delete-teacher.html', teacher=teacher)
 
 @app.route("/teacher-detail/<int:teacher_id>")
 def teacher_detail(teacher_id):
@@ -219,7 +309,8 @@ def teacher_detail(teacher_id):
 
 @app.route("/list-subject")
 def list_subject():
-    return render_template('admin/subject.html')
+    subjects = dao.load_subject()
+    return render_template('admin/subject.html', subjects=subjects)
 
 
 @app.route("/list-class")
@@ -304,13 +395,22 @@ def student_detail(student_id):
 def student_update(student_id):
     student = dao.get_student_by_id(student_id)
     if request.method.__eq__('POST'):
-        dao.update_student(student_id, request.form.get('name'),
-                           request.form.get('address'),
-                           request.form.get('email'),
-                           request.form.get('date_of_birth'),
-                           request.form.get('phone_number'))
-        flash("Student updated successfully!", "success")
-        return redirect(url_for('find_student_page'))
+        name = request.form.get('name')
+        address = request.form.get('address')
+        email = request.form.get('email')
+        date_of_birth = request.form.get('date_of_birth')
+        phone_number = request.form.get('phone_number')
+
+        # Gọi hàm validate từ dao
+        if not dao.validate_input(name, address, phone_number, email):
+            return redirect(url_for('student_update', student_id=student_id))
+
+        dao.update_student(student_id, name=name,
+                           address=address,
+                           email=email,
+                           date_of_birth=date_of_birth,
+                           phone_number=phone_number)
+        return redirect(url_for('student_update', student_id=student_id))
 
     return render_template('admin/update-student.html', student=student)
 
@@ -326,6 +426,31 @@ def student_delete(student_id):
             flash(f"Lỗi: {str(e)}", "danger")
             return redirect(url_for('find_student_page'))
     return render_template('admin/delete-student.html', student=student)
+
+
+@app.route("/list-subject/add-subject", methods=['get', 'post'])
+def add_new_subject():
+    if request.method.__eq__('POST'):
+        name = request.form.get('subject_name')
+        if dao.handel_save_subject(name):
+            flash("Môn học đã có trong hệ thống!", "warning")
+            return redirect(url_for('add_new_subject'))
+        dao.save_subject(name)
+        flash("Thêm môn học thành công!", "success")
+    return render_template('admin/add-subject.html')
+
+
+@app.route("/list-subject/delete-subject/<int:subject_id>", methods=['get', 'post'])
+def delete_subject(subject_id):
+    subject = dao.get_subject_by_id(subject_id)
+    if request.method.__eq__('POST'):
+        try:
+            dao.delete_subject(subject_id)
+            return redirect(url_for('list_subject'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('list_subject'))
+    return render_template('admin/delete-subject.html', subject=subject)
 
 
 if __name__ == '__main__':
