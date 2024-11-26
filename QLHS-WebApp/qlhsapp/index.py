@@ -302,9 +302,7 @@ def delete_teacher(teacher_id):
             return redirect(url_for('list_teacher'))
     return render_template('admin/delete-teacher.html', teacher=teacher)
 
-@app.route("/teacher-detail/<int:teacher_id>")
-def teacher_detail(teacher_id):
-    return render_template('admin/teacher-detail.html')
+
 
 
 @app.route("/list-subject")
