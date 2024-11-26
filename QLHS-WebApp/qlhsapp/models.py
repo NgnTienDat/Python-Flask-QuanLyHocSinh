@@ -23,8 +23,8 @@ class UserRole(PyEnum):
 
 # Gioi tinh
 class GenderEnum(PyEnum):
-    MALE = "Nam"
-    FEMALE = "Nữ"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
 
     def __str__(self):
         return self.value
@@ -102,8 +102,8 @@ class Administrator(db.Model):
 
 
 class StudentClass(BaseModel):
-    student_id = Column(Integer, ForeignKey('student.id'))
-    class_id = Column(Integer, ForeignKey('class.id'))
+    student_id = Column(Integer, ForeignKey('student.id'), nullable=False)
+    class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
     is_active = Column(Boolean, default=True)
 
     students = relationship('Student', back_populates='student_classes')
@@ -167,6 +167,9 @@ class Class(BaseModel):
     staff = relationship('Staff', back_populates='classes')  # done
 
     student_classes = relationship('StudentClass', back_populates='classes')
+
+    def __str__(self):
+        return self.name
 
 # Khoi lop
 class GradeLevel(BaseModel):
