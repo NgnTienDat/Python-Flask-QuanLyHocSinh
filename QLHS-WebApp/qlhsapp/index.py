@@ -106,8 +106,8 @@ def score_regulations_page():
     if request.method.__eq__('POST'):
         scores_update = []
         try:
-            for index in range(1,
-                               len(request.form) // 3 + 1):  # chia nguyen de lay so dong, vi du 9 o input thi 9//3=3 dong, lap tung dong
+            # chia nguyen de lay so dong, vi du 9 o input thi 9//3=3 dong, lap tung dong
+            for index in range(1, len(request.form) // 3 + 1):
                 score_type = request.form.get(f'score_type_{index}')
                 score_quantity = int(request.form.get(f'score_quantity_{index}'))
                 coefficient = int(request.form.get(f'coefficient_{index}'))
@@ -212,16 +212,22 @@ def age_regulations_page():
 # Nhập điểm
 @app.route("/input-score")
 def input_score():
+    class_id = request.args.get('class_id')  # Lấy ID lớp từ tham số URL
     current_year = dao.get_current_school_year()
     subjects = dao.load_subject()
     classes = dao.get_all_class()
     semesters = dao.get_semester(current_year.id) if current_year else []
-
+    score_columns = dao.load_score_columns()
+    print("Selected Class ID:", class_id)
+    students = dao.get_students_by_class(class_id)
     return render_template('admin/input-score.html',
                            current_year=current_year,
                            subjects=subjects,
                            classes=classes,
-                           semesters=semesters)
+                           semesters=semesters,
+                           score_columns=score_columns,
+                           students=students,
+                           selected_filter=class_id)
 
 
 # Xuất điểm
@@ -388,7 +394,7 @@ def student_update(student_id):
                            email=email,
                            date_of_birth=date_of_birth,
                            phone_number=phone_number)
-        return redirect(url_for('find_student_page'))
+        return redirect(url_for('student_update', student_id=student_id))
 
     return render_template('admin/update-student.html', student=student)
 

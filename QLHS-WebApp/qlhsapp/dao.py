@@ -318,6 +318,7 @@ def update_student(student_id, name, address, email, date_of_birth, phone_number
         # luu thong tin xuong csdl
         if db.session.is_modified(student):
             db.session.commit()
+            flash('Cập nhật học sinh thành công!', 'success')
             print("Changes committed successfully.")
         else:
             print("No changes detected.")
@@ -481,3 +482,8 @@ def get_semester(school_year_id):
 
 def load_score_columns():
     return ScoreType.query.all()
+
+
+def get_students_by_class(class_id):
+    students = StudentClass.query.filter_by(class_id=class_id).all()
+    return students

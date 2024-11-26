@@ -4,30 +4,6 @@
 {% block css %}
 
 <style>
-
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f6f9;
-        margin: 0;
-        padding: 20px;
-    }
-
-    .container {
-        max-width: 1000px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-
-    h1 {
-        margin: 0;
-        font-size: 24px;
-        color: #333;
-    }
-
-
     select {
         padding: 5px;
         border-radius: 5px;
@@ -35,33 +11,23 @@
         border: 1px solid #ddd;
         background-color: #f8f9fa;
     }
-
-
     table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
     }
-
     table th, table td {
-        text-align: left;
+        text-align: center;
         padding: 12px;
         border: 1px solid #ddd;
     }
-
     table th {
         background-color: #f8f9fa;
         color: #333;
         font-weight: bold;
     }
-
     table tr:hover {
         background-color: #f1f1f1;
-    }
-    .button-group {
-        width: 100%;
-        text-align: right; /* Căn nút sang bên phải */
-        margin-top: 20px;
     }
     ul.pagination {
         display: flex;
@@ -69,15 +35,12 @@
         margin-top: 15px; /* Thêm khoảng cách phía trên */
         padding: 0;
     }
-
     ul.pagination li {
         margin: 0 5px; /* Thêm một chút khoảng cách giữa các nút */
     }
-
     ul.pagination .page-item {
         list-style: none;
     }
-
     ul.pagination .page-link {
         text-decoration: none;
         padding: 8px 16px; /* Điều chỉnh kích thước nút */
@@ -86,13 +49,10 @@
         background-color: #f8f9fa;
         color: #007bff;
     }
-
     ul.pagination .page-link:hover {
         background-color: #007bff;
         color: white;
     }
-
-
 </style>
 {% endblock %}
 
@@ -185,7 +145,6 @@
 </div>
 
 <script>
-
     document.getElementById('filter-options').addEventListener('change', function() {
        const selectedValue = this.value;
        // Điều hướng đến URL với tham số filter
