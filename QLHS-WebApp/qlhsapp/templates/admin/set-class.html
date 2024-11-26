@@ -204,7 +204,13 @@
                             <td>{{ s.gender }}</td>
                             <td>{{ s.date_of_birth.strftime('%d-%m-%Y') }}</td>
                             <td>{{ s.address }}</td>
-                            <td><input type="checkbox" name="student_id" value="{{s.id}}"></td>
+                            {% if selected_class_id == 0 %}  <!-- "Chưa phân lớp" -->
+                                <td><input type="checkbox" name="student_id" value="{{ s.id }}"></td>
+                            {% else %}
+                                <td>
+                                    <a href="" style="text-decoration: none;">xóa</a>
+                                </td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                         </tbody>
@@ -213,7 +219,7 @@
                     <ul class="pagination">
                         {% for idx in range(1, pages+1) %}
                         <li class="page-item {% if idx == page %}active{% endif %}">
-                            <a class="page-link" href="{{ url_for('set_class_page', page=idx) }}">{{ idx }}</a>
+                            <a class="page-link" href="{{ url_for('set_class_page', page=idx, selected_class_id=class_id) }}">{{ idx }}</a>
                         </li>
                         {% endfor %}
                     </ul>
@@ -255,6 +261,13 @@
             }
         });
     });
+    document.getElementById('class-list').addEventListener('change', function() {
+        const selectedClassId = this.value;
+
+        // Điều hướng đến URL với tham số lớp đã chọn
+        window.location.href = "{{ url_for('set_class_page') }}?class_id=" + selectedClassId;
+    });
+
 </script>
 
 {% endblock %}

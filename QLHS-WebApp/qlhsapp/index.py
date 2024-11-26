@@ -2,7 +2,7 @@ import math
 
 from flask import render_template, request, url_for, redirect, flash
 
-from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, GradeLevel, SchoolYear, Class
+from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, GradeLevel, SchoolYear, Class, StudentClass
 
 from qlhsapp import app, db
 import dao
@@ -84,6 +84,8 @@ def set_class_page():
                 # lay gia tri cua cac checkbox gui len duoi dang list
                 selected_students = request.form.getlist('student_id')
                 class_id = int(request.form.get('class_'))
+                print(selected_students)
+                print(class_id)
                 if dao.add_student_to_class(student_list_id=selected_students, class_id=class_id):
                     return redirect(url_for('set_class_page'))
 
@@ -94,10 +96,19 @@ def set_class_page():
 
     total_unassigned_students = dao.count_student_un_assigned()
     classes = Class.query.all()
-    students, pages = dao.load_student_no_assigned(page=int(page))
+
+    selected_class_id = request.args.get('class_id', type=int, default=0)
+    if selected_class_id != 0:
+        # Nếu đã chọn lớp, lấy danh sách học sinh của lớp đó
+        student_class, pages = dao.load_student_in_assigned(selected_class_id, page=int(page))
+        students = [sc.students for sc in student_class]
+    else:
+        students, pages = dao.load_student_no_assigned(page=int(page))
+
     return render_template('admin/set-class.html',
                            classes=classes, students=students, pages=pages, page=int(page),
-                           total_unassigned_students=total_unassigned_students)
+                           total_unassigned_students=total_unassigned_students,
+                           selected_class_id=selected_class_id)
 
 
 # Quy định số cột điểm
@@ -120,7 +131,8 @@ def score_regulations_page():
         except (TypeError, ValueError):
             flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
             return redirect(url_for('score_regulations_page'))
-        print('im pass')
+
+
         for data in scores_update:
             score_type = data['score_type']  # chỉ gửi lên chuỗi ví dụ '15 phút'
             score_quantity = data['score_quantity']
@@ -289,6 +301,10 @@ def delete_teacher(teacher_id):
             flash(f"Lỗi: {str(e)}", "danger")
             return redirect(url_for('list_teacher'))
     return render_template('admin/delete-teacher.html', teacher=teacher)
+
+@app.route("/teacher-detail/<int:teacher_id>")
+def teacher_detail(teacher_id):
+    return render_template('admin/teacher-detail.html')
 
 
 @app.route("/list-subject")
