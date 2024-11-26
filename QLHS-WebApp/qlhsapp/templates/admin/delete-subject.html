@@ -1,0 +1,40 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+
+{% endblock %}
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Môn học</a></li>
+                <li class="breadcrumb-item"><a href="/add-student">Xóa</a></li>
+            </ol>
+        </nav>
+        <form action="{{ url_for('delete_subject', subject_id=subject.id) }}" method="POST">
+            <div class="alert alert-danger">
+                <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa môn học <strong>{{ subject.name }}</strong>?
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-danger">Xóa</button>
+                <a href="{{ url_for('list_subject') }}" class="btn btn-secondary">Hủy</a>
+            </div>
+        </form>
+
+
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+
+

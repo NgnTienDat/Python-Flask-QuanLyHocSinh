@@ -40,6 +40,17 @@ form .form-group select {
                 <li class="breadcrumb-item"><a href="/add-student">Cập nhật học sinh</a></li>
             </ol>
         </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
         <h1>Cập nhật học sinh</h1>
         <form action="{{ url_for('student_update', student_id=student.id) }}" method="post" class="form-container">
             <!-- Họ và tên -->
@@ -60,7 +71,7 @@ form .form-group select {
             <!-- Email -->
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="{{student.email}}">
+                <input type="email" id="email" name="email" value="{{student.email}}" readonly>
             </div>
             <!-- Số điện thoại -->
             <div class="form-group">
