@@ -122,6 +122,7 @@
                 {% endfor %}
                 {% endif %}
                 {% endwith %}
+
                 <h1>Danh Sách Lớp Học</h1>
                 <select name="filter-options" id="filter-options">
                     <option value="all" {% if selected_filter=='all' %}selected{% endif %}>Tất cả</option>
@@ -131,6 +132,7 @@
                         Khối {{ grade_level.name }}
                     </option>
                     {% endfor %}
+
                 </select>
 
 

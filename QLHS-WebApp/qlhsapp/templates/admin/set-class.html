@@ -128,6 +128,15 @@
                 <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
                 <li class="breadcrumb-item"><a href="/find-student">Lập danh sách lớp</a></li>
             </ol>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
             <h4>Lập danh sách lớp</h4>
 
         </nav>
@@ -138,7 +147,7 @@
             <div class="class-list">
                 <h4>Danh sách lớp</h4>
                 <select size="10" id="class-list">
-                    <option value="0">Chưa phân lớp (120)</option>
+                    <option value="0">Chưa phân lớp ({{ total_unassigned_students }})</option>
                     {% for c in classes %}
                     <option value="{{ c.id }}">{{ c.name }} ({{ c.student_numbers }})</option>
                     {% endfor %}
@@ -171,8 +180,8 @@
 
                     <div class="actions">
                         <button class="btn btn-danger">Hủy phân lớp</button>
-                        <button>Phân lớp tự động</button>
-                        <button type="submit">Lưu</button>
+                        <button type="submit" name="action" value="automatic">Phân lớp tự động</button>
+                        <button type="submit" name="action" value="handmade">Lưu</button>
 
                     </div>
 
@@ -214,6 +223,40 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        const classSelect = document.querySelector('#class-select');
+        const checkboxes = document.querySelectorAll('input[name="student_id"]');
+        const handmadeButton = document.querySelector('button[name="action"][value="handmade"]');
+
+        form.addEventListener('submit', function (e) {
+            // Kiểm tra xem nút "Lưu" có phải là nút được nhấn không
+            if (e.submitter !== handmadeButton) {
+                return; // Bỏ qua kiểm tra nếu không phải nút "Lưu"
+            }
+
+            let selectedClass = classSelect.value;
+            let isChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+            // Kiểm tra nếu chưa chọn lớp
+            if (selectedClass === "-- Chọn lớp --") {
+                alert("Vui lòng chọn lớp trước khi lưu!");
+                e.preventDefault(); // Ngăn không cho form submit
+                return;
+            }
+
+            // Kiểm tra nếu chưa chọn checkbox nào
+            if (!isChecked) {
+                alert("Vui lòng chọn ít nhất một học sinh!");
+                e.preventDefault(); // Ngăn không cho form submit
+                return;
+            }
+        });
+    });
+</script>
+
 {% endblock %}
 
 

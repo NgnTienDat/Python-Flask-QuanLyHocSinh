@@ -64,7 +64,7 @@
     }
 
     .student-table input {
-        width: 100%;
+        width: 80%;
         padding: 5px;
         border: 1px solid #ddd;
         border-radius: 5px;
@@ -96,33 +96,34 @@
                 <div class="col">
                     <label for="subject-select">Môn học</label>
                     <select id="subject-select" class="form-control">
-                        <option value="math">Toán</option>
-                        <option value="literature">Văn</option>
-                        <option value="physics">Lý</option>
+                        {% for s in subjects %}
+                        <option value="{{s.name}}">{{s.name}}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col">
                     <label for="class-select">Lớp</label>
                     <select id="class-select" class="form-control">
-                        <option value="10a1">10A1</option>
-                        <option value="10a2">10A2</option>
-                        <option value="10a3">10A3</option>
+                        {% for cls in classes %}
+                        <option value="{{cls.name}}">{{cls.name}}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col">
                     <label for="semester-select">Học kỳ</label>
                     <select id="semester-select" class="form-control">
-                        <option value="1">Học kỳ 1</option>
-                        <option value="2">Học kỳ 2</option>
+                        {% for semester in semesters %}
+                        <option value="{{semester.id}}">{{semester.name}}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col">
                     <label for="school-year-select">Niên khóa</label>
-                    <select id="school-year-select" class="form-control">
-                        <option value="2023-2024">2023-2024</option>
-                        <option value="2024-2025">2024-2025</option>
+                    <select id="school-year-select" class="form-control" disabled>
+                        <option>{{current_year.name}}</option>
                     </select>
                 </div>
+
             </div>
 
             <!-- Bảng danh sách học sinh -->
@@ -131,7 +132,7 @@
                     <thead>
                     <tr>
                         <th>STT</th>
-                        <th>Họ và Tên</th>
+                        <th style="width: 200px">Họ và Tên</th>
                         <th>15p (1)</th>
                         <th>15p (2)</th>
                         <th>15p (3)</th>
@@ -144,17 +145,6 @@
                     <tbody>
                     <tr>
                         <td>1</td>
-                        <td>Nguyễn Văn A</td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="score-input"></td>
-                        <td><input type="number" class="average-input" disabled></td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
                         <td>Trần Thị B</td>
                         <td><input type="number" class="score-input"></td>
                         <td><input type="number" class="score-input"></td>

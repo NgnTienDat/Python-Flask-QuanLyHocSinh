@@ -41,15 +41,15 @@
         <!-- Thanh Breadcrumb -->
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/teachers">Giáo viên</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('list_teacher') }}">Giáo viên</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Chi tiết giáo viên</li>
             </ol>
         </nav>
         <div class="container">
             <h1>Chi tiết giáo viên</h1>
             <div class="text-center">
-                {% if teacher.avatar %}
-                    <img src="{{ teacher.avatar }}" alt="Avatar" class="avatar-image">
+                {% if teacher.user.avatar %}
+                    <img src="{{ teacher.user.avatar }}" alt="Avatar" class="avatar-image">
                 {% else %}
                     <div class="avatar-placeholder">
                         Không có ảnh
@@ -57,22 +57,22 @@
                 {% endif %}
             </div>
             <div class="info">
-                <span>Mã giáo viên:</span> {{ teacher.id }}
+                <span>Mã giáo viên:</span> {{ teacher.teacher_id }}
             </div>
             <div class="info">
-                <span>Họ và tên:</span> {{ teacher.last_name }} {{ teacher.first_name }}
+                <span>Họ và tên:</span> {{ teacher.user }}
             </div>
             <div class="info">
-                <span>Dạy môn:</span> {{ teacher.subject_teacher }}
+                <span>Dạy môn:</span> {{ teacher.subject.name }}
             </div>
             <div class="info">
-                <span>Email:</span> {{ teacher.email }}
+                <span>Email:</span> {{ teacher.user.email }}
             </div>
             <div class="info">
-                <span>Số điện thoại:</span> {{ teacher.phone_number }}
+                <span>Số điện thoại:</span> {{ teacher.user.phone_number }}
             </div>
             <div class="info">
-                <span>Địa chỉ:</span> {{ teacher.address }}
+                <span>Địa chỉ:</span> {{ teacher.user.address }}
             </div>
             <div>
                 <a href="{{ url_for('list_teacher') }}">
