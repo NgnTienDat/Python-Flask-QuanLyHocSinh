@@ -41,15 +41,15 @@
         <!-- Thanh Breadcrumb -->
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/teachers">Giáo viên</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('list_teacher') }}">Giáo viên</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Chi tiết giáo viên</li>
             </ol>
         </nav>
         <div class="container">
             <h1>Chi tiết giáo viên</h1>
             <div class="text-center">
-                {% if teacher.avatar %}
-                    <img src="{{ teacher.avatar }}" alt="Avatar" class="avatar-image">
+                {% if teacher.user.avatar %}
+                    <img src="{{ teacher.user.avatar }}" alt="Avatar" class="avatar-image">
                 {% else %}
                     <div class="avatar-placeholder">
                         Không có ảnh

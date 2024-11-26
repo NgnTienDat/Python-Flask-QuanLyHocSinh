@@ -78,10 +78,10 @@
                         <a href="{{ url_for('teacher_detail', teacher_id=t.teacher_id) }}">
                             <button>Xem</button>
                         </a>
-                        <a href="{{ url_for('teacher_update', teacher_id=t.id) }}">
+                        <a href="{{ url_for('teacher_update', teacher_id=t.teacher_id) }}">
                             <button class="btn btn-edit">Cập nhật</button>
                         </a>
-                        <a href="{{ url_for('delete_teacher', teacher_id=t.id) }}">
+                        <a href="{{ url_for('delete_teacher', teacher_id=t.teacher_id) }}">
                             <button class="btn-cancel">Xóa</button>
                         </a>
                     </td>

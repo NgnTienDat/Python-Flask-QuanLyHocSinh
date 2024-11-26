@@ -1,7 +1,8 @@
-{% extends 'layout/base.html'%}
+{% extends 'layout/base.html' %}
 {% block title %} Trang chủ {% endblock %}
 
 {% block css %}
+
 <style>
     form {
     display: flex;
@@ -25,12 +26,14 @@ form .form-group select {
     border-radius: 4px;
 }
 </style>
+
 {% endblock %}
 {% block sidebar %}
-{% include 'layout/sidebar-admin.html'%}
+    {% include 'layout/sidebar-admin.html' %}
 {% endblock %}
 
 {% block content %}
+
 <div class="container-fluid pt-4 px-4">
     <div class="row g-4">
         <!-- Thanh Breadcrumb -->
@@ -67,8 +70,8 @@ form .form-group select {
             <div class="form-group">
                 <label for="gender">Giới tính</label>
                 <select id="gender" name="gender" required>
-                    <option value="Nam">Nam</option>
-                    <option value="Nữ">Nữ</option>
+                    <option value="MALE">Nam</option>
+                    <option value="FEMALE">Nữ</option>
                     <option value="Khác">Khác</option>
                 </select>
             </div>
@@ -96,7 +99,3 @@ form .form-group select {
     </div>
 </div>
 {% endblock %}
-
-
-
-

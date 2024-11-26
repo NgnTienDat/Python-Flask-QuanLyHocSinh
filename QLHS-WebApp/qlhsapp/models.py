@@ -1,7 +1,10 @@
 from cloudinary.uploader import remove_all_tags
+
+from flask_login import UserMixin
+
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
-from qlhsapp import db, app
+from qlhsapp import db, app, engine
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 from datetime import datetime
@@ -23,8 +26,8 @@ class UserRole(PyEnum):
 
 # Gioi tinh
 class GenderEnum(PyEnum):
-    MALE = "Nam"
-    FEMALE = "Nữ"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
 
     def __str__(self):
         return self.value
@@ -38,7 +41,9 @@ class Action(PyEnum):
         return self.value
 
 
-class User(BaseModel):
+
+class User(BaseModel, UserMixin):
+
     first_name = Column(String(20), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(50), unique=True, nullable=False)
@@ -64,7 +69,7 @@ class User(BaseModel):
 
 
 # Tai khoan
-class Account(db.Model):
+class Account(db.Model, UserMixin):
     account_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
     username = Column(String(100), unique=True, nullable=False)
     password = Column(String(50), nullable=False)
@@ -74,6 +79,10 @@ class Account(db.Model):
 
     # OneToOne voi User
     user = relationship('User', back_populates='account')  # done
+
+    # Phương thức để lấy ID người dùng
+    def get_id(self):
+        return str(self.account_id)
 
 
 # Nhan vien
@@ -102,8 +111,9 @@ class Administrator(db.Model):
 
 
 class StudentClass(BaseModel):
-    student_id = Column(Integer, ForeignKey('student.id'))
-    class_id = Column(Integer, ForeignKey('class.id'))
+
+    student_id = Column(Integer, ForeignKey('student.id'), nullable=False)
+    class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
     is_active = Column(Boolean, default=True)
 
     students = relationship('Student', back_populates='student_classes')
@@ -167,6 +177,10 @@ class Class(BaseModel):
     staff = relationship('Staff', back_populates='classes')  # done
 
     student_classes = relationship('StudentClass', back_populates='classes')
+
+    def __str__(self):
+        return self.name
+
 
 # Khoi lop
 class GradeLevel(BaseModel):
@@ -270,4 +284,6 @@ class Semester(BaseModel):
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        # db.create_all()
+        with Session(engine) as session:  # Đảm bảo bạn đã kết nối đúng engine
+            create_students(session)

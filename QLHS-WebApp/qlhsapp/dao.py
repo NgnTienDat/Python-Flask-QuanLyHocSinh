@@ -1,13 +1,152 @@
 # DAO chứa các phương thức tương tác xuống CSDL
-import math
 
+import random
+import string
+import math
+import hashlib
+import cloudinary.uploader
+
+import unicodedata
 from flask import flash
-from qlhsapp import app, db
+from sqlalchemy import func
+from flask_mail import Message
+from qlhsapp import app, db, mail
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
                             GenderEnum, Class, Teacher, Subject, StudentClass, User,
-                            Account, UserRole)
+                            SchoolYear, Semester, GradeLevel, Account)
+
+from flask import request
+
 from datetime import datetime
-import re
+
+
+def load_users(kw=None):
+    page = request.args.get('page', 1, type=int)
+    query = User.query
+    page_size = app.config['PAGE_SIZE']
+    # Nếu `kw` không trống, lọc theo từ khóa trong tên nhân viên
+    if kw:
+        query = query.filter(User.first_name.contains(kw) | User.last_name.contains(kw) | User.email.contains(kw) | Student.phone_number.contains(kw))
+
+    return query.paginate(page=page, per_page=page_size)
+
+def delete_user_from_db(user_id):
+    user = User.query.get(user_id)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+    else:
+        raise ValueError("Không tìm thấy người dùng cần xóa")
+
+def delete_account_from_db(user_id):
+    account = Account.query.get(user_id)
+    if account:
+        db.session.delete(account)
+        db.session.commit()
+    else:
+        raise ValueError("Không tìm thấy tài khoản cần xóa")
+
+def find_user(id):
+    return User.query.get(id)
+
+def auth_account(username, password):
+    password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
+    return Account.query.filter(Account.username.__eq__(username.strip()),
+                             Account.password.__eq__(password)).first()
+
+def add_account(account_id, username, password, role):
+    password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
+    a = Account(account_id=account_id, username=username, password=password, role=role)
+    db.session.add(a)
+    db.session.commit()
+
+def get_account_by_id(account_id):
+    return Account.query.get(account_id)
+
+def add_user(first_name, last_name, address, email, phone_number, avatar=None):
+    # Kiểm tra email đã tồn tại
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        raise ValueError("Email này đã được sử dụng")
+
+    u = User(first_name=first_name, last_name=last_name, address=address, email=email,
+             phone_number=phone_number)
+
+    if avatar:
+        try:
+            res = cloudinary.uploader.upload(avatar)
+            u.avatar = res.get('secure_url')  # Lấy URL của ảnh đã upload
+        except Exception as e:
+            raise ValueError(f"Lỗi khi upload avatar: {e}")
+    db.session.add(u)
+    db.session.commit()
+    return u.id
+
+def find_user_by_email(email):
+    return db.session.query(User).filter_by(email=email).first()
+
+def send_email(user_email, username, password):
+    """
+    Gửi email chứa thông tin tài khoản đến user.email.
+    """
+    try:
+        # Tạo nội dung email
+        msg = Message(
+            subject="Thông tin tài khoản của bạn",
+            sender=app.config['MAIL_DEFAULT_SENDER'],  # Sử dụng cấu hình mặc định của ứng dụng
+            recipients=[user_email]  # Email người nhận
+        )
+        # Nội dung email
+        msg.body = f"""
+        Chào bạn,
+
+        Chúc mừng bạn đã đăng ký tài khoản thành công.
+
+        Username: {username}
+        Mật khẩu: {password}
+
+        Vui lòng đăng nhập và thay đổi mật khẩu của bạn ngay sau khi đăng nhập.
+
+        Trân trọng,
+        Đội ngũ hỗ trợ.
+        """
+        # Gửi email
+        mail.send(msg)
+        print(f"Email đã được gửi đến {user_email}")
+    except Exception as e:
+        print(f"Không thể gửi email: {e}")
+
+
+def remove_accents(input_str):
+    # Loại bỏ dấu tiếng Việt
+    nfkd_form = unicodedata.normalize('NFKD', input_str)
+    return ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
+
+
+def generate_username(last_name):
+    # Chuyển last_name thành chữ thường và không có dấu
+    last_name = remove_accents(last_name.lower())
+
+    # Tạo username = last_name + 6 chữ số ngẫu nhiên
+    random_numbers = ''.join(random.choices(string.digits, k=6))
+    return f"{last_name}{random_numbers}"
+
+def generate_password():
+    # Tạo password ngẫu nhiên gồm chữ cái và số
+    characters = string.ascii_letters + string.digits
+    password = ''.join(random.choices(characters, k=10))  # Password dài 10 ký tự
+    return password
+
+def get_password_by_account_id(account_id):
+    account = Account.query.get(account_id)
+    if account:
+        return account.password  # Trả về mật khẩu đã lưu trong cơ sở dữ liệu
+    return None  # Trường hợp không tìm thấy tài khoản
+
+def password_encryption(password):
+    password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
+    return password
+
 
 
 def load_score_regulation():
@@ -85,17 +224,16 @@ def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_
     teacher.is_homeroom_teacher = True
     # tam thoi dung staff_id = 5 -> Sau nay dang nhap dc se sua
     new_class = Class(name=name, grade_level_id=grade_level_id,
-                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id, staff_id=5)
+                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id, staff_id=5,
+                      student_numbers=0)
     db.session.add(new_class)
     db.session.commit()
     flash('Thêm mới lớp học thành công!', 'success')
     return True
 
 
-
 def filter_class_by_grade_level_id(grade_level_id, page=1):
-
-    page_size = 1
+    page_size = 5
     start = (page - 1) * page_size
 
     query = Class.query
@@ -109,6 +247,7 @@ def filter_class_by_grade_level_id(grade_level_id, page=1):
     classes = query.offset(start).limit(page_size).all()
     return classes, total_pages
 
+
 def load_student_no_assigned(kw=None, page=1):
     page_size = app.config['PAGE_SIZE']
     start = (page - 1) * page_size
@@ -119,11 +258,27 @@ def load_student_no_assigned(kw=None, page=1):
     total_pages = math.ceil(total_records / page_size)
 
     if kw:
-
         query = query.filter(Student.name.contains(kw))
 
     students = query.offset(start).limit(page_size).all()
     return students, total_pages
+
+
+def load_student_in_assigned(selected_class_id, page=1, kw=None):
+    page_size = app.config['PAGE_SIZE']
+    start = (page - 1) * page_size
+
+    query = StudentClass.query.filter_by(class_id=selected_class_id, is_active=True)
+
+    total_records = query.count()  # Tong so ban ghi
+    total_pages = math.ceil(total_records / page_size)
+
+    if kw:
+        query = query.filter(Student.name.contains(kw))
+
+    student_class = query.offset(start).limit(page_size).all()
+    return student_class, total_pages
+
 
 
 def update_class(class_id, new_homeroom_teacher_id, class_name):
@@ -131,13 +286,11 @@ def update_class(class_id, new_homeroom_teacher_id, class_name):
         class_ = Class.query.get(class_id)
 
         if class_.name != class_name or class_.homeroom_teacher_id != new_homeroom_teacher_id:
-
             hr_old = Teacher.query.get(class_.homeroom_teacher_id)
             hr_old.is_homeroom_teacher = False  # cap nhat cho gvcn hien tai thanh false
 
             hr_new = Teacher.query.get(new_homeroom_teacher_id)
             hr_new.is_homeroom_teacher = True  # cap nhat cho gvcn moi thanh true
-
 
             class_.homeroom_teacher_id = new_homeroom_teacher_id
             class_.name = class_name
@@ -147,22 +300,132 @@ def update_class(class_id, new_homeroom_teacher_id, class_name):
         return True
 
     except Exception as e:
-        db.session.rollback()  # Rollback nếu có lỗi
-        print(f"An error occurred: {str(e)}")
+        db.session.rollback()
+        print(f"ĐÃ xảy ra lỗi: {str(e)}")
         return False
 
 
 def add_student_to_class(student_list_id, class_id):
     class_ = Class.query.get(class_id)
-    if class_:
+    class_max_size = Regulation.query.filter_by(key_name='CLASS_MAX_SIZE').first()
+    available_slots = int(class_max_size.value) - class_.student_numbers
+    if available_slots >= len(student_list_id):
         for student_id in student_list_id:
             student = Student.query.get(student_id)
             if student:
                 student_class = StudentClass(student_id=student_id, class_id=class_id, is_active=True)
+                class_.student_numbers += 1
+                student.in_assigned = True
                 db.session.add(student_class)
                 db.session.flush()
         db.session.commit()
+        flash('Phân lớp thành công!!', 'success')
+        return True
+    flash('Số học sinh quá sĩ số tối đa!!', 'warning')
+    return False
+
+
+def count_student_un_assigned():
+    return Student.query.filter_by(in_assigned=False).count()
+
+# phan lop tu dong theo so HS/Lop
+def automatic_assign_students_to_class():
+    # si so toi da
+    class_max_size = Regulation.query.filter_by(key_name='CLASS_MAX_SIZE').first()  #
+    # cac lop hoc can them hoc sinh
+    classes = Class.query.filter(Class.student_numbers < int(class_max_size.value)).all()
+    if not classes:
+        flash('Các lớp học đã đạt sĩ số tối đa!!', 'warning')
+        return False
+    # cac hoc sinh chua phan lop
+    students = Student.query.filter_by(in_assigned=False).all()  #
+    if not students:
+        flash('Không có học sinh!!', 'warning')
+        return False
+    print(f'chua phan lop: {count_student_un_assigned()}')
+    # danh sach hoc sinh nam va nu
+    # Lọc học sinh nam và nữ
+    male_students = [s for s in students if s.gender == GenderEnum.MALE]
+    female_students = [s for s in students if s.gender == GenderEnum.FEMALE]
+    print(f'nam: {male_students}')
+    print(f'nu: {female_students}')
+    # so lop hoc hien tai
+    numbers_current_classes = Class.query.count()  # ---
+    # so hoc sinh nam va nu
+    male_numbers = len(male_students)  # ---
+    female_numbers = len(female_students)
+    print(f'so hs nam: {male_numbers}')
+    print(f'so hs nu: {female_numbers}')
+
+    # so lop hoc toi thieu phai co
+    min_numbers_class = math.ceil(count_student_un_assigned() / int(class_max_size.value))  # ---
+    print(f'Số lớp tối thiểu: {min_numbers_class}')
+    # neu so lop hoc hien tai it hon so lop hoc toi thieu phai co
+    if numbers_current_classes < min_numbers_class:
+        flash('Phân lớp không thành công do không đủ lớp học. Tạo thêm lớp học hoặc nâng sĩ số tối đa lên!', 'warning')
+        return False
+    male_numbers_in_class = male_numbers // min_numbers_class
+    print(f'nam 1 lop: {male_numbers_in_class}')
+    female_numbers_in_class = female_numbers // min_numbers_class
+    print(f'nu 1 lop: {female_numbers_in_class}')
+    idx = 0
+    for i in range(male_numbers):
+        if idx == min_numbers_class:
+            break
+        curr_class = classes[idx]
+        if curr_class.student_numbers < int(class_max_size.value):
+            stu_class = StudentClass(student_id=male_students[i].id,
+                                     class_id=curr_class.id, is_active=True)
+            classes[idx].student_numbers += 1
+            male_students[i].in_assigned = True
+            db.session.add(stu_class)
+            print('for1')
+        if (i + 1) % male_numbers_in_class == 0:  # vong lap chay tu 0 -> i = 8 la du 9 nam
+            idx += 1
+
+    print('pass for1')
+    idx = 0
+    for i in range(female_numbers):
+        print(f'for 2: {i}')
+        if idx == min_numbers_class:
+            break
+
+        curr_class = classes[idx]
+        if curr_class.student_numbers < int(class_max_size.value):
+            print(f'if')
+            stu_class = StudentClass(student_id=female_students[i].id,
+                                     class_id=curr_class.id, is_active=True)
+            classes[idx].student_numbers += 1
+            female_students[i].in_assigned = True
+            db.session.add(stu_class)
+            print('for2')
+        if (i + 1) % female_numbers_in_class == 0:
+            idx += 1
+    # dau : la lay phan con lai
+    remaining_male = male_students[male_numbers_in_class * min_numbers_class:]  # 11*3=33 lay tu 33 cho den end
+    remaining_female = female_students[female_numbers_in_class * min_numbers_class:]  # 8*3=24
+    print(f'reamain male {len(remaining_male)}')
+    print(f'reamain male {len(remaining_female)}')
+    remain_student = remaining_male + remaining_female
+    idx = 0
+    for student in remain_student:
+        while classes[idx].student_numbers >= int(class_max_size.value):
+            idx += 1
+        stu_class = StudentClass(student_id=student.id,
+                                 class_id=classes[idx].id, is_active=True)
+        classes[idx].student_numbers += 1
+        student.in_assigned = True
+        db.session.add(stu_class)
+        print('for3')
+
+    db.session.commit()
+    print('commit')
+    flash('Phân lớp thành công!!', 'success')
     return True
+
+# phan lop theo so lop hien co
+def automatic_assign_students():
+    pass
 
 
 
@@ -176,7 +439,6 @@ def load_student(kw=None, page=1):
         students = [s for s in students if s.name.lower().find(kw.lower()) >= 0]
 
     return students
-
 
 
 def get_student_by_id(student_id):
@@ -216,6 +478,7 @@ def update_student(student_id, name, address, email, date_of_birth, phone_number
         # luu thong tin xuong csdl
         if db.session.is_modified(student):
             db.session.commit()
+            flash('Cập nhật học sinh thành công!', 'success')
             print("Changes committed successfully.")
         else:
             print("No changes detected.")
@@ -329,46 +592,13 @@ def list_students(kw=None):
     return students
 
 
-def list_teacher():
-    teachers = (
-        db.session.query(User.id,
-                         User.last_name,
-                         User.first_name,
-                         User.email,
-                         User.phone_number,
-                         User.address,
-                         User.avatar,
-                         Subject.name.label('subject_teacher'))
-        .join(Account, Account.account_id == User.id)
-        .join(Teacher, Teacher.teacher_id == User.id)
-        .join(Subject, Teacher.subject_id == Subject.id)
-        .filter(Account.role == UserRole.TEACHER)
-        .all()
-    )
-    return teachers
-
-
 def get_teacher_by_id(teacher_id):
-    return (db.session.query(User.id,
-                             User.last_name,
-                             User.first_name,
-                             User.email,
-                             User.phone_number,
-                             User.address,
-                             User.avatar,
-                             Subject.name.label('subject_teacher'))
-            .join(Account, Account.account_id == User.id)
-            .join(Teacher, Teacher.teacher_id == User.id)
-            .join(Subject, Teacher.subject_id == Subject.id)
-            .filter(Teacher.teacher_id == teacher_id)
-            .first()
-            )
+    return Teacher.query.filter(Teacher.teacher_id == teacher_id).first()
 
 
 def update_teacher(teacher_id, last_name, first_name, email, address, phone_number, avatar):
     teacher = User.query.get(teacher_id)
     try:
-        # Cập nhật thông qua mối quan hệ user
         teacher.last_name = last_name
         teacher.first_name = first_name
         teacher.email = email
@@ -395,3 +625,26 @@ def delete_teacher(teacher_id):
         db.session.commit()
     else:
         raise ValueError("Không tìm thấy giáo viên cần xóa")
+
+
+def get_current_school_year():
+    return SchoolYear.query.order_by(SchoolYear.id.desc()).first()
+
+
+def get_all_class():
+    return Class.query.all()
+
+
+def get_semester(school_year_id):
+    semesters = Semester.query.filter(Semester.school_year_id == school_year_id).all()
+    return semesters
+
+
+def load_score_columns():
+    return ScoreType.query.all()
+
+
+def get_students_by_class(class_id):
+    students = StudentClass.query.filter_by(class_id=class_id).all()
+    return students
+
