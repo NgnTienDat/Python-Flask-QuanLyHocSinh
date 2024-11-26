@@ -90,7 +90,7 @@
             <tr>
                 <td>{{s.id}}</td>
                 <td>{{s.name}}</td>
-                <td>10A1</td>
+                <td>{{s.current_class}}</td>
                 <td>{{s.gender}}</td>
                 <td>{{s.date_of_birth}}</td>
                 <td>
@@ -109,12 +109,7 @@
             </tbody>
         </table>
 
-        <ul class="pagination">
-            {% for idx in range(1, pages+1) %}
-            <li class="page-item"><a class="page-link" href="{{ url_for('find_student_page', page=idx)}}">{{ idx }}</a>
-            </li>
-            {% endfor %}
-        </ul>
+
     </div>
 </div>
 
