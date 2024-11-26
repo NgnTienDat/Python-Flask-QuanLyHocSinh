@@ -6,7 +6,8 @@ from qlhsapp import app, db
 
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
                             GenderEnum, Class, Teacher, Subject, StudentClass, User,
-                            Account, UserRole, GradeLevel)
+                            Account, UserRole, SchoolYear, Semester, GradeLevel)
+
 
 from datetime import datetime
 
@@ -502,3 +503,23 @@ def delete_teacher(teacher_id):
         db.session.commit()
     else:
         raise ValueError("Không tìm thấy giáo viên cần xóa")
+
+
+
+def get_current_school_year():
+    return SchoolYear.query.order_by(SchoolYear.id.desc()).first()
+
+
+def get_all_class():
+    return Class.query.all()
+
+
+def get_semester(school_year_id):
+    semesters = Semester.query.filter(Semester.school_year_id == school_year_id).all()
+    return semesters
+
+
+def load_score_columns():
+    return ScoreType.query.all()
+
+

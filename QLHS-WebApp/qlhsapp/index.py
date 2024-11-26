@@ -190,7 +190,16 @@ def age_regulations_page():
 # Nhập điểm
 @app.route("/input-score")
 def input_score():
-    return render_template('admin/input-score.html')
+    current_year = dao.get_current_school_year()
+    subjects = dao.load_subject()
+    classes = dao.get_all_class()
+    semesters = dao.get_semester(current_year.id) if current_year else []
+
+    return render_template('admin/input-score.html',
+                           current_year=current_year,
+                           subjects=subjects,
+                           classes=classes,
+                           semesters=semesters)
 
 
 # Xuất điểm
