@@ -199,7 +199,7 @@ def export_score():
 
 @app.route("/list-teacher")
 def list_teacher():
-    teachers = dao.list_teacher()
+    teachers = dao.Teacher.query.all()
     return render_template('admin/teacher.html', teachers=teachers)
 
 
@@ -218,7 +218,7 @@ def teacher_update(teacher_id):
         email = request.form.get('email')
         address = request.form.get('address')
         phone_number = request.form.get('phone_number')
-        avatar_path = None
+        avatar_path = teacher.user.avatar
         avatar = request.files.get('avatar')
         if avatar and avatar.filename != '':
             try:
@@ -227,7 +227,6 @@ def teacher_update(teacher_id):
             except Exception as e:
                 print(f"Avatar upload error: {str(e)}")
                 flash(f"Lỗi tải ảnh: {str(e)}", "danger")
-        print(f"Uploaded avatar path: {avatar_path}")
 
         dao.update_teacher(teacher_id=teacher_id,
                            last_name=last_name,
