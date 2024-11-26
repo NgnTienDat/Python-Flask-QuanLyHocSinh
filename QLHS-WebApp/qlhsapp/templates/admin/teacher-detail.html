@@ -57,22 +57,22 @@
                 {% endif %}
             </div>
             <div class="info">
-                <span>Mã giáo viên:</span> {{ teacher.id }}
+                <span>Mã giáo viên:</span> {{ teacher.teacher_id }}
             </div>
             <div class="info">
-                <span>Họ và tên:</span> {{ teacher.last_name }} {{ teacher.first_name }}
+                <span>Họ và tên:</span> {{ teacher.user }}
             </div>
             <div class="info">
-                <span>Dạy môn:</span> {{ teacher.subject_teacher }}
+                <span>Dạy môn:</span> {{ teacher.subject.name }}
             </div>
             <div class="info">
-                <span>Email:</span> {{ teacher.email }}
+                <span>Email:</span> {{ teacher.user.email }}
             </div>
             <div class="info">
-                <span>Số điện thoại:</span> {{ teacher.phone_number }}
+                <span>Số điện thoại:</span> {{ teacher.user.phone_number }}
             </div>
             <div class="info">
-                <span>Địa chỉ:</span> {{ teacher.address }}
+                <span>Địa chỉ:</span> {{ teacher.user.address }}
             </div>
             <div>
                 <a href="{{ url_for('list_teacher') }}">
