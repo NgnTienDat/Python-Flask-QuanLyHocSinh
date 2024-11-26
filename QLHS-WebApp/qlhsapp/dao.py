@@ -437,46 +437,13 @@ def list_students(kw=None):
     return students
 
 
-def list_teacher():
-    teachers = (
-        db.session.query(User.id,
-                         User.last_name,
-                         User.first_name,
-                         User.email,
-                         User.phone_number,
-                         User.address,
-                         User.avatar,
-                         Subject.name.label('subject_teacher'))
-        .join(Account, Account.account_id == User.id)
-        .join(Teacher, Teacher.teacher_id == User.id)
-        .join(Subject, Teacher.subject_id == Subject.id)
-        .filter(Account.role == UserRole.TEACHER)
-        .all()
-    )
-    return teachers
-
-
 def get_teacher_by_id(teacher_id):
-    return (db.session.query(User.id,
-                             User.last_name,
-                             User.first_name,
-                             User.email,
-                             User.phone_number,
-                             User.address,
-                             User.avatar,
-                             Subject.name.label('subject_teacher'))
-            .join(Account, Account.account_id == User.id)
-            .join(Teacher, Teacher.teacher_id == User.id)
-            .join(Subject, Teacher.subject_id == Subject.id)
-            .filter(Teacher.teacher_id == teacher_id)
-            .first()
-            )
+    return Teacher.query.filter(Teacher.teacher_id == teacher_id).first()
 
 
 def update_teacher(teacher_id, last_name, first_name, email, address, phone_number, avatar):
     teacher = User.query.get(teacher_id)
     try:
-        # Cập nhật thông qua mối quan hệ user
         teacher.last_name = last_name
         teacher.first_name = first_name
         teacher.email = email

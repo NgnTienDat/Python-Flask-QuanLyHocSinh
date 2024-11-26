@@ -76,37 +76,37 @@ form .form-group select {
         {% endwith %}
 
         <h1>Cập nhật giáo viên</h1>
-        <form action="{{ url_for('teacher_update', teacher_id=teacher.id) }}" method="post" class="form-container"
+        <form action="{{ url_for('teacher_update', teacher_id=teacher.teacher_id) }}" method="post" class="form-container"
               enctype="multipart/form-data">
             <!-- Họ và tên -->
             <div class="form-group">
                 <label for="last_name">Họ</label>
-                <input type="text" id="last_name" name="last_name" value="{{teacher.last_name}} ">
+                <input type="text" id="last_name" name="last_name" value="{{teacher.user.last_name}} ">
             </div>
             <div class="form-group">
                 <label for="first_name">Tên</label>
-                <input type="text" id="first_name" name="first_name" value="{{teacher.first_name}} ">
+                <input type="text" id="first_name" name="first_name" value="{{teacher.user.first_name}} ">
             </div>
             <!-- Địa chỉ -->
             <div class="form-group">
                 <label for="address">Địa chỉ</label>
-                <input type="text" id="address" name="address" value="{{teacher.address}}">
+                <input type="text" id="address" name="address" value="{{teacher.user.address}}">
             </div>
             <!-- Email -->
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="{{teacher.email}}" readonly>
+                <input type="email" id="email" name="email" value="{{teacher.user.email}}" readonly>
             </div>
             <!-- Số điện thoại -->
             <div class="form-group">
                 <label for="phone_number">Số điện thoại</label>
-                <input type="tel" id="phone_number" name="phone_number" value="{{teacher.phone_number}}">
+                <input type="tel" id="phone_number" name="phone_number" value="{{teacher.user.phone_number}}">
             </div>
             <!-- Avatar -->
             <div class="avatar-preview" style="display: flex;">
                 <label for="avatar">Avatar hiện tại</label>
-                {% if teacher.avatar %}
-                <img src="{{ teacher.avatar }}" alt="Avatar">
+                {% if teacher.user.avatar %}
+                <img src="{{ teacher.user.avatar }}" alt="Avatar">
                 {% else %}
                 <div class="avatar-placeholder"></div>
                 {% endif %}
