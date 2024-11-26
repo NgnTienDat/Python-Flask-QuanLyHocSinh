@@ -1,5 +1,7 @@
 from cloudinary.uploader import remove_all_tags
+
 from flask_login import UserMixin
+
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
 from qlhsapp import db, app, engine
@@ -24,8 +26,8 @@ class UserRole(PyEnum):
 
 # Gioi tinh
 class GenderEnum(PyEnum):
-    MALE = "Nam"
-    FEMALE = "Nữ"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
 
     def __str__(self):
         return self.value
@@ -39,7 +41,9 @@ class Action(PyEnum):
         return self.value
 
 
+
 class User(BaseModel, UserMixin):
+
     first_name = Column(String(20), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(50), unique=True, nullable=False)
@@ -107,8 +111,9 @@ class Administrator(db.Model):
 
 
 class StudentClass(BaseModel):
-    student_id = Column(Integer, ForeignKey('student.id'))
-    class_id = Column(Integer, ForeignKey('class.id'))
+
+    student_id = Column(Integer, ForeignKey('student.id'), nullable=False)
+    class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
     is_active = Column(Boolean, default=True)
 
     students = relationship('Student', back_populates='student_classes')
@@ -172,6 +177,10 @@ class Class(BaseModel):
     staff = relationship('Staff', back_populates='classes')  # done
 
     student_classes = relationship('StudentClass', back_populates='classes')
+
+    def __str__(self):
+        return self.name
+
 
 # Khoi lop
 class GradeLevel(BaseModel):
@@ -271,47 +280,6 @@ class Semester(BaseModel):
     school_year = relationship('SchoolYear', back_populates='semesters')  # done
     # 1 - N: A semester has many scoreboard
     score_boards = relationship('ScoreBoard', back_populates='semester')  # done
-
-
-from datetime import date
-from random import randint
-from sqlalchemy.orm import Session
-
-
-def create_students(session: Session):
-    # Danh sách các học sinh
-    students = []
-
-    # Tạo 10 học sinh nam
-    for i in range(10):
-        student = Student(
-            name=f"Nguyễn Văn Nam {i + 1}",
-            address="Hồ Chí Minh",
-            email=f"nam{i + 1}@example.com",
-            gender=GenderEnum.MALE,
-            phone_number=f"090{randint(1000000, 9999999)}",
-            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
-            staff_id=1
-        )
-        students.append(student)
-
-    # Tạo 10 học sinh nữ
-    for i in range(10):
-        student = Student(
-            name=f"Hà Kiều Nữ {i + 1}",
-            address="Hồ Chí Minh",
-            email=f"nu{i + 1}@example.com",
-            gender=GenderEnum.FEMALE,
-            phone_number=f"091{randint(1000000, 9999999)}",
-            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
-            staff_id=1
-        )
-        students.append(student)
-
-    # Thêm danh sách vào session
-    session.add_all(students)
-    session.commit()
-    print("Đã thêm 20 học sinh vào cơ sở dữ liệu.")
 
 
 if __name__ == '__main__':

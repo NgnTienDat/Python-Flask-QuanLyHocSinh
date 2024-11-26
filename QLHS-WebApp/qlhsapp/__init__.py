@@ -6,11 +6,15 @@ import cloudinary
 from flask_login import LoginManager
 from flask_mail import Mail, Message
 
+
 app = Flask(__name__)
-app.secret_key = "WTFTHANGNGUPHANLENGUYEN"
+
+
 
 # Cấu hình cơ sở dữ liệu
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:%s@localhost/database?charset=utf8mb4" % quote('Admin@123')
+
+
 
 # Cấu hình mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Gmail SMTP server
@@ -21,18 +25,19 @@ app.config['MAIL_PASSWORD'] = 'eeqm sumi hxgj egsn'  # Thay bằng mật khẩu 
 app.config['MAIL_DEFAULT_SENDER'] = 'no-reply@gmail.com'  # Email gửi mặc định
 
 # Các cấu hình khác
+app.secret_key = '^&*)%T*O&T*^&%)*^T%*&T)*O&RTO)(*@#$%@#THIPQ#asf'
 app.config["PAGE_SIZE"] = 8
 engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"], echo=True, future=True)
 
 # Cấu hình Cloudinary
 cloudinary.config(
-    cloud_name='dabb0yavq',
-    api_key='629417998313995',
-    api_secret='Pz7QaOBFl3nGzZVfWWmb2Vvx3DQ',
+    cloud_name='derx1izam',
+    api_key='826692895649512',
+    api_secret='aEf9hn_PrTeOXTOOJCz6k8Ucf3U',
     secure=True
 )
-
 # Khởi tạo các đối tượng
-db = SQLAlchemy(app)
+db = SQLAlchemy(app=app)
 login_manager = LoginManager(app)
 mail = Mail(app)
+

@@ -1,0 +1,80 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+
+    input {
+        border: 2px solid black;
+        border-radius: 4px;
+    }
+
+    .button-container {
+        margin-top: 10px;
+        text-align: right; /* Căn nút sang bên phải */
+    }
+
+    .edit-input {
+        width: 100%; padding: 8px; margin-top: 5px; border: 1px solid black; border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('score_regulations_page') }}">Quy định số cột điểm</a>
+                </li>
+                <li class="breadcrumb-item"> Xóa điểm</li>
+            </ol>
+        </nav>
+
+        <h3>Xóa loại điểm</h3>
+        <div class="alert alert-warning">
+            Bạn muốn xóa loại điểm {{ score.name }}?
+        </div>
+        <form action="{{ url_for('delete_score_type', score_type_id=score.id) }}" method="post">
+            <div style="max-width: 200px; margin: 0 auto;"> <!-- Tạo container để căn giữa -->
+
+
+                <div class="button-container"
+                     style="text-align: center; display: flex; justify-content: center; ">
+                    <button type="submit"
+                            style="flex: 1;padding: 10px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s ease;">
+                        Xóa
+                    </button>
+                    <button id="add-button" type="button"
+                            style="flex: 1; padding: 10px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; transition: background-color 0.3s ease;">
+                        <a href="{{ url_for('score_regulations_page') }}" style="text-decoration: none; color: white;">Quay
+                            lại</a>
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+
+    </div>
+</div>
+
+{% block js %}
+
+{% endblock %}
+
+{% endblock %}
+
+
+
+

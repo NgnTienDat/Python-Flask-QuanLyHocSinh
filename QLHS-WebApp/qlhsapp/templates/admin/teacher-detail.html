@@ -1,0 +1,85 @@
+{% extends 'layout/base.html' %}
+{% block title %} Chi tiết giáo viên {% endblock %}
+
+{% block css %}
+<style>
+    .info {
+        margin-bottom: 15px;
+    }
+    .info span {
+        font-weight: bold;
+    }
+    .avatar-placeholder {
+        width: 150px;
+        height: 150px;
+        background-color: gray;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 14px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+    }
+    .avatar-image {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('list_teacher') }}">Giáo viên</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Chi tiết giáo viên</li>
+            </ol>
+        </nav>
+        <div class="container">
+            <h1>Chi tiết giáo viên</h1>
+            <div class="text-center">
+                {% if teacher.user.avatar %}
+                    <img src="{{ teacher.user.avatar }}" alt="Avatar" class="avatar-image">
+                {% else %}
+                    <div class="avatar-placeholder">
+                        Không có ảnh
+                    </div>
+                {% endif %}
+            </div>
+            <div class="info">
+                <span>Mã giáo viên:</span> {{ teacher.teacher_id }}
+            </div>
+            <div class="info">
+                <span>Họ và tên:</span> {{ teacher.user }}
+            </div>
+            <div class="info">
+                <span>Dạy môn:</span> {{ teacher.subject.name }}
+            </div>
+            <div class="info">
+                <span>Email:</span> {{ teacher.user.email }}
+            </div>
+            <div class="info">
+                <span>Số điện thoại:</span> {{ teacher.user.phone_number }}
+            </div>
+            <div class="info">
+                <span>Địa chỉ:</span> {{ teacher.user.address }}
+            </div>
+            <div>
+                <a href="{{ url_for('list_teacher') }}">
+                    <button class="btn btn-primary">Trở về</button>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

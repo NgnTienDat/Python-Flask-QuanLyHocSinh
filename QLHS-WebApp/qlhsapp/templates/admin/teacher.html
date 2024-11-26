@@ -10,7 +10,7 @@
     }
 
     table th, table td {
-        text-align: left;
+        text-align: center;
         padding: 12px;
         border: 1px solid #ddd;
     }
@@ -25,7 +25,23 @@
         background-color: #f1f1f1;
     }
 
-
+    .btn-edit {
+        background-color: #ffc107;
+        color: black;
+    }
+    .btn-edit:hover {
+        background-color: #e0a800;
+    }
+    .search-bar {
+        margin-bottom: 20px;
+    }
+    .search-bar input[type="text"] {
+        padding: 8px;
+        width: 300px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
 </style>
 
 {% endblock %}
@@ -53,45 +69,26 @@
                 </tr>
                 </thead>
                 <tbody>
+                {% for t in teachers %}
                 <tr>
-                    <td>GV001</td>
-                    <td>Nguyễn Văn A</td>
-                    <td>Toán</td>
+                    <td>{{t.teacher_id}}</td>
+                    <td>{{t.user}}</td>
+                    <td>{{t.subject.name}}</td>
                     <td class="action-btns">
-                        <div class="button-group">
-                            <button>Chỉnh sửa</button>
+                        <a href="{{ url_for('teacher_detail', teacher_id=t.teacher_id) }}">
+                            <button>Xem</button>
+                        </a>
+                        <a href="{{ url_for('teacher_update', teacher_id=t.teacher_id) }}">
+                            <button class="btn btn-edit">Cập nhật</button>
+                        </a>
+                        <a href="{{ url_for('delete_teacher', teacher_id=t.teacher_id) }}">
                             <button class="btn-cancel">Xóa</button>
-                        </div>
+                        </a>
                     </td>
                 </tr>
-                <tr>
-                    <td>GV002</td>
-                    <td>Trần Thị B</td>
-                    <td>Văn</td>
-                    <td class="action-btns">
-                        <div class="button-group">
-                            <button>Chỉnh sửa</button>
-                            <button class="btn-cancel">Xóa</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td>GV003</td>
-                    <td>Phạm Minh C</td>
-                    <td>Vật Lý</td>
-                    <td class="action-btns">
-                        <div class="button-group">
-                            <button>Chỉnh sửa</button>
-                            <button class="btn-cancel">Xóa</button>
-                        </div>
-                    </td>
-                </tr>
-                <!-- Thêm các giáo viên khác nếu cần -->
+                {% endfor %}
                 </tbody>
             </table>
-            <div class="button-group">
-                <button>Thêm giáo viên</button>
-            </div>
         </div>
 
 
