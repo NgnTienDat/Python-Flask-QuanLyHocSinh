@@ -4,9 +4,8 @@ from flask import render_template, request, url_for, redirect, flash
 
 from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, GradeLevel, SchoolYear, Class
 
-from qlhsapp import app,db
+from qlhsapp import app, db
 import dao
-
 
 
 @app.route("/")
@@ -28,7 +27,7 @@ def find_student_page():
     counter = dao.count_student()
     return render_template('admin/find-student.html',
                            students=stu,
-                           pages=math.ceil(counter/app.config['PAGE_SIZE']))
+                           pages=math.ceil(counter / app.config['PAGE_SIZE']))
 
 
 # Tiếp nhận học sinh
@@ -43,53 +42,67 @@ def set_class_page():
     page = request.args.get('page', 1)
     if request.method == 'POST':
 
-        try:
-            # lay gia tri cua cac checkbox gui len duoi dang list
-            selected_students = request.form.getlist('student_id')
-            class_ = request.form.get('class_')
+        action = request.form.get('action')
+
+        if action == 'automatic':
+            try:
+
+                if dao.automatic_assign_students_to_class():
+                    return redirect(url_for('set_class_page'))
+
+            except Exception as e:
+                flash(f'Lỗi xảy ra trong quá trình phân lớp: {str(e)}', 'danger')
+                return redirect(url_for('set_class_page'))
+
+        else:
+            try:
+                # lay gia tri cua cac checkbox gui len duoi dang list
+                selected_students = request.form.getlist('student_id')
+                class_id = int(request.form.get('class_'))
+                if dao.add_student_to_class(student_list_id=selected_students, class_id=class_id):
+                    return redirect(url_for('set_class_page'))
+
+
+            except (TypeError, ValueError):
+                flash('Bạn chưa chọn lớp học hoặc chọn học sinh!!', 'warning')
+                return redirect(url_for('set_class_page'))
 
 
 
 
-
-        except (TypeError, ValueError):
-            flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
-            return redirect(url_for('score_regulations_page'))
-
-
-
-
+    total_unassigned_students = dao.count_student_un_assigned()
     classes = Class.query.all()
     students, pages = dao.load_student_no_assigned(page=int(page))
     return render_template('admin/set-class.html',
-                           classes=classes, students=students, pages=pages, page=int(page))
+                           classes=classes, students=students, pages=pages, page=int(page),
+                           total_unassigned_students=total_unassigned_students)
 
 
 # Quy định số cột điểm
 @app.route("/score-regulation", methods=['get', 'post'])
 def score_regulations_page():
-
     if request.method.__eq__('POST'):
         scores_update = []
         try:
-            for index in range(1, len(request.form)//3+1):  # chia nguyen de lay so dong, vi du 9 o input thi 9//3=3 dong, lap tung dong
+            for index in range(1,
+                               len(request.form) // 3 + 1):  # chia nguyen de lay so dong, vi du 9 o input thi 9//3=3 dong, lap tung dong
                 score_type = request.form.get(f'score_type_{index}')
                 score_quantity = int(request.form.get(f'score_quantity_{index}'))
                 coefficient = int(request.form.get(f'coefficient_{index}'))
 
                 scores_update.append({
-                    'score_type':score_type,
-                    'score_quantity':score_quantity,
-                    'coefficient':coefficient
+                    'score_type': score_type,
+                    'score_quantity': score_quantity,
+                    'coefficient': coefficient
                 })
         except (TypeError, ValueError):
             flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
             return redirect(url_for('score_regulations_page'))
         print('im pass')
         for data in scores_update:
-            score_type = data['score_type'] # chỉ gửi lên chuỗi ví dụ '15 phút'
-            score_quantity=data['score_quantity']
-            coefficient=data['coefficient']
+            score_type = data['score_type']  # chỉ gửi lên chuỗi ví dụ '15 phút'
+            score_quantity = data['score_quantity']
+            coefficient = data['coefficient']
 
             dao.update_score_regulation(score_type, score_quantity, coefficient)
 
@@ -98,7 +111,6 @@ def score_regulations_page():
 
     score_types = dao.load_score_regulation()
     return render_template('admin/score.html', score_types=score_types)
-
 
 
 @app.route("/add-new-score-type", methods=['get', 'post'])
@@ -116,6 +128,7 @@ def new_score_regulation():
             return redirect(url_for('score_regulations_page'))
 
     return render_template('admin/new-score-regulation.html')
+
 
 @app.route('/score-regulation/<int:score_type_id>', methods=['get', 'post'])
 def delete_score_type(score_type_id):
@@ -159,8 +172,8 @@ def age_regulations_page():
         print(request.form.get('max_age'))
         print(request.form.get('min_age'))
         try:
-            max_age=int(request.form.get('max_age'))
-            min_age=int(request.form.get('min_age'))
+            max_age = int(request.form.get('max_age'))
+            min_age = int(request.form.get('min_age'))
         except (ValueError, TypeError):
             flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
             return redirect(url_for('age_regulations_page'))
@@ -199,11 +212,11 @@ def list_subject():
 @app.route("/list-class")
 def list_class():
     page = request.args.get('page', 1)
-    grade_level_id = request.args.get('filter', 'all') # mac dinh la lay tat ca
+    grade_level_id = request.args.get('filter', 'all')  # mac dinh la lay tat ca
 
     classes, pages = dao.filter_class_by_grade_level_id(grade_level_id, page=int(page))
 
-    grade_levels=GradeLevel.query.all()
+    grade_levels = GradeLevel.query.all()
     selected_filter = grade_level_id
     return render_template('admin/class.html', classes=classes,
                            grade_levels=grade_levels, selected_filter=selected_filter, pages=pages, page=int(page))
@@ -225,17 +238,13 @@ def add_new_class():
         if dao.handle_add_new_class(class_name, grade_level_id, homeroom_teacher_id, school_year_id, school_year):
             return redirect(url_for('add_new_class'))
 
-
     teachers = Teacher.query.filter_by(is_homeroom_teacher=False).all()
     print(teachers)
     grade_level = GradeLevel.query.all()
     school_year = SchoolYear.query.order_by(SchoolYear.id.desc()).first()
 
-
-
     return render_template('admin/add-class.html',
                            teachers=teachers, grade_level=grade_level, school_year=school_year)
-
 
 
 @app.route("/list-class/update-class/<int:class_id>", methods=['get', 'post'])
@@ -244,7 +253,6 @@ def update_class(class_id):
     if request.method == 'POST':
         class_name = request.form.get('class_name')
         homeroom_teacher_id = int(request.form.get('homeroom_teacher'))
-
 
         if dao.update_class(class_id, homeroom_teacher_id, class_name):
             return redirect(url_for('update_class', class_id=class_id))
@@ -255,7 +263,6 @@ def update_class(class_id):
     return render_template('admin/update-class.html',
                            school_year=school_year, class_=class_, teachers=teachers,
                            homeroom_teacher_id=homeroom_teacher_id)
-
 
 
 @app.route("/list-user")
