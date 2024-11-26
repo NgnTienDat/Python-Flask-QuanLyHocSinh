@@ -127,6 +127,23 @@ def load_student_no_assigned(kw=None, page=1):
     return students, total_pages
 
 
+def load_student_in_assigned(selected_class_id, page=1, kw=None):
+    page_size = app.config['PAGE_SIZE']
+    start = (page - 1) * page_size
+
+    query = StudentClass.query.filter_by(class_id=selected_class_id, is_active=True)
+
+    total_records = query.count()  # Tong so ban ghi
+    total_pages = math.ceil(total_records / page_size)
+
+    if kw:
+        query = query.filter(Student.name.contains(kw))
+
+    student_class = query.offset(start).limit(page_size).all()
+    return student_class, total_pages
+
+
+
 def update_class(class_id, new_homeroom_teacher_id, class_name):
     try:
         class_ = Class.query.get(class_id)
@@ -174,7 +191,7 @@ def add_student_to_class(student_list_id, class_id):
 def count_student_un_assigned():
     return Student.query.filter_by(in_assigned=False).count()
 
-
+# phan lop tu dong theo so HS/Lop
 def automatic_assign_students_to_class():
     # si so toi da
     class_max_size = Regulation.query.filter_by(key_name='CLASS_MAX_SIZE').first()  #
@@ -208,7 +225,7 @@ def automatic_assign_students_to_class():
     print(f'Số lớp tối thiểu: {min_numbers_class}')
     # neu so lop hoc hien tai it hon so lop hoc toi thieu phai co
     if numbers_current_classes < min_numbers_class:
-        flash('Phân lớp không thành công!!', 'warning')
+        flash('Phân lớp không thành công do không đủ lớp học. Tạo thêm lớp học hoặc nâng sĩ số tối đa lên!', 'warning')
         return False
     male_numbers_in_class = male_numbers // min_numbers_class
     print(f'nam 1 lop: {male_numbers_in_class}')
@@ -271,6 +288,11 @@ def automatic_assign_students_to_class():
     print('commit')
     flash('Phân lớp thành công!!', 'success')
     return True
+
+# phan lop theo so lop hien co
+def automatic_assign_students():
+    pass
+
 
 
 def load_student(kw=None, page=1):
