@@ -67,10 +67,10 @@
                     </tr>
                     </thead>
                     <tbody id="user-table-body">
-                    {% for s in users.items %}
+                    {% for s in users %}
                         <tr>
                             <td>{{ s.id }}</td>
-                            <td>{{ s.first_name +" "+ s.last_name }} </td>
+                            <td>{{ s }} </td>
                             <td>{{ s.email }}</td>
                             <td>{{ s.phone_number }}</td>
                             <td>{{ s.address }}</td>

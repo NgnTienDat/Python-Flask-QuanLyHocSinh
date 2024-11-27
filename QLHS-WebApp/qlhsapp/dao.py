@@ -11,9 +11,10 @@ from flask import flash
 from sqlalchemy import func
 from flask_mail import Message
 from qlhsapp import app, db, mail
+from qlhsapp.index import teaching_assignment
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
                             GenderEnum, Class, Teacher, Subject, StudentClass, User,
-                            SchoolYear, Semester, GradeLevel, Account)
+                            SchoolYear, Semester, GradeLevel, Account, Staff, TeachingAssignment)
 
 from flask import request
 
@@ -58,6 +59,12 @@ def add_account(account_id, username, password, role):
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
     a = Account(account_id=account_id, username=username, password=password, role=role)
     db.session.add(a)
+    if role == 'TEACHER':
+        teacher = Teacher(teacher_id=account_id)
+        db.session.add(teacher)
+    else:
+        staff = Staff(staff_id=account_id)
+        db.session.add(staff)
     db.session.commit()
 
 def get_account_by_id(account_id):
@@ -79,6 +86,9 @@ def add_user(first_name, last_name, address, email, phone_number, avatar=None):
         except Exception as e:
             raise ValueError(f"Lỗi khi upload avatar: {e}")
     db.session.add(u)
+
+
+
     db.session.commit()
     return u.id
 
@@ -423,10 +433,30 @@ def automatic_assign_students_to_class():
     flash('Phân lớp thành công!!', 'success')
     return True
 
-# phan lop theo so lop hien co
-def automatic_assign_students():
-    pass
 
+def add_teaching_assignment(teacher_id, class_id, subject_id, school_year_id):
+    try:
+
+        exist_ta = TeachingAssignment.query.filter_by(
+            teacher_id=teacher_id,class_id=class_id,
+            subject_id=subject_id,school_year_id=school_year_id).first()
+
+        if exist_ta:
+            flash(f'Bản phân công này đã tồn tại!!', 'danger')
+            return False
+
+
+        ta = TeachingAssignment(teacher_id=teacher_id, class_id=class_id, subject_id=subject_id,
+                                school_year_id=school_year_id)
+        db.session.add(ta)
+        db.session.commit()
+
+        flash(f'Lưu thành công!!', 'danger')
+        return True
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Đã xảy ra sự cố trong quá trình lưu: {e}', 'danger')
+        return False
 
 
 def load_student(kw=None, page=1):

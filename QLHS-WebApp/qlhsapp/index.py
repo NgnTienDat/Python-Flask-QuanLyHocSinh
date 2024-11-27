@@ -3,10 +3,11 @@ from flask import render_template, request, redirect, url_for, flash
 from qlhsapp import app, db, login_manager
 import dao
 from flask_login import login_user, logout_user
-import math
 
-from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, GradeLevel, SchoolYear, Class, StudentClass
-import cloudinary
+from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, GradeLevel, SchoolYear, Class, StudentClass, \
+    Subject, TeachingAssignment
+
+import cloudinary.uploader
 
 
 @app.route("/")
@@ -42,13 +43,13 @@ def find_student_page():
                            students=stu)
 
 
-    return render_template('login.html',err_msg=err_msg)
+
 
 
 @app.route("/logout")
 def logout_process():
     logout_user()
-    return redirect('/login')
+    return render_template('login.html')
 
 
 # Tiếp nhận học sinh
@@ -82,6 +83,7 @@ def add_student_page():
             flash(f"Đã xảy ra lỗi khi thêm học sinh: {ex}", "error")
 
     return render_template('admin/add-student.html')
+
 
 
 # Phân lớp học sinh
@@ -269,6 +271,41 @@ def input_score():
 @app.route("/export-score")
 def export_score():
     return render_template('admin/export-score.html')
+
+
+
+@app.route("/list-teacher/teaching-assignment", methods=['get', 'post'])
+def teaching_assignment():
+
+    if request.method == 'POST':
+        try:
+            subject_id = request.form.get('subject')
+            class_id = request.form.get('class_')
+            school_year_id = request.form.get('school_year_id')
+            teacher_id = request.form.get('teacher')
+
+            print('subject_id: ' + subject_id)
+            print('class_id: ' + class_id)
+            print('school_year_id: ' + school_year_id)
+            print('teacher_id: ' + teacher_id)
+            if dao.add_teaching_assignment(teacher_id=teacher_id, class_id=class_id,
+                                           subject_id=subject_id,school_year_id=school_year_id):
+                # giu nguyen trang thai mon hoc da chon subject_filter=subject_id
+                return redirect(url_for('teaching_assignment', subject_filter=subject_id))
+        except Exception as e:
+            flash(f"Đã xảy ra lỗi trong quá trình lưu: {str(e)}", "danger")
+            return redirect(url_for('teaching_assignment'))
+
+
+    subject_id = request.args.get('subject_filter')
+    selected_subject = subject_id
+    subjects = Subject.query.all()
+    classes = Class.query.all()
+    school_year = SchoolYear.query.order_by(SchoolYear.id.desc()).first()
+    teachers = Teacher.query.filter_by(subject_id=subject_id).all()
+    return render_template('admin/teaching-assignment.html', subjects=subjects,
+                           classes=classes, school_year=school_year, selected_subject=selected_subject,
+                           teachers=teachers)
 
 
 @app.route("/list-teacher")
@@ -594,7 +631,7 @@ def delete_subject(subject_id):
     return render_template('admin/delete-subject.html', subject=subject)
 
 
+print(app.url_map)
 if __name__ == '__main__':
     from qlhsapp.admin import *
-
     app.run(debug=True)

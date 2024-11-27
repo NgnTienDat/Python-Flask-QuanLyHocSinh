@@ -59,6 +59,9 @@
         </nav>
         <div class="container">
             <h1>Danh Sách Giáo Viên</h1>
+            <a href="{{ url_for('teaching_assignment') }}">
+                <button >Phân công giáo viên giảng dạy</button>
+            </a>
             <table>
                 <thead>
                 <tr>
@@ -78,6 +81,7 @@
                         <a href="{{ url_for('teacher_detail', teacher_id=t.teacher_id) }}">
                             <button>Xem</button>
                         </a>
+
                         <a href="{{ url_for('teacher_update', teacher_id=t.teacher_id) }}">
                             <button class="btn btn-edit">Cập nhật</button>
                         </a>

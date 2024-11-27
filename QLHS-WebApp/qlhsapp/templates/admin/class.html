@@ -87,8 +87,7 @@
                 <select name="filter-options" id="filter-options">
                     <option value="all" {% if selected_filter=='all' %}selected{% endif %}>Tất cả</option>
                     {% for grade_level in grade_levels %}
-                    <option value="{{ grade_level.id }}" {% if selected_filter== grade_level.id|string %}selected{%endif
-                            %}>
+                    <option value="{{ grade_level.id }}" {% if selected_filter== grade_level.id|string %} selected {% endif %}>
                         Khối {{ grade_level.name }}
                     </option>
                     {% endfor %}
