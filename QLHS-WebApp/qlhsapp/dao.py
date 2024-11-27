@@ -13,7 +13,7 @@ from flask_mail import Message
 from qlhsapp import app, db, mail
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
                             GenderEnum, Class, Teacher, Subject, StudentClass, User,
-                            SchoolYear, Semester, GradeLevel, Account)
+                            SchoolYear, Semester, GradeLevel, Account, Staff)
 
 from flask import request
 
@@ -26,9 +26,11 @@ def load_users(kw=None):
     page_size = app.config['PAGE_SIZE']
     # Nếu `kw` không trống, lọc theo từ khóa trong tên nhân viên
     if kw:
-        query = query.filter(User.first_name.contains(kw) | User.last_name.contains(kw) | User.email.contains(kw) | Student.phone_number.contains(kw))
+        query = query.filter(User.first_name.contains(kw) | User.last_name.contains(kw) | User.email.contains(
+            kw) | Student.phone_number.contains(kw))
 
     return query.paginate(page=page, per_page=page_size)
+
 
 def delete_user_from_db(user_id):
     user = User.query.get(user_id)
@@ -38,6 +40,7 @@ def delete_user_from_db(user_id):
     else:
         raise ValueError("Không tìm thấy người dùng cần xóa")
 
+
 def delete_account_from_db(user_id):
     account = Account.query.get(user_id)
     if account:
@@ -46,22 +49,36 @@ def delete_account_from_db(user_id):
     else:
         raise ValueError("Không tìm thấy tài khoản cần xóa")
 
+
 def find_user(id):
     return User.query.get(id)
+
 
 def auth_account(username, password):
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
     return Account.query.filter(Account.username.__eq__(username.strip()),
-                             Account.password.__eq__(password)).first()
+                                Account.password.__eq__(password)).first()
+
 
 def add_account(account_id, username, password, role):
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
-    a = Account(account_id=account_id, username=username, password=password, role=role)
+    a = Account(account_id=account_id,
+                username=username,
+                password=password,
+                role=role)
     db.session.add(a)
+    if a.role == 'TEACHER':
+        teacher = Teacher(teacher_id=account_id)
+        db.session.add(teacher)
+    if a.role == 'STAFF':
+        staff = Staff(staff_id=account_id)
+        db.session.add(staff)
     db.session.commit()
+
 
 def get_account_by_id(account_id):
     return Account.query.get(account_id)
+
 
 def add_user(first_name, last_name, address, email, phone_number, avatar=None):
     # Kiểm tra email đã tồn tại
@@ -69,7 +86,10 @@ def add_user(first_name, last_name, address, email, phone_number, avatar=None):
     if existing_user:
         raise ValueError("Email này đã được sử dụng")
 
-    u = User(first_name=first_name, last_name=last_name, address=address, email=email,
+    u = User(first_name=first_name,
+             last_name=last_name,
+             address=address,
+             email=email,
              phone_number=phone_number)
 
     if avatar:
@@ -82,8 +102,10 @@ def add_user(first_name, last_name, address, email, phone_number, avatar=None):
     db.session.commit()
     return u.id
 
+
 def find_user_by_email(email):
     return db.session.query(User).filter_by(email=email).first()
+
 
 def send_email(user_email, username, password):
     """
@@ -92,25 +114,25 @@ def send_email(user_email, username, password):
     try:
         # Tạo nội dung email
         msg = Message(
-            subject="Thông tin tài khoản của bạn",
-            sender=app.config['MAIL_DEFAULT_SENDER'],  # Sử dụng cấu hình mặc định của ứng dụng
+            subject="Hệ thống quản lý học sinh - Thông tin tài khoản của bạn",
+            sender=app.config['MAIL_DEFAULT_SENDER'],
             recipients=[user_email]  # Email người nhận
         )
-        # Nội dung email
         msg.body = f"""
         Chào bạn,
 
-        Chúc mừng bạn đã đăng ký tài khoản thành công.
-
+        Chúng tôi xin gửi đến bạn thông tin tài khoản. Vui lòng sử dụng thông tin dưới đây để đăng nhập:
+        
+        Thông tin tài khoản:
         Username: {username}
         Mật khẩu: {password}
 
-        Vui lòng đăng nhập và thay đổi mật khẩu của bạn ngay sau khi đăng nhập.
+        Vì lý do bảo mật, vui lòng thay đổi mật khẩu của bạn sau lần đăng nhập đầu tiên.
+        Không chia sẻ thông tin tài khoản với bất kỳ ai để đảm bảo an toàn.
 
         Trân trọng,
-        Đội ngũ hỗ trợ.
+        Hệ thống quản lý học sinh.
         """
-        # Gửi email
         mail.send(msg)
         print(f"Email đã được gửi đến {user_email}")
     except Exception as e:
@@ -131,11 +153,13 @@ def generate_username(last_name):
     random_numbers = ''.join(random.choices(string.digits, k=6))
     return f"{last_name}{random_numbers}"
 
+
 def generate_password():
     # Tạo password ngẫu nhiên gồm chữ cái và số
     characters = string.ascii_letters + string.digits
     password = ''.join(random.choices(characters, k=10))  # Password dài 10 ký tự
     return password
+
 
 def get_password_by_account_id(account_id):
     account = Account.query.get(account_id)
@@ -143,10 +167,10 @@ def get_password_by_account_id(account_id):
         return account.password  # Trả về mật khẩu đã lưu trong cơ sở dữ liệu
     return None  # Trường hợp không tìm thấy tài khoản
 
+
 def password_encryption(password):
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
     return password
-
 
 
 def load_score_regulation():
@@ -224,7 +248,7 @@ def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_
     teacher.is_homeroom_teacher = True
     # tam thoi dung staff_id = 5 -> Sau nay dang nhap dc se sua
     new_class = Class(name=name, grade_level_id=grade_level_id,
-                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id, staff_id=5,
+                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id, staff_id=2,
                       student_numbers=0)
     db.session.add(new_class)
     db.session.commit()
@@ -280,7 +304,6 @@ def load_student_in_assigned(selected_class_id, page=1, kw=None):
     return student_class, total_pages
 
 
-
 def update_class(class_id, new_homeroom_teacher_id, class_name):
     try:
         class_ = Class.query.get(class_id)
@@ -327,6 +350,7 @@ def add_student_to_class(student_list_id, class_id):
 
 def count_student_un_assigned():
     return Student.query.filter_by(in_assigned=False).count()
+
 
 # phan lop tu dong theo so HS/Lop
 def automatic_assign_students_to_class():
@@ -423,13 +447,8 @@ def automatic_assign_students_to_class():
     flash('Phân lớp thành công!!', 'success')
     return True
 
-# phan lop theo so lop hien co
-def automatic_assign_students():
-    pass
 
-
-
-def load_student(kw=None, page=1):
+def load_student(kw=None, page=1):#chưa phân trang
     page_size = app.config['PAGE_SIZE']
     start = (page - 1) * page_size
 
@@ -464,18 +483,15 @@ def count_student():
 # Trung code: cập nhật thông tin học sinh
 def update_student(student_id, name, address, email, date_of_birth, phone_number):
     student = Student.query.get(student_id)  # Lấy học sinh muốn cập nhật
-    # Chuyển đổi ngày sinh từ chuỗi sang date trước khi lưu xuống database
     date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
 
     try:
-        # Cập nhật thông tin học sinh
         student.name = name
         student.address = address
         student.email = email
         student.date_of_birth = date_of_birth
         student.phone_number = phone_number
 
-        # luu thong tin xuong csdl
         if db.session.is_modified(student):
             db.session.commit()
             flash('Cập nhật học sinh thành công!', 'success')
@@ -527,10 +543,10 @@ def check_email_student(current_email):
 
 def validate_input(name, address, phone_number, email):
     if len(name) < 3 or len(name) > 50:
-        flash("Tên học sinh phải có độ dài từ 3 đến 50 ký tự.", "warning")
+        flash("Tên phải có độ dài từ 3 đến 50 ký tự.", "warning")
         return False
     if email and len(email) > 50:
-        flash("email phải ít hơn 50 ký tự.", "warning")
+        flash("Email phải ít hơn 50 ký tự.", "warning")
         return False
     if len(address) < 3 or len(address) > 50:
         flash("Địa chỉ phải có độ dài từ 3 đến 50 ký tự.", "warning")
@@ -596,7 +612,7 @@ def get_teacher_by_id(teacher_id):
     return Teacher.query.filter(Teacher.teacher_id == teacher_id).first()
 
 
-def update_teacher(teacher_id, last_name, first_name, email, address, phone_number, avatar):
+def update_teacher(teacher_id, last_name, first_name, email, address, phone_number, avatar, subject_id):
     teacher = User.query.get(teacher_id)
     try:
         teacher.last_name = last_name
@@ -605,6 +621,7 @@ def update_teacher(teacher_id, last_name, first_name, email, address, phone_numb
         teacher.address = address
         teacher.phone_number = phone_number
         teacher.avatar = avatar
+        teacher.teacher.subject_id = subject_id
 
         # Kiểm tra nếu có thay đổi trong session
         if db.session.is_modified(teacher):
@@ -647,4 +664,3 @@ def load_score_columns():
 def get_students_by_class(class_id):
     students = StudentClass.query.filter_by(class_id=class_id).all()
     return students
-

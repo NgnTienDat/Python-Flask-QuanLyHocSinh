@@ -14,7 +14,7 @@
                     <span class="d-none d-lg-inline-flex">{{ current_user.username }}</span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                    <a href="{{ url_for('change_password', id=current_user.account_id) }}" class="dropdown-item">Tài khoản của tôi</a>
+                    <a href="{{ url_for('account_detail', id=current_user.account_id) }}" class="dropdown-item">Tài khoản của tôi</a>
                     <a class="nav-link text-success" href="{{ url_for('logout_process') }}">Đăng xuất</a>
                 </div>
             </div>
