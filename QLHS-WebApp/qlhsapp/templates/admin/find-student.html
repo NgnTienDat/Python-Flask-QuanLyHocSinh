@@ -1,7 +1,8 @@
-{% extends 'layout/base.html'%}
+{% extends 'layout/base.html' %}
 {% block title %} Trang chủ {% endblock %}
 
 {% block css %}
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -52,12 +53,14 @@
         background-color: #e0a800;
     }
 </style>
+
 {% endblock %}
 {% block sidebar %}
-{% include 'layout/sidebar-admin.html'%}
+    {% include 'layout/sidebar-admin.html' %}
 {% endblock %}
 
 {% block content %}
+
 <div class="container-fluid pt-4 px-4">
     <div class="row g-4">
         <!-- Thanh Breadcrumb -->
@@ -110,8 +113,35 @@
         </table>
 
 
+
     </div>
-</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const deleteButtons = document.querySelectorAll(".delete-btn");
+
+            deleteButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+
+                    if (confirm("Bạn có chắc chắn muốn học sinh này?")) {
+                        fetch(`/delete-student/${id}`, {
+                            method: 'DELETE'
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    this.closest('tr').remove(); // Xóa hàng khỏi bảng nếu thành công
+                                    alert("Đã xóa thành công!");
+                                } else {
+                                    alert("Xóa không thành công. Vui lòng thử lại.");
+                                }
+                            })
+                            .catch(error => console.error("Error:", error));
+                    }
+                });
+            });
+        });
+    </script>
 
 
 {% endblock %}

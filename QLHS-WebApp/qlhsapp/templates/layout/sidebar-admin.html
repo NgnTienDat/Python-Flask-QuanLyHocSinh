@@ -1,19 +1,13 @@
-<div class="sidebar pe-4 pb-3">
+<div class="sidebar pe-4 pb-3" >
     <nav class="navbar bg-light navbar-light">
 
-        <!-- Đây là thẻ hiển thị thông tin người dùng -->
-        <div class="d-flex align-items-center ms-4 mb-4">
-            <div class="position-relative">
-                <img class="rounded-circle" src="{{ url_for('static', filename='img/user.jpg') }}" alt=""
-                     style="width: 40px; height: 40px;">
-                <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
-            </div>
-            <div class="ms-3">
-                <h6 class="mb-0">Lê Trung</h6>
-                <span>Admin</span>
-            </div>
-        </div>
-        <!-- Kết thúc thẻ hiển thị thông tin người dùng -->
+        <a href="/">
+            <h5 class="text-primary" style="text-align: center; padding: 5px;
+                 letter-spacing: 1px; border-radius: 20px;  /* Làm bo tròn góc */
+                 box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);  /* Thêm bóng đổ nhẹ */
+                 transition: transform 0.3s ease; margin:15px">
+                Hệ Thống Quản Lý Học Sinh</h5>
+        </a>
 
         <div class="navbar-nav w-100">
             <!-- Dashboard -->
@@ -52,19 +46,19 @@
 
             <!-- Quản lý lớp học -->
             <div class="nav-item dropdown">
-                <a href="/list-class" class="nav-link dropdown-toggle" ><i class="fa fa-school me-2"></i>Lớp
+                <a href="/list-class" class="nav-link dropdown-toggle"><i class="fa fa-school me-2"></i>Lớp
                     Học</a>
             </div>
 
             <!-- Quản lý môn học -->
-            <div  class="nav-item dropdown">
-                <a href="/list-subject" class="nav-link dropdown-toggle" ><i class="fa fa-book me-2"></i>Môn
+            <div class="nav-item dropdown">
+                <a href="/list-subject" class="nav-link dropdown-toggle"><i class="fa fa-book me-2"></i>Môn
                     Học</a>
             </div>
 
             <!-- Quản lý giáo viên -->
             <div class="nav-item dropdown">
-                <a href="/list-teacher" class="nav-link dropdown-toggle" ><i
+                <a href="/list-teacher" class="nav-link dropdown-toggle"><i
                         class="fa fa-chalkboard-teacher me-2"></i>Giáo Viên</a>
             </div>
 
