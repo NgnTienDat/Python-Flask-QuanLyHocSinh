@@ -208,7 +208,7 @@
                                 <td><input type="checkbox" name="student_id" value="{{ s.id }}"></td>
                             {% else %}
                                 <td>
-                                    <a href="" style="text-decoration: none;">xóa</a>
+                                    <a href="{{ url_for('remove_student_from_class', student_id=s.id) }}" style="text-decoration: none;">xóa</a>
                                 </td>
                             {% endif %}
                         </tr>
@@ -265,7 +265,7 @@
         const selectedClassId = this.value;
 
         // Điều hướng đến URL với tham số lớp đã chọn
-        window.location.href = "{{ url_for('set_class_page') }}?class_id=" + selectedClassId;
+        window.location.href = "{{ url_for('set_class_page') }}?class_sel_id=" + selectedClassId;
     });
 
 </script>
