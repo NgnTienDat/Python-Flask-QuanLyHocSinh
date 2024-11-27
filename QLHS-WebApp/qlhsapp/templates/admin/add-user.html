@@ -1,0 +1,130 @@
+{% extends 'layout/base.html' %}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .button-group {
+            width: 100%;
+            text-align: right; /* Căn nút sang bên phải */
+            margin-top: 20px;
+        }
+
+        .button-group button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+
+    </style>
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'layout/sidebar-admin.html' %}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container-fluid pt-4 px-4">
+        <div class="row g-4">
+            <!-- Thanh Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/list-user">Quản lý người dùng</a></li>
+                    <li class="breadcrumb-item"><a>Thêm người dùng</a></li>
+                </ol>
+            </nav>
+            <h1>Thêm người dùng</h1>
+
+            <form action="/add-user" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    {% if err_msg %}
+                        <div class="alert alert-danger">
+                        {{ err_msg }}
+                    {% endif %}
+                    <div class="col-md-6">
+                        <!-- Họ -->
+                        <div class="form-group">
+                            <label for="first_name">Họ</label>
+                            <input type="text" id="first_name" name="first_name" placeholder="Nhập họ" required>
+                        </div>
+                        <!-- Họ -->
+                        <div class="form-group">
+                            <label for="last_name">Tên</label>
+                            <input type="text" id="last_name" name="last_name" placeholder="Nhập tên" required>
+                        </div>
+
+                        <!-- Địa chỉ -->
+                        <div class="form-group">
+                            <label for="address">Địa chỉ</label>
+                            <input type="text" id="address" name="address" placeholder="Nhập địa chỉ" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="user_role">Loại người dùng</label>
+                            <select id="user_role" name="user_role" class="form-control" required>
+                                <option value="STAFF">Nhân viên (STAFF)</option>
+                                <option value="TEACHER">Giáo viên (TEACHER)</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-6">
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" placeholder="Nhập email" required>
+                        </div>
+                        <!-- Số điện thoại -->
+                        <div class="form-group">
+                            <label for="phone_number">Số điện thoại</label>
+                            <input type="tel" id="phone_number" name="phone_number" placeholder="Nhập số điện thoại"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label for="avatar">Avatar</label>
+                            <input type="file" class="form-control" id="avatar" placeholder="Enter password"
+                                   name="avatar">
+                        </div>
+                    </div>
+
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-success">Lưu</button>
+                    </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+
+
