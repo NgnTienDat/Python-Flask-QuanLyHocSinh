@@ -1,4 +1,3 @@
-
 from flask import render_template, request, redirect, url_for, flash
 from qlhsapp import app, db, login_manager
 import dao
@@ -19,19 +18,23 @@ def get_user_by_id(user_id):
     return dao.get_account_by_id(user_id)
 
 
-
 @app.route("/login", methods=['get', 'post'])
 def login_process():
-    err_msg = ''
-    if request.method.__eq__("POST"):
+    if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        # trung check
+        print(username)
+        print(password)
         user = dao.auth_account(username=username, password=password)
         if user:
             login_user(user)
-            return redirect('/')
+            return redirect(url_for('get_home_page'))
         else:
-            err_msg="username or password error"
+            flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')
+
+    return render_template('login.html')
+
 
 # Trung code: Tra cuu hoc sinh
 @app.route("/students")
@@ -40,9 +43,6 @@ def find_student_page():
     stu = dao.list_students(kw=kw)
     return render_template('admin/find-student.html',
                            students=stu)
-
-
-    return render_template('login.html',err_msg=err_msg)
 
 
 @app.route("/logout")
@@ -154,7 +154,6 @@ def score_regulations_page():
         except (TypeError, ValueError):
             flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
             return redirect(url_for('score_regulations_page'))
-
 
         for data in scores_update:
             score_type = data['score_type']  # chỉ gửi lên chuỗi ví dụ '15 phút'
@@ -286,6 +285,7 @@ def teacher_detail(teacher_id):
 @app.route("/list-teacher//update/<int:teacher_id>", methods=['get', 'post'])
 def teacher_update(teacher_id):
     teacher = dao.get_teacher_by_id(teacher_id)
+    subjects = dao.load_subject()
     if request.method.__eq__('POST'):
         last_name = request.form.get('last_name')
         first_name = request.form.get('first_name')
@@ -294,6 +294,7 @@ def teacher_update(teacher_id):
         phone_number = request.form.get('phone_number')
         avatar_path = teacher.user.avatar
         avatar = request.files.get('avatar')
+        subject_id = request.form.get('subject_id')
         if avatar and avatar.filename != '':
             try:
                 res = cloudinary.uploader.upload(avatar)
@@ -301,16 +302,17 @@ def teacher_update(teacher_id):
             except Exception as e:
                 print(f"Avatar upload error: {str(e)}")
                 flash(f"Lỗi tải ảnh: {str(e)}", "danger")
-
+        print(subject_id)
         dao.update_teacher(teacher_id=teacher_id,
                            last_name=last_name,
                            first_name=first_name,
                            email=email,
                            address=address,
                            phone_number=phone_number,
-                           avatar=avatar_path)
+                           avatar=avatar_path,
+                           subject_id=subject_id)
         return redirect(url_for('list_teacher'))
-    return render_template('admin/update-teacher.html', teacher=teacher)
+    return render_template('admin/update-teacher.html', teacher=teacher, subjects=subjects)
 
 
 @app.route("/list-teacher//delete/<int:teacher_id>", methods=['get', 'post'])
@@ -318,16 +320,12 @@ def delete_teacher(teacher_id):
     teacher = dao.get_teacher_by_id(teacher_id)
     if request.method.__eq__('POST'):
         try:
-            dao.delete_teacher(teacher_id)
+            dao.delete_user_from_db(teacher_id)
             return redirect(url_for('list_teacher'))
         except Exception as e:
             flash(f"Lỗi: {str(e)}", "danger")
             return redirect(url_for('list_teacher'))
     return render_template('admin/delete-teacher.html', teacher=teacher)
-
-@app.route("/teacher-detail/<int:teacher_id>")
-def teacher_detail(teacher_id):
-    return render_template('admin/teacher-detail.html')
 
 
 @app.route("/list-subject")
@@ -480,11 +478,12 @@ def add_user_page():
             dao.send_email(email, username, password)
 
             # Chuyển hướng sau khi thành công
-            return redirect(url_for('get_home_page'))
+            return redirect(url_for('add_user_page'))
         except Exception as e:
             err_msg = f"Đã có lỗi xảy ra: {e}"
 
     return render_template('admin/add-user.html', err_msg=err_msg)
+
 
 @app.route('/change-password/<int:id>', methods=['GET', 'POST'])
 def change_password(id):
@@ -498,24 +497,29 @@ def change_password(id):
 
         # Kiểm tra tính hợp lệ
         if not current_password or not new_password or not confirm_password:
-            return render_template('admin/change_password.html', account=account, err_msg="Vui lòng nhập đầy đủ thông tin!")
+            return render_template('admin/change_password.html', account=account,
+                                   err_msg="Vui lòng nhập đầy đủ thông tin!")
 
         if new_password != confirm_password:
             return render_template('admin/change_password.html', account=account, err_msg="Mật khẩu mới không khớp!")
 
         # Giả lập kiểm tra mật khẩu hiện tại (dùng database trong thực tế)
         if current != account.password:  # Thay bằng mật khẩu hiện tại của user từ DB
-            return render_template('admin/change_password.html', account=account, err_msg="Mật khẩu hiện tại không đúng!")
+            return render_template('admin/change_password.html', account=account,
+                                   err_msg="Mật khẩu hiện tại không đúng!")
 
         account.password = new
         try:
             db.session.commit()
-            return render_template('admin/change_password.html', account=account, success_msg="Mật khẩu đã được cập nhật thành công!")
+            return render_template('admin/change_password.html', account=account,
+                                   success_msg="Mật khẩu đã được cập nhật thành công!")
         except Exception as ex:
             db.session.rollback()
-            return render_template('admin/change_password.html', account=account, err_msg="Có lỗi xảy ra, vui lòng thử lại sau!")
+            return render_template('admin/change_password.html', account=account,
+                                   err_msg="Có lỗi xảy ra, vui lòng thử lại sau!")
 
     return render_template('admin/change_password.html', account=account)
+
 
 @app.route("/subject-summary-score")
 def subject_summary_score():
@@ -594,6 +598,12 @@ def delete_subject(subject_id):
             flash(f"Lỗi: {str(e)}", "danger")
             return redirect(url_for('list_subject'))
     return render_template('admin/delete-subject.html', subject=subject)
+
+
+@app.route('/my-account/<int:id>', methods=['GET', 'POST'])
+def account_detail(id):
+    user = dao.find_user(id)
+    return render_template('admin/detail-account.html', user=user)
 
 
 if __name__ == '__main__':
