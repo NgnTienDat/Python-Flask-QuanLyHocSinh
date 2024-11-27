@@ -1,7 +1,7 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, make_response
 from qlhsapp import app, db, login_manager
 import dao
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, login_required, current_user
 import math
 
 from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, GradeLevel, SchoolYear, Class, StudentClass
@@ -9,6 +9,7 @@ import cloudinary
 
 
 @app.route("/")
+@login_required
 def get_home_page():
     return render_template('admin/index.html')
 
@@ -48,7 +49,7 @@ def find_student_page():
 @app.route("/logout")
 def logout_process():
     logout_user()
-    return redirect('/login')
+    return redirect(url_for('login_process'))
 
 
 # Tiếp nhận học sinh

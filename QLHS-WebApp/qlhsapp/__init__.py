@@ -41,3 +41,8 @@ db = SQLAlchemy(app=app)
 login_manager = LoginManager(app)
 mail = Mail(app)
 
+# Cấu hình LoginManager
+login_manager = LoginManager(app)
+login_manager.login_view = 'login_process'
+login_manager.login_message = ""
+
