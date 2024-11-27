@@ -11,8 +11,11 @@ app = Flask(__name__)
 
 
 
-# Cấu hình cơ sở dữ liệu
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:1234@localhost/qlhsdb?charset=utf8mb4"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:tiendatmySQL964%40@localhost/qlhsdb?charset=utf8mb4'
+
+
+
 
 
 
