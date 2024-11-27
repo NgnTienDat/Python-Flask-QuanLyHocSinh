@@ -303,6 +303,19 @@ def load_student_in_assigned(selected_class_id, page=1, kw=None):
     student_class = query.offset(start).limit(page_size).all()
     return student_class, total_pages
 
+def handle_remove_student_from_class(student_id):
+    student_from_class = StudentClass.query.filter_by(student_id=student_id, is_active=True).first()
+    student = Student.query.get(student_id)
+    class_ = Class.query.get(student_from_class.class_id)
+
+    if student_from_class and student and class_:
+        db.session.delete(student_from_class)
+        student.in_assigned=False
+        class_.student_numbers-=1
+        db.session.commit()
+        return True, class_.id
+    return False
+
 
 def update_class(class_id, new_homeroom_teacher_id, class_name):
     try:
