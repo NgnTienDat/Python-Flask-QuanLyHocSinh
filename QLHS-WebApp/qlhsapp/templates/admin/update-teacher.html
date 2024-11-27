@@ -102,6 +102,15 @@ form .form-group select {
                 <label for="phone_number">Số điện thoại</label>
                 <input type="tel" id="phone_number" name="phone_number" value="{{teacher.user.phone_number}}">
             </div>
+            <!-- Môn học -->
+            <div class="form-group">
+                <label for="subject_teacher">Môn giảng dạy:</label>
+                <select id="subject_teacher" class="form-control" name="subject_id" >
+                        {% for s in subjects %}
+                        <option value="{{s.id}}" >{{s.name}}</option>
+                        {% endfor %}
+                </select>
+            </div>
             <!-- Avatar -->
             <div class="avatar-preview" style="display: flex;">
                 <label for="avatar">Avatar hiện tại</label>

@@ -133,7 +133,7 @@ teacher_class = db.Table('teacher_class',
 class Teacher(db.Model):
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
-    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=True)
 
     is_homeroom_teacher = Column(Boolean, default=False)
     # 1 - 1: teacher homeroom
@@ -284,6 +284,4 @@ class Semester(BaseModel):
 
 if __name__ == '__main__':
     with app.app_context():
-        # db.create_all()
-        with Session(engine) as session:  # Đảm bảo bạn đã kết nối đúng engine
-            create_students(session)
+        db.create_all()

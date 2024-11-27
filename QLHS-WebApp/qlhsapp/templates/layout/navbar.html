@@ -2,33 +2,22 @@
     <a href="index.html" class="navbar-brand d-flex d-lg-none me-4">
         <h2 class="text-primary mb-0"><i class="fa fa-hashtag"></i></h2>
     </a>
-
-    <a href="/" class="navbar-brand mx-4 mb-3">
-        <h4 class="text-primary">Hệ Thống Quản Lý Học Sinh</h4>
+    <a href="#" class="sidebar-toggler flex-shrink-0">
+        <i class="fa fa-bars"></i>
     </a>
     <div class="navbar-nav align-items-center ms-auto">
         {% if current_user.is_authenticated %}
-            <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                    <img src="{{ current_user.user.avatar }}" width="40" height="40" class="rounded-circle" />
-                    <span class="d-none d-lg-inline-flex">{{ current_user.username }}</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                    <a href="{{ url_for('change_password', id=current_user.account_id) }}" class="dropdown-item">Tài khoản của tôi</a>
-                    <a class="nav-link text-success" href="{{ url_for('logout_process') }}">Đăng xuất</a>
-                </div>
+        <div class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                <img src="{{ current_user.user.avatar }}" width="40" height="40" class="rounded-circle"/>
+                <span class="d-none d-lg-inline-flex">{{ current_user.user }}</span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                <a href="{{ url_for('account_detail', id=current_user.account_id) }}" class="dropdown-item">Tài khoản
+                    của tôi</a>
+                <a class="nav-link text-success" href="{{ url_for('logout_process') }}">Đăng xuất</a>
             </div>
-        {% else %}
-            <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                    <img class="rounded-circle me-lg-2" src="{{ url_for('static', filename='img/user.jpg') }}" alt="" style="width: 40px; height: 40px;">
-                    <span class="d-none d-lg-inline-flex">Lê Trung</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                    <a href="#" class="dropdown-item">Tài khoản của tôi</a>
-                    <a class="nav-link text-success" href="{{ url_for('logout_process') }}">Đăng xuất</a>
-                </div>
-            </div>
+        </div>
         {% endif %}
     </div>
 </nav>
