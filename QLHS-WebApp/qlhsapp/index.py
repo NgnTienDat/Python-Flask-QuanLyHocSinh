@@ -121,7 +121,7 @@ def set_class_page():
     total_unassigned_students = dao.count_student_un_assigned()
     classes = Class.query.all()
 
-    selected_class_id = request.args.get('class_id', type=int, default=0)
+    selected_class_id = request.args.get('class_sel_id', type=int, default=0)
     if selected_class_id != 0:
         # Nếu đã chọn lớp, lấy danh sách học sinh của lớp đó
         student_class, pages = dao.load_student_in_assigned(selected_class_id, page=int(page))
@@ -133,6 +133,20 @@ def set_class_page():
                            classes=classes, students=students, pages=pages, page=int(page),
                            total_unassigned_students=total_unassigned_students,
                            selected_class_id=selected_class_id)
+
+@app.route("/set-class/remove/<int:student_id>", methods=['get','post'])
+def remove_student_from_class(student_id):
+
+
+    print(student_id)
+    status, class_id = dao.handle_remove_student_from_class(student_id)
+    if status:
+        flash('Xóa thành công!', 'success')
+        return redirect(url_for('set_class_page', class_sel_id=class_id))
+    else:
+        flash('Loại điểm không tồn tại!', 'danger')
+        return redirect(url_for('set_class_page'))
+
 
 
 # Quy định số cột điểm
@@ -327,6 +341,7 @@ def delete_teacher(teacher_id):
             flash(f"Lỗi: {str(e)}", "danger")
             return redirect(url_for('list_teacher'))
     return render_template('admin/delete-teacher.html', teacher=teacher)
+
 
 
 @app.route("/list-subject")
