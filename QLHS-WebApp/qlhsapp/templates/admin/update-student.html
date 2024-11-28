@@ -1,116 +1,96 @@
-{% extends 'layout/base.html' %}
+
+{% extends 'layout/base.html'%}
 {% block title %} Trang chủ {% endblock %}
 
 {% block css %}
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
+<style>
+    form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-        }
-
-        .form-group label {
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        .form-group input, .form-group select {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .button-group {
-            width: 100%;
-            text-align: right; /* Căn nút sang bên phải */
-            margin-top: 20px;
-        }
-
-        .button-group button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 0 10px;
-        }
-
-    </style>
+    form .form-group {
+    flex: 1 1 calc(50% - 10px);
+    display: flex;
+    flex-direction: column;
+}
+form .form-group label {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+form .form-group input,
+form .form-group select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+</style>
 {% endblock %}
 {% block sidebar %}
-    {% include 'layout/sidebar-admin.html' %}
+{% include 'layout/sidebar-admin.html'%}
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid pt-4 px-4">
-        <div class="row g-4">
-            <!-- Thanh Breadcrumb -->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
-                    <li class="breadcrumb-item"><a href="/update-student/{{ student.id }}">Cập nhật học sinh</a></li>
-                </ol>
-            </nav>
-            <h1>Cập nhật học sinh</h1>
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('find_student_page') }}">Học sinh</a></li>
+                <li class="breadcrumb-item"><a >Cập nhật học sinh</a></li>
+            </ol>
+        </nav>
 
-            <form action="/update-student/{{ student.id }}" method="post">
-                <div class="row">
-                    <div class="col-md-6">
-                        <!-- Họ và tên -->
-                        <div class="form-group">
-                            <label for="name">Họ và tên</label>
-                            <input type="text" id="name" name="name" value="{{ student.name }}" placeholder="Nhập họ và tên" required>
-                        </div>
-                        <!-- Giới tính -->
-                        <div class="form-group">
-                            <label for="gender">Giới tính</label>
-                            <select id="gender" name="gender" required>
-                                <option value="Nam" {% if student.gender == 'MALE' %} selected {% endif %}>Nam</option>
-                                <option value="Nữ" {% if student.gender == 'FEMALE' %} selected {% endif %}>Nữ</option>
-                            </select>
-                        </div>
-                        <!-- Địa chỉ -->
-                        <div class="form-group">
-                            <label for="address">Địa chỉ</label>
-                            <input type="text" id="address" name="address" value="{{ student.address }}" placeholder="Nhập địa chỉ" required>
-                        </div>
-                    </div>
-
-
-                    <div class="col-md-6">
-                        <!-- Email -->
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" value="{{ student.email }}" placeholder="Nhập email" required>
-                        </div>
-                        <!-- Ngày sinh -->
-                        <div class="form-group">
-                            <label for="date_of_birth">Ngày sinh</label>
-                            <input type="date" id="date_of_birth" name="date_of_birth" value="{{ student.date_of_birth }}" required>
-                        </div>
-                        <!-- Số điện thoại -->
-                        <div class="form-group">
-                            <label for="phone_number">Số điện thoại</label>
-                            <input type="tel" id="phone_number" name="phone_number" value="{{ student.phone_number }}" placeholder="Nhập số điện thoại"
-                                   required>
-                        </div>
-                    </div>
-
-                    <div class="button-group">
-                        <button type="submit" class="btn btn-warning">Cập nhật</button>
-                    </div>
-                </div>
-            </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
         </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <h1>Cập nhật học sinh</h1>
+        <form action="{{ url_for('student_update', student_id=student.id) }}" method="post" class="form-container">
+            <!-- Họ và tên -->
+            <div class="form-group">
+                <label for="name">Họ và tên</label>
+                <input type="text" id="name" name="name" value="{{student.name}}">
+            </div>
+            <!-- Địa chỉ -->
+            <div class="form-group">
+                <label for="address">Địa chỉ</label>
+                <input type="text" id="address" name="address" value="{{student.address}}">
+            </div>
+            <!-- Ngày sinh -->
+            <div class="form-group">
+                <label for="date_of_birth">Ngày sinh</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" value="{{student.date_of_birth}}">
+            </div>
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{student.email}}" readonly>
+            </div>
+            <!-- Số điện thoại -->
+            <div class="form-group">
+                <label for="phone_number">Số điện thoại</label>
+                <input type="tel" id="phone_number" name="phone_number" value="{{student.phone_number}}">
+            </div>
+            <div class="button-group">
+                <button type="submit">Lưu</button>
+                <a href="{{ url_for('find_student_page') }}" class="btn btn-danger">Hủy</a>
+            </div>
+        </form>
+
     </div>
+</div>
+
 
 
 {% endblock %}
-
 
 
 

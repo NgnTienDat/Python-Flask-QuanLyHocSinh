@@ -2,30 +2,50 @@
 {% block title %} Trang chủ {% endblock %}
 
 {% block css %}
-<style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
 
-        .button-container {
-            margin-top: 10px;
-            text-align: right; /* Căn nút sang bên phải */
-        }
-    </style>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    th {
+        background-color: #f4f4f4;
+    }
+
+    .button-container {
+        margin-top: 10px;
+        text-align: right;
+    }
+
+    table input {
+        border: none;
+        background-color: transparent;
+        text-align: center;
+    }
+    .delete-button {
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        font-size: 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .delete-button a {
+        color: white;
+        text-decoration: none;
+    }
+</style>
 {% endblock %}
 
 {% block sidebar %}
@@ -39,48 +59,123 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
-                <li class="breadcrumb-item"><a href="/find-student">Quy định số cột điểm</a></li>
+                <li class="breadcrumb-item">Quy định số cột điểm</li>
             </ol>
         </nav>
-        <h3>Quy định cột điểm</h3>
-        <table>
-            <thead>
-            <tr>
-                <th>Loại điểm</th>
-                <th>Số cột</th>
-                <th>Hệ số</th>
-            </tr>
-            </thead>
-            <tbody id="score-table-body">
-            <!-- Dữ liệu mẫu -->
-
-            <tr>
-                <td>15 phút</td>
-                <td>3</td>
-                <td>1</td>
-            </tr>
-            <tr>
-                <td>45 phút</td>
-                <td>2</td>
-                <td>2</td>
-            </tr>
-            <tr>
-                <td>Điểm học kỳ</td>
-                <td>1</td>
-                <td>3</td>
-            </tr>
-            </tbody>
-        </table>
-        <div class="button-container">
-            <button>Thay đổi</button>
-            <button>Thêm mới</button>
-            <button>Lưu</button>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
         </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <h3>Quy định cột điểm</h3>
+        <!-- Form -->
+        <form action="{{ url_for('score_regulations_page') }}" method="post" novalidate>
+            <table>
+                <thead>
+                <tr>
+                    <th>Loại điểm</th>
+                    <th>Số cột</th>
+                    <th>Hệ số</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="score-table-body">
+                {% for s in score_types %}
+                <tr>
+                    <td>
+                        <input type="text" value="{{ s.name }}" name="score_type_{{ loop.index }}" readonly>
+                    </td>
+                    <td>
+                        <input type="number" value="{{ s.score_quantity }}" class="edit-input"
+                               name="score_quantity_{{ loop.index }}" readonly min="1" max="10" step="1">
+                    </td>
+                    <td>
+                        <input type="number" value="{{ s.coefficient }}" class="edit-input"
+                               name="coefficient_{{ loop.index }}" readonly min="1" max="10" step="1">
+                    </td>
+                    <td>
+                        <button type="button" class="delete-button" data-id="{{ s.id }}">
+                            <a href="{{ url_for('delete_score_type', score_type_id=s.id) }}">Xóa</a>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
 
+            <div class="button-container">
+                <button id="edit-button" type="button">Thay đổi</button>
+                <button type="submit" id="save-button" style="display:none;">Lưu</button>
+
+                <button id="add-button" type="button">
+                    <a href="{{ url_for('new_score_regulation') }}" style="text-decoration: none; color: white;">
+                        Thêm mới
+                    </a>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+
+
+<script>
+    // Kích hoạt chế độ chỉnh sửa
+    document.getElementById("edit-button").addEventListener("click", function () {
+        // Bật chế độ chỉnh sửa cho các ô input
+        const inputs = document.querySelectorAll(".edit-input");
+        inputs.forEach(input => {
+            input.readOnly = false; // Cho phép chỉnh sửa
+        });
+
+        // Hiển thị nút Lưu và ẩn nút Thay đổi
+        document.getElementById("edit-button").style.display = "none";
+        document.getElementById("save-button").style.display = "inline";
+
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+        alert.style.display = "none"; // Ẩn thông báo
+        });
+    });
+
+
+    // Sau khi bấm Lưu
+    document.getElementById("save-button").addEventListener("click", function (event) {
+        // Lấy danh sách các ô input
+        const inputs = document.querySelectorAll(".edit-input");
+        let isValid = true;
+
+        // Kiểm tra giá trị các ô input
+        for (let input of inputs) {
+            const value = parseInt(input.value, 10);
+
+            // Kiểm tra nếu giá trị không hợp lệ
+            if (isNaN(value) || value < 1 || value > 10) {
+                alert("Giá trị phải nằm trong khoảng từ 1 đến 10."); // Hiển thị thông báo 1 lần
+                input.focus(); // Đặt con trỏ vào ô bị lỗi
+                isValid = false;
+                event.preventDefault(); // Ngăn form gửi nếu giá trị không hợp lệ
+                break; // Thoát khỏi vòng lặp ngay khi gặp lỗi
+            }
+        }
+
+        // Nếu tất cả giá trị hợp lệ
+        if (isValid) {
+            inputs.forEach(input => {
+                input.readOnly = true; // Đặt lại chỉ đọc sau khi lưu
+            });
+
+            // Hiển thị nút Thay đổi và ẩn nút Lưu
+            document.getElementById("edit-button").style.display = "inline";
+            document.getElementById("save-button").style.display = "none";
+        }
+    });
+
+</script>
+{% block js %}
 {% endblock %}
 
-
-
-
+{% endblock %}

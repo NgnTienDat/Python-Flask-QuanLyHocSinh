@@ -4,57 +4,55 @@
 {% block css %}
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f6f9;
-        margin: 0;
-        padding: 20px;
+    select {
+        padding: 5px;
+        border-radius: 5px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        background-color: #f8f9fa;
     }
-
-    .container {
-        max-width: 1000px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-
-    h1 {
-        font-size: 24px;
-        color: #333;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-
     table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
     }
-
     table th, table td {
-        text-align: left;
+        text-align: center;
         padding: 12px;
         border: 1px solid #ddd;
     }
-
     table th {
         background-color: #f8f9fa;
         color: #333;
         font-weight: bold;
     }
-
     table tr:hover {
         background-color: #f1f1f1;
     }
-    .button-group {
-    width: 100%;
-    text-align: right; /* Căn nút sang bên phải */
-    margin-top: 20px;
-}
-
-
+    ul.pagination {
+        display: flex;
+        justify-content: center; /* Căn giữa các nút phân trang */
+        margin-top: 15px; /* Thêm khoảng cách phía trên */
+        padding: 0;
+    }
+    ul.pagination li {
+        margin: 0 5px; /* Thêm một chút khoảng cách giữa các nút */
+    }
+    ul.pagination .page-item {
+        list-style: none;
+    }
+    ul.pagination .page-link {
+        text-decoration: none;
+        padding: 8px 16px; /* Điều chỉnh kích thước nút */
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        color: #007bff;
+    }
+    ul.pagination .page-link:hover {
+        background-color: #007bff;
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -72,8 +70,34 @@
 
             </ol>
         </nav>
+
         <div class="container">
-            <h1>Danh Sách Lớp Học</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <h1>Danh Sách Lớp Học</h1>
+                <select name="filter-options" id="filter-options">
+                    <option value="all" {% if selected_filter=='all' %}selected{% endif %}>Tất cả</option>
+                    {% for grade_level in grade_levels %}
+                    <option value="{{ grade_level.id }}" {% if selected_filter== grade_level.id|string %}selected{%endif
+                            %}>
+                        Khối {{ grade_level.name }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+
+
+            </div>
+
             <table>
                 <thead>
                 <tr>
@@ -81,46 +105,53 @@
                     <th>Tên Lớp</th>
                     <th>Giáo Viên Chủ Nhiệm</th>
                     <th>Số Lượng Học Sinh</th>
+                    <th>Hành động</th>
                 </tr>
                 </thead>
                 <tbody>
+                {% for c in classes %}
                 <tr>
-                    <td>10A1</td>
-                    <td>Lớp 10A1</td>
-                    <td>Nguyễn Văn A</td>
-                    <td>45</td>
+                    <td>{{ c.id }}</td>
+                    <td>{{ c.name }}</td>
+                    <td>{{ c.homeroom_teacher.user }}</td>
+                    <td>{{ c.student_numbers }}</td>
+                    <td>
+                        <a href="{{ url_for('update_class', class_id=c.id) }}">
+                            <button>Chỉnh sửa</button>
+                        </a>
+                    </td>
                 </tr>
-                <tr>
-                    <td>10A2</td>
-                    <td>Lớp 10A2</td>
-                    <td>Trần Thị B</td>
-                    <td>42</td>
-                </tr>
-                <tr>
-                    <td>11B1</td>
-                    <td>Lớp 11B1</td>
-                    <td>Phạm Văn C</td>
-                    <td>40</td>
-                </tr>
-                <tr>
-                    <td>12C1</td>
-                    <td>Lớp 12C1</td>
-                    <td>Hoàng Thị D</td>
-                    <td>38</td>
-                </tr>
+                {% endfor %}
                 </tbody>
             </table>
-             <!-- Nút lưu -->
             <div class="button-group">
-                <button>Thêm</button>
-                <button> Cập nhật</button>
+                <a href="{{ url_for('add_new_class') }}">
+                    <button>Thêm</button>
+                </a>
+
 
             </div>
+            <ul class="pagination">
+                {% for idx in range(1, pages+1) %}
+                <li class="page-item {% if idx == page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('list_class', page=idx)}}">{{ idx }}</a>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
 
 
     </div>
 </div>
+
+<script>
+    document.getElementById('filter-options').addEventListener('change', function() {
+       const selectedValue = this.value;
+       // Điều hướng đến URL với tham số filter
+       window.location.href = "{{ url_for('list_class') }}?filter=" + selectedValue;
+    });
+</script>
+
 {% endblock %}
 
 

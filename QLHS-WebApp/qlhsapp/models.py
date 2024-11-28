@@ -1,5 +1,7 @@
 from cloudinary.uploader import remove_all_tags
+
 from flask_login import UserMixin
+
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Enum, Boolean, Float
 
 from qlhsapp import db, app, engine
@@ -24,8 +26,8 @@ class UserRole(PyEnum):
 
 # Gioi tinh
 class GenderEnum(PyEnum):
-    MALE = "Nam"
-    FEMALE = "Nữ"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
 
     def __str__(self):
         return self.value
@@ -39,7 +41,9 @@ class Action(PyEnum):
         return self.value
 
 
+
 class User(BaseModel, UserMixin):
+
     first_name = Column(String(20), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(50), unique=True, nullable=False)
@@ -107,8 +111,9 @@ class Administrator(db.Model):
 
 
 class StudentClass(BaseModel):
-    student_id = Column(Integer, ForeignKey('student.id'))
-    class_id = Column(Integer, ForeignKey('class.id'))
+
+    student_id = Column(Integer, ForeignKey('student.id'), nullable=False)
+    class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
     is_active = Column(Boolean, default=True)
 
     students = relationship('Student', back_populates='student_classes')
@@ -116,11 +121,16 @@ class StudentClass(BaseModel):
 
 
 
-teacher_class = db.Table('teacher_class',
-                         Column('id', Integer, primary_key=True, autoincrement=True),
-                         Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
-                         Column('class_id', Integer, ForeignKey('class.id'))
-                         )
+class TeachingAssignment(BaseModel):
+    teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), nullable=False)
+    class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
+    school_year_id = Column(Integer, ForeignKey('school_year.id'), nullable=False)
+
+    teacher = relationship('Teacher', back_populates='teaching_assignment')
+    class_ = relationship('Class', back_populates='teaching_assignment')
+    subject = relationship('Subject', back_populates='teaching_assignment')
+    school_year = relationship('SchoolYear', back_populates='teaching_assignment')
 
 
 
@@ -128,7 +138,7 @@ teacher_class = db.Table('teacher_class',
 class Teacher(db.Model):
     teacher_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
 
-    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=True)
 
     is_homeroom_teacher = Column(Boolean, default=False)
     # 1 - 1: teacher homeroom
@@ -138,11 +148,10 @@ class Teacher(db.Model):
     user = relationship('User', back_populates='teacher', uselist=False)  # done
     # N - N: A teacher teach many subjects
     subject = relationship('Subject', back_populates='teachers')  # done
-    # N - N: A teacher teach many classes
-    teach_classes = relationship('Class', secondary='teacher_class', back_populates='teachers')  # done
+
     # 1 - N: A teacher enter scores for many scoreboards
     enter_scores = relationship('ScoreBoard', back_populates='teacher')  # done
-
+    teaching_assignment = relationship('TeachingAssignment', back_populates='teacher')
     def __str__(self):
         return self.name
 
@@ -162,8 +171,6 @@ class Class(BaseModel):
     grade_level = relationship('GradeLevel', back_populates='classes')  # done
     # this class is homeroom_ed by this teacher ;)
     homeroom_teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), unique=True, nullable=False)
-    # N - N: Subject teachers
-    teachers = relationship('Teacher', secondary='teacher_class', back_populates='teach_classes')  # done
 
     # 1 - 1: A class is homeroom_ed by one teacher
     homeroom_teacher = relationship('Teacher', back_populates='homeroom_class',
@@ -172,6 +179,11 @@ class Class(BaseModel):
     staff = relationship('Staff', back_populates='classes')  # done
 
     student_classes = relationship('StudentClass', back_populates='classes')
+    teaching_assignment = relationship('TeachingAssignment', back_populates='class_')
+
+    def __str__(self):
+        return self.name
+
 
 # Khoi lop
 class GradeLevel(BaseModel):
@@ -247,6 +259,7 @@ class SchoolYear(BaseModel):
     # 1 - N: A school year has two semesters
     semesters = relationship('Semester', back_populates='school_year')  # done
     classes = relationship('Class', back_populates='school_year')  # done
+    teaching_assignment = relationship('TeachingAssignment', back_populates='school_year')
 
     def __str__(self):
         return self.name
@@ -261,6 +274,10 @@ class Subject(BaseModel):
     teachers = relationship('Teacher', back_populates='subject')  # done
     # 1 - N: A subject has many scoreboards
     score_boards = relationship('ScoreBoard', back_populates='subject')  # done
+    teaching_assignment = relationship('TeachingAssignment', back_populates='subject')
+
+    def __str__(self):
+        return self.name
 
 
 # Hoc Ky
@@ -272,50 +289,9 @@ class Semester(BaseModel):
     # 1 - N: A semester has many scoreboard
     score_boards = relationship('ScoreBoard', back_populates='semester')  # done
 
-
-from datetime import date
-from random import randint
-from sqlalchemy.orm import Session
-
-
-def create_students(session: Session):
-    # Danh sách các học sinh
-    students = []
-
-    # Tạo 10 học sinh nam
-    for i in range(10):
-        student = Student(
-            name=f"Nguyễn Văn Nam {i + 1}",
-            address="Hồ Chí Minh",
-            email=f"nam{i + 1}@example.com",
-            gender=GenderEnum.MALE,
-            phone_number=f"090{randint(1000000, 9999999)}",
-            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
-            staff_id=1
-        )
-        students.append(student)
-
-    # Tạo 10 học sinh nữ
-    for i in range(10):
-        student = Student(
-            name=f"Hà Kiều Nữ {i + 1}",
-            address="Hồ Chí Minh",
-            email=f"nu{i + 1}@example.com",
-            gender=GenderEnum.FEMALE,
-            phone_number=f"091{randint(1000000, 9999999)}",
-            date_of_birth=date(2005, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
-            staff_id=1
-        )
-        students.append(student)
-
-    # Thêm danh sách vào session
-    session.add_all(students)
-    session.commit()
-    print("Đã thêm 20 học sinh vào cơ sở dữ liệu.")
-
+    def __str__(self):
+        return self.name
 
 if __name__ == '__main__':
     with app.app_context():
-        # db.create_all()
-        with Session(engine) as session:  # Đảm bảo bạn đã kết nối đúng engine
-            create_students(session)
+        db.create_all()

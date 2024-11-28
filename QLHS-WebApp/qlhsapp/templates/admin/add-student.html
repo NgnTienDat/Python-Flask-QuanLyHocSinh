@@ -2,115 +2,100 @@
 {% block title %} Trang chủ {% endblock %}
 
 {% block css %}
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-        }
+<style>
+    form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    }
 
-        .form-group label {
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
+    form .form-group {
+    flex: 1 1 calc(50% - 10px);
+    display: flex;
+    flex-direction: column;
+}
+form .form-group label {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+form .form-group input,
+form .form-group select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+</style>
 
-        .form-group input, .form-group select {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .button-group {
-            width: 100%;
-            text-align: right; /* Căn nút sang bên phải */
-            margin-top: 20px;
-        }
-
-        .button-group button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 0 10px;
-        }
-
-    </style>
 {% endblock %}
 {% block sidebar %}
     {% include 'layout/sidebar-admin.html' %}
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid pt-4 px-4">
-        <div class="row g-4">
-            <!-- Thanh Breadcrumb -->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
-                    <li class="breadcrumb-item"><a href="/add-student">Tiếp nhận học sinh</a></li>
-                </ol>
-            </nav>
-            <h1>Tiếp nhận học sinh</h1>
 
-            <form action="/add-student" method="post">
-                <div class="row">
-                    <div class="col-md-6">
-                        <!-- Họ và tên -->
-                        <div class="form-group">
-                            <label for="name">Họ và tên</label>
-                            <input type="text" id="name" name="name" placeholder="Nhập họ và tên" required>
-                        </div>
-                        <!-- Giới tính -->
-                        <div class="form-group">
-                            <label for="gender">Giới tính</label>
-                            <select id="gender" name="gender" required>
-                                <option value="Nam">Nam</option>
-                                <option value="Nữ">Nữ</option>
-                            </select>
-                        </div>
-                        <!-- Địa chỉ -->
-                        <div class="form-group">
-                            <label for="address">Địa chỉ</label>
-                            <input type="text" id="address" name="address" placeholder="Nhập địa chỉ" required>
-                        </div>
-                    </div>
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
+                <li class="breadcrumb-item"><a href="/add-student">Tiếp nhận học sinh</a></li>
+            </ol>
+        </nav>
 
-
-                    <div class="col-md-6">
-                        <!-- Email -->
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" placeholder="Nhập email" required>
-                        </div>
-                        <!-- Ngày sinh -->
-                        <div class="form-group">
-                            <label for="date_of_birth">Ngày sinh</label>
-                            <input type="date" id="date_of_birth" name="date_of_birth" required>
-                        </div>
-                        <!-- Số điện thoại -->
-                        <div class="form-group">
-                            <label for="phone_number">Số điện thoại</label>
-                            <input type="tel" id="phone_number" name="phone_number" placeholder="Nhập số điện thoại"
-                                   required>
-                        </div>
-                    </div>
-
-                    <div class="button-group">
-                        <button type="submit" class="btn btn-success">Lưu</button>
-                    </div>
-                </div>
-            </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
         </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+         <h1>Tiếp nhận học sinh</h1>
+        <form class="form-container" action="{{ url_for('add_student_page') }}" method="post" novalidate>
+            <!-- Họ và tên -->
+            <div class="form-group">
+                <label for="name">Họ và tên</label>
+                <input type="text" id="name" placeholder="Nhập họ và tên" name="name" required>
+            </div>
+            <!-- Địa chỉ -->
+            <div class="form-group">
+                <label for="address">Địa chỉ</label>
+                <input type="text" id="address" placeholder="Nhập địa chỉ" name="address" required>
+            </div>
+            <!-- Giới tính -->
+            <div class="form-group">
+                <label for="gender">Giới tính</label>
+                <select id="gender" name="gender" required>
+                    <option value="MALE">Nam</option>
+                    <option value="FEMALE">Nữ</option>
+                    <option value="Khác">Khác</option>
+                </select>
+            </div>
+            <!-- Ngày sinh -->
+            <div class="form-group">
+                <label for="date_of_birth">Ngày sinh</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" required>
+            </div>
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Nhập email" name="email">
+            </div>
+            <!-- Số điện thoại -->
+            <div class="form-group">
+                <label for="phone_number">Số điện thoại</label>
+                <input type="tel" id="phone_number" placeholder="Nhập số điện thoại" name="phone_number">
+            </div>
+            <div class="button-group">
+                <button type="submit">Lưu</button>
+                <a href="{{ url_for('get_home_page') }}" class="btn btn-danger">Hủy</a>
+            </div>
+        </form>
+
     </div>
-
-
+</div>
 {% endblock %}
-
-
-
-

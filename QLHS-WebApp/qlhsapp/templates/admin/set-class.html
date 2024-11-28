@@ -16,7 +16,7 @@
         padding: 20px;
         background-color: #ffffff;
         border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
         margin-top: 20px;
     }
 
@@ -25,7 +25,7 @@
         padding: 20px;
         background-color: #ffffff;
         border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
     }
 
     .student-list {
@@ -82,6 +82,35 @@
     .actions{
         margin: 10px
     }
+    ul.pagination {
+        display: flex;
+        justify-content: center; /* Căn giữa các nút phân trang */
+        margin-top: 15px; /* Thêm khoảng cách phía trên */
+        padding: 0;
+    }
+
+    ul.pagination li {
+        margin: 0 5px; /* Thêm một chút khoảng cách giữa các nút */
+    }
+
+    ul.pagination .page-item {
+        list-style: none;
+    }
+
+    ul.pagination .page-link {
+        text-decoration: none;
+        padding: 8px 16px; /* Điều chỉnh kích thước nút */
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        color: #007bff;
+    }
+
+
+    ul.pagination .page-link:hover {
+        background-color: #007bff;
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -99,89 +128,148 @@
                 <li class="breadcrumb-item"><a href="/">Học sinh</a></li>
                 <li class="breadcrumb-item"><a href="/find-student">Lập danh sách lớp</a></li>
             </ol>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <h4>Lập danh sách lớp</h4>
+
         </nav>
 
-        <h2>Lập danh sách lớp</h2>
+
         <div class="container">
             <!-- Danh sách lớp -->
             <div class="class-list">
-                <h3>Danh sách lớp</h3>
+                <h4>Danh sách lớp</h4>
                 <select size="10" id="class-list">
-                    <option value="0">Chưa phân lớp (120)</option>
-                    <option value="1">10/1 (40)</option>
-                    <option value="2">10/2 (12)</option>
-                    <option value="3">10/3 (0)</option>
+                    <option value="0">Chưa phân lớp ({{ total_unassigned_students }})</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }} ({{ c.student_numbers }})</option>
+                    {% endfor %}
+
                 </select>
             </div>
 
             <!-- Danh sách học sinh -->
             <div class="student-list">
-                <div class="row">
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="student-name">Họ và tên</label>
-                            <input type="text" id="student-name" placeholder="Nhập họ và tên">
+                <form action="{{ url_for('set_class_page') }}" method="post">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="student-name">Họ và tên</label>
+                                <input type="text" id="student-name" name="student_name" placeholder="Nhập họ và tên">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="class-select">Chuyển đến lớp</label>
+                                <select id="class-select" name="class_">
+                                    <option>-- Chọn lớp --</option>
+                                    {% for c in classes %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="class-select">Chuyển đến lớp</label>
-                            <select id="class-select">
-                                <option value="1">10/1</option>
-                                <option value="2">10/2</option>
-                                <option value="3">10/3</option>
-                            </select>
-                        </div>
+
+                    <div class="actions">
+                        <button class="btn btn-danger">Hủy phân lớp</button>
+                        <button type="submit" name="action" value="automatic">Phân lớp tự động</button>
+                        <button type="submit" name="action" value="handmade">Lưu</button>
+
                     </div>
-                </div>
 
-                <div class="actions">
-                    <button class="btn btn-danger">Hủy phân lớp</button>
-                    <button >Lưu</button>
-                </div>
-
-                <table class="student-table">
-                    <thead>
+                    <table class="student-table">
+                        <thead>
                         <tr>
-                            <th>STT</th>
+                            <th>Mã HS</th>
                             <th>Họ tên</th>
                             <th>Giới tính</th>
                             <th>Ngày sinh</th>
                             <th>Địa chỉ</th>
                             <th>Chọn</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody>
+                        {% for s in students %}
                         <tr>
-                            <td>1</td>
-                            <td>Nguyễn Thành Nam</td>
-                            <td>Nam</td>
-                            <td>09/06/2009</td>
-                            <td>HCM</td>
-                            <td><input type="checkbox"></td>
+                            <td>{{ s.id }}</td>
+                            <td>{{ s.name }}</td>
+                            <td>{{ s.gender }}</td>
+                            <td>{{ s.date_of_birth.strftime('%d-%m-%Y') }}</td>
+                            <td>{{ s.address }}</td>
+                            {% if selected_class_id == 0 %}  <!-- "Chưa phân lớp" -->
+                                <td><input type="checkbox" name="student_id" value="{{ s.id }}"></td>
+                            {% else %}
+                                <td>
+                                    <a href="{{ url_for('remove_student_from_class', student_id=s.id) }}" style="text-decoration: none;">xóa</a>
+                                </td>
+                            {% endif %}
                         </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Nguyễn Văn Bơ</td>
-                            <td>Nam</td>
-                            <td>09/06/2009</td>
-                            <td>HCM</td>
-                            <td><input type="checkbox"></td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>Nguyễn Trang Anh</td>
-                            <td>Nữ</td>
-                            <td>09/06/2009</td>
-                            <td>HCM</td>
-                            <td><input type="checkbox"></td>
-                        </tr>
-                    </tbody>
-                </table>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <ul class="pagination">
+                        {% for idx in range(1, pages+1) %}
+                        <li class="page-item {% if idx == page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('set_class_page', page=idx, selected_class_id=class_id) }}">{{ idx }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </form>
             </div>
+
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        const classSelect = document.querySelector('#class-select');
+        const checkboxes = document.querySelectorAll('input[name="student_id"]');
+        const handmadeButton = document.querySelector('button[name="action"][value="handmade"]');
+
+        form.addEventListener('submit', function (e) {
+            // Kiểm tra xem nút "Lưu" có phải là nút được nhấn không
+            if (e.submitter !== handmadeButton) {
+                return; // Bỏ qua kiểm tra nếu không phải nút "Lưu"
+            }
+
+            let selectedClass = classSelect.value;
+            let isChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+            // Kiểm tra nếu chưa chọn lớp
+            if (selectedClass === "-- Chọn lớp --") {
+                alert("Vui lòng chọn lớp trước khi lưu!");
+                e.preventDefault(); // Ngăn không cho form submit
+                return;
+            }
+
+            // Kiểm tra nếu chưa chọn checkbox nào
+            if (!isChecked) {
+                alert("Vui lòng chọn ít nhất một học sinh!");
+                e.preventDefault(); // Ngăn không cho form submit
+                return;
+            }
+        });
+    });
+    document.getElementById('class-list').addEventListener('change', function() {
+        const selectedClassId = this.value;
+
+        // Điều hướng đến URL với tham số lớp đã chọn
+        window.location.href = "{{ url_for('set_class_page') }}?class_sel_id=" + selectedClassId;
+    });
+
+</script>
+
 {% endblock %}
 
 
