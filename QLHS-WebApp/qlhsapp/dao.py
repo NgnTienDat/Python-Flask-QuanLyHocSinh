@@ -494,7 +494,6 @@ def count_class():
     return Class.query.count()
 
 
-# Trung code: cập nhật thông tin học sinh
 def update_student(student_id, name, address, email, date_of_birth, phone_number):
     student = Student.query.get(student_id)  # Lấy học sinh muốn cập nhật
     date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
