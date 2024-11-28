@@ -13,11 +13,12 @@ from flask_mail import Message
 from qlhsapp import app, db, mail
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
                             GenderEnum, Class, Teacher, Subject, StudentClass, User,
-                            SchoolYear, Semester, GradeLevel, Account, Staff)
+                            SchoolYear, Semester, GradeLevel, Account, Staff, TeachingAssignment)
 
 from flask import request
 
 from datetime import datetime
+
 
 
 def load_users(kw=None):
@@ -459,6 +460,46 @@ def automatic_assign_students_to_class():
     print('commit')
     flash('Phân lớp thành công!!', 'success')
     return True
+
+
+
+def add_teaching_assignment(teacher_id, class_id, subject_id, school_year_id):
+    try:
+        exist_ta = TeachingAssignment.query.filter_by(class_id=class_id,
+            subject_id=subject_id,school_year_id=school_year_id).first()
+
+        print(teacher_id)
+        print(exist_ta.teacher_id)
+        if exist_ta and exist_ta.teacher_id == teacher_id:
+            flash(f'Bản phân công này đã tồn tại!!', 'danger')
+            return False
+        if exist_ta and exist_ta.teacher_id != teacher_id:
+            exist_ta.teacher_id = teacher_id
+            db.session.commit()
+            flash(f'Cập nhật phân công mới thành công!!', 'success')
+            return True
+
+
+        ta = TeachingAssignment(teacher_id=teacher_id, class_id=class_id, subject_id=subject_id,
+                                school_year_id=school_year_id)
+        db.session.add(ta)
+        db.session.commit()
+        flash(f'Lưu thành công!!', 'success')
+        return True
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Đã xảy ra sự cố trong quá trình lưu: {e}', 'danger')
+        return False
+
+
+def get_teacher_id_assigned(subject_id, class_id, school_year_id):
+    ta = TeachingAssignment.query.filter_by(class_id=class_id,
+                        subject_id=subject_id,school_year_id=school_year_id).first()
+    if ta:
+        return ta.teacher_id
+    return 0
+
+
 
 
 def load_student(kw=None, page=1):#chưa phân trang
