@@ -11,7 +11,15 @@ import cloudinary
 @app.route("/")
 @login_required
 def get_home_page():
-    return render_template('admin/index.html')
+    quantity_student = dao.count_student()
+    quantity_teacher = dao.count_teacher()
+    quantity_subject = dao.count_subject()
+    quantity_class = dao.count_class()
+    return render_template('admin/index.html',
+                           quantity_class=quantity_class,
+                           quantity_student=quantity_student,
+                           quantity_subject=quantity_subject,
+                           quantity_teacher=quantity_teacher)
 
 
 @login_manager.user_loader
@@ -41,9 +49,13 @@ def login_process():
 @app.route("/students")
 def find_student_page():
     kw = request.args.get("key-name")
-    stu = dao.list_students(kw=kw)
+    class_id = request.args.get("class_id")
+    classes = dao.get_all_class()
+    stu = dao.list_students(kw=kw, class_id=class_id)
+
     return render_template('admin/find-student.html',
-                           students=stu)
+                           students=stu,
+                           classes=classes)
 
 
 @app.route("/logout")
@@ -261,9 +273,8 @@ def age_regulations_page():
 # Nhập điểm
 @app.route("/input-score")
 def input_score():
-    class_id = request.args.get('class_id')  # Lấy ID lớp từ tham số URL
+    class_id = request.args.get('class_id')
     current_year = dao.get_current_school_year()
-    subjects = dao.load_subject()
     classes = dao.get_all_class()
     semesters = dao.get_semester(current_year.id) if current_year else []
     score_columns = dao.load_score_columns()
@@ -271,7 +282,6 @@ def input_score():
     students = dao.get_students_by_class(class_id)
     return render_template('admin/input-score.html',
                            current_year=current_year,
-                           subjects=subjects,
                            classes=classes,
                            semesters=semesters,
                            score_columns=score_columns,
