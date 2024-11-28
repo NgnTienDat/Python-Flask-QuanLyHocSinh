@@ -85,7 +85,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="">Điểm</a></li>
-                <li class="breadcrumb-item"><a href="/find-student">Nhập điểm</a></li>
+                <li class="breadcrumb-item"><a >Nhập điểm</a></li>
             </ol>
         </nav>
         <div class="container">
@@ -96,8 +96,7 @@
                 <div class="col">
                     <label for="subject-select">Môn học</label>
                     <select id="subject-select" class="form-control" disabled>
-                        <!--Tạm thời chưa đăng nhập nên chưa hiện môn học của giáo viên đang đăng nhập-->
-                        <option value="subject">Chưa xác định</option>
+                        <option value="subject">{{current_user.user.teacher.subject.name}}</option>
                     </select>
                 </div>
                 <div class="col">
