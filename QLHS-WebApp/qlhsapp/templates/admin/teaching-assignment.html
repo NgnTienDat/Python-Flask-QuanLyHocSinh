@@ -1,0 +1,151 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+{% block css %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    table th, table td {
+        text-align: center;
+        padding: 12px;
+        border: 1px solid #ddd;
+    }
+    table th {
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+    }
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+    .btn-edit {
+        background-color: #ffc107;
+        color: black;
+    }
+    .btn-edit:hover {
+        background-color: #e0a800;
+    }
+    .search-bar {
+        margin-bottom: 20px;
+    }
+    .search-bar input[type="text"] {
+        padding: 8px;
+        width: 300px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+        </nav>
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            <h1>Phân công giảng dạy</h1>
+            <form action="{{ url_for('teaching_assignment') }}" method="post">
+                <div class="row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="subject" class="form-label">Môn học:</label>
+                        <select id="subject" class="form-select" name="subject">
+                            {% for s in subjects %}
+                            <option value="{{ s.id }}" {% if selected_subject == s.id|string %} selected {% endif %}>
+                                {{ s.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="class" class="form-label">Lớp:</label>
+                        <select id="class" class="form-select" name="class_">
+                            {% for c in classes %}
+                            <option value="{{ c.id }}" {% if selected_class== c.id|string %} selected {% endif %}>
+                                {{ c.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="year" class="form-label">Năm học:</label>
+                        <input type="text" id="year" class="form-control" value="{{ school_year }}" readonly>
+                        <input type="text" id="school_year_id" style="display: none;"
+                               name="school_year_id" value="{{ school_year.id }}">
+                    </div>
+                    <a class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-primary w-100">Lưu</button>
+                    </a>
+                </div>
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                    <tr>
+                        <th>STT</th>
+                        <th>Họ tên</th>
+                        <th>Môn học</th>
+                        <th>Chọn</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for t in teachers %}
+                    <tr>
+                        <td>{{ t.teacher_id}}</td>
+                        <td>{{ t.user}}</td>
+                        <td>{{ t.subject.name}}</td>
+                        <td>
+                            <div class="form-check">
+                                <input type="radio" class="form-check-input" name="teacher" value="{{t.teacher_id}}"
+                                       id="teacher" {% if teacher_is_assigned == t.teacher_id %}checked{% endif %}>
+                                <label class="form-check-label" for="teacher"></label>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+     // Kiểm tra xem radio button đã được chọn chưa
+    document.querySelector('form').addEventListener('submit', function(event) {
+        const selectedTeacher = document.querySelector('input[name="teacher"]:checked');
+        if (!selectedTeacher) {
+            event.preventDefault(); // Ngăn chặn form gửi đi
+            alert("Vui lòng chọn một giáo viên trước khi lưu!"); // Hiển thị thông báo
+        }
+    });
+    // Xử lý khi thay đổi môn học (subject)
+    document.getElementById('subject').addEventListener('change', function() {
+        const selectedSubject = this.value; // Giá trị môn học hiện tại
+        const selectedClass = document.getElementById('class').value; // Lấy giá trị lớp hiện tại
+
+        // Điều hướng đến URL với cả hai tham số
+        window.location.href = "{{ url_for('teaching_assignment') }}?subject_filter=" + selectedSubject + "&class_filter=" + selectedClass;
+    });
+
+    // Xử lý khi thay đổi lớp (class)
+    document.getElementById('class').addEventListener('change', function() {
+        const selectedClass = this.value; // Giá trị lớp hiện tại
+        const selectedSubject = document.getElementById('subject').value; // Lấy giá trị môn học hiện tại
+
+        // Điều hướng đến URL với cả hai tham số
+        window.location.href = "{{ url_for('teaching_assignment') }}?class_filter=" + selectedClass + "&subject_filter=" + selectedSubject;
+    });
+</script>
+{% endblock %}
