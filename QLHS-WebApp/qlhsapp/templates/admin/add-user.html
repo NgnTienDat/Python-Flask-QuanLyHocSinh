@@ -110,6 +110,14 @@
                             <input type="file" class="form-control" id="avatar" placeholder="Enter password"
                                    name="avatar">
                         </div>
+                        <div class="form-group" id="subject-group" style="display: none;">
+                            <label for="subject">Môn học</label>
+                            <select id="subject" name="subject" class="form-control">
+                                {% for subject in subjects %}
+                                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
 
 
@@ -121,7 +129,20 @@
             </form>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const userRoleSelect = document.getElementById("user_role");
+            const subjectGroup = document.getElementById("subject-group");
 
+            userRoleSelect.addEventListener("change", function () {
+                if (this.value === "TEACHER") {
+                    subjectGroup.style.display = "block";
+                } else {
+                    subjectGroup.style.display = "none";
+                }
+            });
+        });
+    </script>
 
 {% endblock %}
 

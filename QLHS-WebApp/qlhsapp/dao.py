@@ -6,7 +6,7 @@ import unicodedata
 from sqlalchemy import func
 from flask_mail import Message
 from qlhsapp import app, db, mail
-from qlhsapp.models import Student, User, Account
+from qlhsapp.models import Student, User, Account, Subject, Staff, Teacher
 import hashlib
 import cloudinary.uploader
 from flask import request
@@ -23,6 +23,9 @@ def load_users(kw=None):
         query = query.filter(User.first_name.contains(kw) | User.last_name.contains(kw) | User.email.contains(kw) | Student.phone_number.contains(kw))
 
     return query.paginate(page=page, per_page=page_size)
+
+def load_subject():
+    return Subject.query.all()
 
 def delete_user_from_db(user_id):
     user = User.query.get(user_id)
@@ -75,6 +78,16 @@ def add_user(first_name, last_name, address, email, phone_number, avatar=None):
     db.session.add(u)
     db.session.commit()
     return u.id
+
+def add_staff(staff_id):
+    s = Staff(staff_id=staff_id)
+    db.session.add(s)
+    db.session.commit()
+
+def add_teacher(teacher_id, subject_id):
+    t = Teacher(teacher_id=teacher_id, subject_id=subject_id)
+    db.session.add(t)
+    db.session.commit()
 
 def find_user_by_email(email):
     return db.session.query(User).filter_by(email=email).first()

@@ -148,6 +148,7 @@ def update_user(id):
 @app.route("/add-user", methods=['GET', 'POST'])
 def add_user_page():
     err_msg = ''
+    subjects = dao.load_subject() # Lấy danh sách môn học từ database
     if request.method == 'POST':
         first_name = request.form['first_name']
         last_name = request.form['last_name']
@@ -155,6 +156,7 @@ def add_user_page():
         email = request.form['email']
         phone_number = request.form['phone_number']
         role = request.form['user_role']
+        subject_id = request.form.get('subject')  # Lấy subject_id từ form (nếu có)
 
         # Kiểm tra xem email có tồn tại trong bảng User hoặc Account hay không
         existing_user = dao.find_user_by_email(email)
@@ -173,6 +175,11 @@ def add_user_page():
 
             # Thêm tài khoản vào bảng Account
             dao.add_account(account_id=user_id, username=username, password=password, role=role)
+            # Thêm Staff hoặc Teacher vào database
+            if role == 'STAFF':
+                dao.add_staff(user_id)  # Thêm nhân viên
+            elif role == 'TEACHER':
+                dao.add_teacher(user_id, subject_id)  # Thêm giáo viên với môn học
 
             # Gửi thông tin tài khoản về email
             dao.send_email(email, username, password)
@@ -182,7 +189,7 @@ def add_user_page():
         except Exception as e:
             err_msg = f"Đã có lỗi xảy ra: {e}"
 
-    return render_template('admin/add-user.html', err_msg=err_msg)
+    return render_template('admin/add-user.html', err_msg=err_msg, subjects=subjects)
 
 @app.route('/change-password/<int:id>', methods=['GET', 'POST'])
 def change_password(id):
