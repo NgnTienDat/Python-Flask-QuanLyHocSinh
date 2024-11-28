@@ -121,11 +121,16 @@ class StudentClass(BaseModel):
 
 
 
-teacher_class = db.Table('teacher_class',
-                         Column('id', Integer, primary_key=True, autoincrement=True),
-                         Column('teacher_id', Integer, ForeignKey('teacher.teacher_id')),
-                         Column('class_id', Integer, ForeignKey('class.id'))
-                         )
+class TeachingAssignment(BaseModel):
+    teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), nullable=False)
+    class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
+    school_year_id = Column(Integer, ForeignKey('school_year.id'), nullable=False)
+
+    teacher = relationship('Teacher', back_populates='teaching_assignment')
+    class_ = relationship('Class', back_populates='teaching_assignment')
+    subject = relationship('Subject', back_populates='teaching_assignment')
+    school_year = relationship('SchoolYear', back_populates='teaching_assignment')
 
 
 
@@ -143,11 +148,10 @@ class Teacher(db.Model):
     user = relationship('User', back_populates='teacher', uselist=False)  # done
     # N - N: A teacher teach many subjects
     subject = relationship('Subject', back_populates='teachers')  # done
-    # N - N: A teacher teach many classes
-    teach_classes = relationship('Class', secondary='teacher_class', back_populates='teachers')  # done
+
     # 1 - N: A teacher enter scores for many scoreboards
     enter_scores = relationship('ScoreBoard', back_populates='teacher')  # done
-
+    teaching_assignment = relationship('TeachingAssignment', back_populates='teacher')
     def __str__(self):
         return self.name
 
@@ -167,8 +171,6 @@ class Class(BaseModel):
     grade_level = relationship('GradeLevel', back_populates='classes')  # done
     # this class is homeroom_ed by this teacher ;)
     homeroom_teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), unique=True, nullable=False)
-    # N - N: Subject teachers
-    teachers = relationship('Teacher', secondary='teacher_class', back_populates='teach_classes')  # done
 
     # 1 - 1: A class is homeroom_ed by one teacher
     homeroom_teacher = relationship('Teacher', back_populates='homeroom_class',
@@ -177,6 +179,7 @@ class Class(BaseModel):
     staff = relationship('Staff', back_populates='classes')  # done
 
     student_classes = relationship('StudentClass', back_populates='classes')
+    teaching_assignment = relationship('TeachingAssignment', back_populates='class_')
 
     def __str__(self):
         return self.name
@@ -256,6 +259,7 @@ class SchoolYear(BaseModel):
     # 1 - N: A school year has two semesters
     semesters = relationship('Semester', back_populates='school_year')  # done
     classes = relationship('Class', back_populates='school_year')  # done
+    teaching_assignment = relationship('TeachingAssignment', back_populates='school_year')
 
     def __str__(self):
         return self.name
@@ -270,6 +274,10 @@ class Subject(BaseModel):
     teachers = relationship('Teacher', back_populates='subject')  # done
     # 1 - N: A subject has many scoreboards
     score_boards = relationship('ScoreBoard', back_populates='subject')  # done
+    teaching_assignment = relationship('TeachingAssignment', back_populates='subject')
+
+    def __str__(self):
+        return self.name
 
 
 # Hoc Ky
@@ -281,6 +289,8 @@ class Semester(BaseModel):
     # 1 - N: A semester has many scoreboard
     score_boards = relationship('ScoreBoard', back_populates='semester')  # done
 
+    def __str__(self):
+        return self.name
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,11 +1,15 @@
+from email.policy import default
+
 from flask import render_template, request, redirect, url_for, flash, make_response
 from qlhsapp import app, db, login_manager
 import dao
 from flask_login import login_user, logout_user, login_required, current_user
 import math
 
-from qlhsapp.models import ScoreType, Score, Regulation, Student, Teacher, GradeLevel, SchoolYear, Class, StudentClass
-import cloudinary
+from qlhsapp.models import (ScoreType, Score, Regulation, Student,
+                            Teacher, GradeLevel, SchoolYear, Class, StudentClass, Subject, TeachingAssignment)
+
+import cloudinary.uploader
 
 
 @app.route("/")
@@ -134,10 +138,9 @@ def set_class_page():
                            total_unassigned_students=total_unassigned_students,
                            selected_class_id=selected_class_id)
 
-@app.route("/set-class/remove/<int:student_id>", methods=['get','post'])
+
+@app.route("/set-class/remove/<int:student_id>", methods=['get', 'post'])
 def remove_student_from_class(student_id):
-
-
     print(student_id)
     status, class_id = dao.handle_remove_student_from_class(student_id)
     if status:
@@ -146,7 +149,6 @@ def remove_student_from_class(student_id):
     else:
         flash('Loại điểm không tồn tại!', 'danger')
         return redirect(url_for('set_class_page'))
-
 
 
 # Quy định số cột điểm
@@ -258,6 +260,47 @@ def age_regulations_page():
     return render_template('admin/age.html', max_age=max_age, min_age=min_age)
 
 
+@app.route("/list-teacher/teaching-assignment", methods=['get', 'post'])
+def teaching_assignment():
+    if request.method == 'POST':
+        try:
+            subject_id = request.form.get('subject')
+            class_id = request.form.get('class_')
+            school_year_id = request.form.get('school_year_id')
+            teacher_id = request.form.get('teacher')
+
+
+            if dao.add_teaching_assignment(teacher_id=teacher_id, class_id=class_id,
+                                           subject_id=subject_id, school_year_id=school_year_id):
+                # giu nguyen trang thai mon hoc da chon subject_filter=subject_id
+                return redirect(url_for('teaching_assignment', subject_filter=subject_id,
+                                        class_filter=class_id))
+        except Exception as e:
+            flash(f"Đã xảy ra lỗi trong quá trình lưu: {str(e)}", "danger")
+            return redirect(url_for('teaching_assignment', subject_filter=request.form.get('subject'),
+                                    class_filter=request.form.get('class_')))
+
+    subjects = Subject.query.all()
+    classes = Class.query.all()
+    school_year = SchoolYear.query.order_by(SchoolYear.id.desc()).first()
+
+    default_class = Class.query.filter_by(school_year_id=school_year.id).first()
+    subject_id = request.args.get('subject_filter')
+    class_id = request.args.get('class_filter')
+    selected_subject = subject_id
+    selected_class = class_id
+    teachers = Teacher.query.filter_by(subject_id=subject_id).all()
+
+
+    t_assignment_id = dao.get_teacher_id_assigned(class_id=class_id,
+                                                subject_id=subject_id, school_year_id=school_year.id)
+
+
+    return render_template('admin/teaching-assignment.html', subjects=subjects,
+                           classes=classes, school_year=school_year, selected_subject=selected_subject,
+                           selected_class=selected_class, teachers=teachers, teacher_is_assigned=t_assignment_id)
+
+
 # Nhập điểm
 @app.route("/input-score")
 def input_score():
@@ -341,7 +384,6 @@ def delete_teacher(teacher_id):
             flash(f"Lỗi: {str(e)}", "danger")
             return redirect(url_for('list_teacher'))
     return render_template('admin/delete-teacher.html', teacher=teacher)
-
 
 
 @app.route("/list-subject")
