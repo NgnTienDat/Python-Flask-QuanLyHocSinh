@@ -304,6 +304,7 @@ def load_student_in_assigned(selected_class_id, page=1, kw=None):
     student_class = query.offset(start).limit(page_size).all()
     return student_class, total_pages
 
+
 def handle_remove_student_from_class(student_id):
     student_from_class = StudentClass.query.filter_by(student_id=student_id, is_active=True).first()
     student = Student.query.get(student_id)
@@ -311,8 +312,8 @@ def handle_remove_student_from_class(student_id):
 
     if student_from_class and student and class_:
         db.session.delete(student_from_class)
-        student.in_assigned=False
-        class_.student_numbers-=1
+        student.in_assigned = False
+        class_.student_numbers -= 1
         db.session.commit()
         return True, class_.id
     return False
@@ -462,7 +463,6 @@ def automatic_assign_students_to_class():
     return True
 
 
-
 def add_teaching_assignment(teacher_id, class_id, subject_id, school_year_id):
     try:
         exist_ta = TeachingAssignment.query.filter_by(class_id=class_id,
@@ -500,20 +500,6 @@ def get_teacher_id_assigned(subject_id, class_id, school_year_id):
     return 0
 
 
-
-
-def load_student(kw=None, page=1):#chưa phân trang
-    page_size = app.config['PAGE_SIZE']
-    start = (page - 1) * page_size
-
-    students = Student.query.offset(start).limit(page_size).all()
-
-    if kw:
-        students = [s for s in students if s.name.lower().find(kw.lower()) >= 0]
-
-    return students
-
-
 def get_student_by_id(student_id):
     return (db.session.query(Student.id,
                              Student.name,
@@ -532,6 +518,18 @@ def get_student_by_id(student_id):
 
 def count_student():
     return Student.query.count()
+
+
+def count_teacher():
+    return Teacher.query.count()
+
+
+def count_subject():
+    return Subject.query.count()
+
+
+def count_class():
+    return Class.query.count()
 
 
 # Trung code: cập nhật thông tin học sinh
@@ -640,23 +638,7 @@ def delete_subject(subject_id):
         raise ValueError("Không tìm thấy môn học cần xóa")
 
 
-# def load_student_list(kw=None, page=1):
-#     page_size = app.config['PAGE_SIZE']
-#     start = (page - 1) * page_size
-#
-#     query = StudentClass.query.filter_by(is_active=True)
-#
-#
-#     total_records = query.count()  # Tong so ban ghi
-#     total_pages = math.ceil(total_records / page_size)
-#
-#     if kw:
-#
-#         query = query.filter(StudentClass.students.name.contains(kw))
-#
-#     student_class = query.offset(start).limit(page_size).all()
-#     return student_class, total_pages
-def load_student_list(kw=None, class_id=None, page=1):
+def list_students(kw=None, class_id=None, page=1):
     page_size = app.config['PAGE_SIZE']
     start = (page - 1) * page_size
 
@@ -681,33 +663,7 @@ def load_student_list(kw=None, class_id=None, page=1):
     return results, total_pages
 
 
-def list_students(kw=None, page=1):
-    page_size = app.config['PAGE_SIZE']
-    start = (page - 1) * page_size
-    students = (
-        db.session.query(Student.id,
-                         Student.name,
-                         Student.address,
-                         Student.email,
-                         Student.gender,
-                         Student.date_of_birth,
-                         Student.phone_number,
-                         Class.name.label("current_class"))
-        .join(StudentClass, StudentClass.student_id == Student.id)
-        .join(Class, StudentClass.class_id == Class.id)
-        .filter(StudentClass.is_active == True)
 
-    )
-
-
-    total_records = students.count()
-    total_pages = math.ceil(total_records / page_size)
-
-    if kw:
-        students = [s for s in students if s.name.lower().find(kw.lower()) >= 0]
-    students = students.offset(start).limit(page_size).all()
-    print(students)
-    return students, total_pages
 
 
 def get_teacher_by_id(teacher_id):

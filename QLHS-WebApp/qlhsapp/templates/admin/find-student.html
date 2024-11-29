@@ -59,6 +59,7 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 16px;
+<<<<<<< HEAD
     }
     ul.pagination {
         display: flex;
@@ -89,6 +90,10 @@
         background-color: #007bff;
         color: white;
     }
+=======
+
+}
+>>>>>>> main
 </style>
 
 {% endblock %}
@@ -109,16 +114,21 @@
         </nav>
         <h1>Tra cứu học sinh</h1>
         <div class="search-bar">
-            <form>
-                <input type="text" name="key-name" placeholder="Tên học sinh cần tìm...">
+
+            <form method="GET">
+                <input type="text" name="key-name" placeholder="Tên học sinh cần tìm..."
+                       value="{{ request.args.get('key-name', '') }}">
+
                 <select name="class_id">
                     <option value="">Tất cả lớp</option>
                     {% for cls in classes %}
-                    <option value="{{ cls.id }}" {% if cls.id== request.args.get('class_id')|int %}selected{% endif %}>
+                    <option value="{{ cls.id }}" {% if cls.id== request.args.get(
+                    'class_id')|int %}selected{% endif %}>
                     {{ cls.name }}
                     </option>
                     {% endfor %}
                 </select>
+
                 <button>Tìm kiếm</button>
             </form>
         </div>
@@ -156,6 +166,7 @@
             {% endfor %}
             </tbody>
         </table>
+<<<<<<< HEAD
         <ul class="pagination">
             {% for idx in range(1, pages+1) %}
             <li class="page-item {% if idx == page %}active{% endif %}">
@@ -195,5 +206,9 @@
 </script>
 
 
+=======
+    </div>
+</div>
+>>>>>>> main
 {% endblock %}
 
