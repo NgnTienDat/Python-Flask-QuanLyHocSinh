@@ -55,6 +55,8 @@ def find_student_page():
     class_id = request.args.get("class_id")
     classes = dao.get_all_class()
     stu_class, pages = dao.list_students(kw=kw, class_id=class_id,page=int(page))
+    if not stu_class:
+        flash(f'Không có học sinh nào tên {kw}.', 'warning')
     return render_template('admin/find-student.html',
                            students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
 
