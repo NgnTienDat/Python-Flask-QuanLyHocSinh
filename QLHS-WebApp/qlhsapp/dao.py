@@ -500,7 +500,6 @@ def get_teacher_id_assigned(subject_id, class_id, school_year_id):
     return 0
 
 
-
 def get_student_by_id(student_id):
     return (db.session.query(Student.id,
                              Student.name,
@@ -533,6 +532,7 @@ def count_class():
     return Class.query.count()
 
 
+# Trung code: cập nhật thông tin học sinh
 def update_student(student_id, name, address, email, date_of_birth, phone_number):
     student = Student.query.get(student_id)  # Lấy học sinh muốn cập nhật
     date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
@@ -638,28 +638,32 @@ def delete_subject(subject_id):
         raise ValueError("Không tìm thấy môn học cần xóa")
 
 
-def list_students(kw=None, class_id=None):
-    students = (
-        db.session.query(Student.id,
-                         Student.name,
-                         Student.address,
-                         Student.email,
-                         Student.gender,
-                         Student.date_of_birth,
-                         Student.phone_number,
-                         Class.name.label("current_class"))
-        .join(StudentClass, StudentClass.student_id == Student.id)
+def list_students(kw=None, class_id=None, page=1):
+    page_size = app.config['PAGE_SIZE']
+    start = (page - 1) * page_size
+
+    query = (
+        db.session.query(StudentClass, Student, Class)
+        .join(Student, StudentClass.student_id == Student.id)
         .join(Class, StudentClass.class_id == Class.id)
         .filter(StudentClass.is_active == True)
     )
 
+    total_records = query.count()
+    total_pages = math.ceil(total_records / page_size)
+
     if kw:
-        students = students.filter(Student.name.ilike(f"%{kw}%"))
+        query = query.filter(Student.name.ilike(f"%{kw}%"))  # Sử dụng ilike để không phân biệt chữ hoa/chữ thường
 
     if class_id:
-        students = students.filter(Class.id == class_id)
+        query = query.filter(Class.id == class_id)
 
-    return students.all()
+    results = query.offset(start).limit(page_size).all()
+
+    return results, total_pages
+
+
+
 
 
 def get_teacher_by_id(teacher_id):
