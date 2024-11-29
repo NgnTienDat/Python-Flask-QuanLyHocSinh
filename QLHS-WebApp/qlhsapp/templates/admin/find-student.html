@@ -59,8 +59,41 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 16px;
+<<<<<<< HEAD
+    }
+    ul.pagination {
+        display: flex;
+        justify-content: center; /* Căn giữa các nút phân trang */
+        margin-top: 15px; /* Thêm khoảng cách phía trên */
+        padding: 0;
+    }
+
+    ul.pagination li {
+        margin: 0 5px; /* Thêm một chút khoảng cách giữa các nút */
+    }
+
+    ul.pagination .page-item {
+        list-style: none;
+    }
+
+    ul.pagination .page-link {
+        text-decoration: none;
+        padding: 8px 16px; /* Điều chỉnh kích thước nút */
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        color: #007bff;
+    }
+
+
+    ul.pagination .page-link:hover {
+        background-color: #007bff;
+        color: white;
+    }
+=======
 
 }
+>>>>>>> main
 </style>
 
 {% endblock %}
@@ -81,6 +114,7 @@
         </nav>
         <h1>Tra cứu học sinh</h1>
         <div class="search-bar">
+
             <form method="GET">
                 <input type="text" name="key-name" placeholder="Tên học sinh cần tìm..."
                        value="{{ request.args.get('key-name', '') }}">
@@ -110,13 +144,13 @@
             </tr>
             </thead>
             <tbody>
-            {% for s in students %}
+            {% for sc, s, c in students %}
             <tr>
-                <td>{{s.id}}</td>
-                <td>{{s.name}}</td>
-                <td>{{s.current_class}}</td>
-                <td>{{s.gender}}</td>
-                <td>{{s.date_of_birth}}</td>
+                <td>{{ s.id }}</td>
+                <td>{{ s.name }}</td>
+                <td>{{ c.name }}</td>
+                <td>{{ s.gender }}</td>
+                <td>{{ s.date_of_birth }}</td>
                 <td>
                     <a href="{{ url_for('student_detail', student_id=s.id) }}">
                         <button>Xem</button>
@@ -132,10 +166,49 @@
             {% endfor %}
             </tbody>
         </table>
+<<<<<<< HEAD
+        <ul class="pagination">
+            {% for idx in range(1, pages+1) %}
+            <li class="page-item {% if idx == page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('find_student_page', page=idx) }}">{{ idx }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+
+
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const deleteButtons = document.querySelectorAll(".delete-btn");
+
+        deleteButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const id = this.getAttribute("data-id");
+
+                if (confirm("Bạn có chắc chắn muốn học sinh này?")) {
+                    fetch(`/delete-student/${id}`, {
+                        method: 'DELETE'
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                this.closest('tr').remove(); // Xóa hàng khỏi bảng nếu thành công
+                                alert("Đã xóa thành công!");
+                            } else {
+                                alert("Xóa không thành công. Vui lòng thử lại.");
+                            }
+                        })
+                        .catch(error => console.error("Error:", error));
+                }
+            });
+        });
+    });
+</script>
+
+
+=======
+    </div>
+</div>
+>>>>>>> main
 {% endblock %}
-
-
-
 

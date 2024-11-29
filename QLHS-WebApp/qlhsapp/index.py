@@ -52,14 +52,14 @@ def login_process():
 # Trung code: Tra cuu hoc sinh
 @app.route("/students")
 def find_student_page():
+    page = request.args.get('page', 1)
     kw = request.args.get("key-name")
     class_id = request.args.get("class_id")
     classes = dao.get_all_class()
-    stu = dao.list_students(kw=kw, class_id=class_id)
-
+    stu_class, pages = dao.list_students(kw=kw, class_id=class_id,page=int(page))
     return render_template('admin/find-student.html',
-                           students=stu,
-                           classes=classes)
+                           students=stu_class, pages=pages, page=int(page), classes=classes)
+
 
 
 @app.route("/logout")
