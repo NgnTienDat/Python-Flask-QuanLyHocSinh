@@ -343,6 +343,30 @@ def update_class(class_id, new_homeroom_teacher_id, class_name):
         return False
 
 
+def add_new_school_year(year1, year2, start_hk1, finish_hk1, start_hk2, finish_hk2):
+    if len(year1) == 4 and len(year2) == 4 and int(year2) == int(year1)+1:
+        start_hk1 = datetime.strptime(start_hk1, "%Y-%m-%d")
+        finish_hk1 = datetime.strptime(finish_hk1, "%Y-%m-%d")
+        start_hk2 = datetime.strptime(start_hk2, "%Y-%m-%d")
+        finish_hk2 = datetime.strptime(finish_hk2, "%Y-%m-%d")
+
+        sy = f'{year1}-{year2}'
+        school_year = SchoolYear(name=sy)
+        db.session.add(school_year)
+        db.session.flush()
+
+        hk1 = Semester(start_date=start_hk1, finish_date=finish_hk1, name='HK1', school_year_id=school_year.id)
+        hk2 = Semester(start_date=start_hk2, finish_date=finish_hk2, name='HK2', school_year_id=school_year.id)
+        db.session.add_all([hk1, hk2])
+        db.session.commit()
+
+        flash('Tạo năm học mới thành công!', 'success')
+        return True
+
+    flash('Năm học phải đủ 4 chữ số và cách nhau 1 năm!', 'danger')
+    return False
+
+
 def add_student_to_class(student_list_id, class_id):
     class_ = Class.query.get(class_id)
     class_max_size = Regulation.query.filter_by(key_name='CLASS_MAX_SIZE').first()
@@ -554,6 +578,35 @@ def update_student(student_id, name, address, email, date_of_birth, phone_number
         flash(f"Lỗi update: {str(e)}", "danger")
 
 
+def get_school_years_with_semesters():
+    query = (
+        db.session.query(
+            SchoolYear.id,
+            SchoolYear.name,
+            Semester.name,
+            Semester.start_date,
+            Semester.finish_date
+        )
+        .join(Semester, SchoolYear.id == Semester.school_year_id)
+    )
+    results = query.all()
+    return results
+
+
+def format_school_year_data(results):
+    school_years = {}
+    for school_year_id, school_year_name, semester_name, start_date, finish_date in results:
+        if school_year_id not in school_years:
+            school_years[school_year_id] = {
+                "name": school_year_name,
+                "semesters": {}
+            }
+        school_years[school_year_id]["semesters"][semester_name] = {
+            "start_date": start_date,
+            "finish_date": finish_date
+        }
+    return school_years
+
 
 # Trung code: Xóa học sinh
 def delete_student(student_id):
@@ -567,6 +620,10 @@ def delete_student(student_id):
         db.session.commit()
     else:
         raise ValueError("Không tìm thấy học sinh cần xóa")
+
+
+
+
 
 
 # Trung code: Tiếp nhận học sinh

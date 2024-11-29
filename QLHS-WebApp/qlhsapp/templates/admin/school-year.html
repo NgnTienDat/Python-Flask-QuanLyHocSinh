@@ -78,99 +78,34 @@
         <!-- Form -->
         <table>
             <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Năm học</th>
-                    <th>Ngày bắt đầu HK1</th>
-                    <th>Ngày kết thúc HK1</th>
-                    <th>Ngày bắt đầu HK2</th>
-                    <th>Ngày kết thúc HK2</th>
-                </tr>
+            <tr>
+                <th>STT</th>
+                <th>Năm học</th>
+                <th>Ngày bắt đầu HK1</th>
+                <th>Ngày kết thúc HK1</th>
+                <th>Ngày bắt đầu HK2</th>
+                <th>Ngày kết thúc HK2</th>
+            </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>2023-2024</td>
-                    <td>12/8/2023</td>
-                    <td>31/1/2024</td>
-                    <td>10/2/2024</td>
-                    <td>31/5/2024</td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>2023-2024</td>
-                    <td>12/8/2023</td>
-                    <td>31/1/2024</td>
-                    <td>10/2/2024</td>
-                    <td>31/5/2024</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>2023-2024</td>
-                    <td>12/8/2023</td>
-                    <td>31/1/2024</td>
-                    <td>10/2/2024</td>
-                    <td>31/5/2024</td>
-                </tr>
+            {% for id, school_year_data in school_years.items() %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ school_year_data.name }}</td>
+                <td>{{ school_year_data.semesters.HK1.start_date.strftime('%d-%m-%Y') }}</td>
+                <td>{{ school_year_data.semesters.HK1.finish_date.strftime('%d-%m-%Y') }}</td>
+                <td>{{ school_year_data.semesters.HK2.start_date.strftime('%d-%m-%Y') }}</td>
+                <td>{{ school_year_data.semesters.HK2.finish_date.strftime('%d-%m-%Y') }}</td>
+            </tr>
+            {% endfor %}
+
             </tbody>
         </table>
     </div>
 </div>
 
 
-<script>
-    // Kích hoạt chế độ chỉnh sửa
-    document.getElementById("edit-button").addEventListener("click", function () {
-        // Bật chế độ chỉnh sửa cho các ô input
-        const inputs = document.querySelectorAll(".edit-input");
-        inputs.forEach(input => {
-            input.readOnly = false; // Cho phép chỉnh sửa
-        });
 
-        // Hiển thị nút Lưu và ẩn nút Thay đổi
-        document.getElementById("edit-button").style.display = "none";
-        document.getElementById("save-button").style.display = "inline";
-
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(alert => {
-        alert.style.display = "none"; // Ẩn thông báo
-        });
-    });
-
-
-    // Sau khi bấm Lưu
-    document.getElementById("save-button").addEventListener("click", function (event) {
-        // Lấy danh sách các ô input
-        const inputs = document.querySelectorAll(".edit-input");
-        let isValid = true;
-
-        // Kiểm tra giá trị các ô input
-        for (let input of inputs) {
-            const value = parseInt(input.value, 10);
-
-            // Kiểm tra nếu giá trị không hợp lệ
-            if (isNaN(value) || value < 1 || value > 10) {
-                alert("Giá trị phải nằm trong khoảng từ 1 đến 10."); // Hiển thị thông báo 1 lần
-                input.focus(); // Đặt con trỏ vào ô bị lỗi
-                isValid = false;
-                event.preventDefault(); // Ngăn form gửi nếu giá trị không hợp lệ
-                break; // Thoát khỏi vòng lặp ngay khi gặp lỗi
-            }
-        }
-
-        // Nếu tất cả giá trị hợp lệ
-        if (isValid) {
-            inputs.forEach(input => {
-                input.readOnly = true; // Đặt lại chỉ đọc sau khi lưu
-            });
-
-            // Hiển thị nút Thay đổi và ẩn nút Lưu
-            document.getElementById("edit-button").style.display = "inline";
-            document.getElementById("save-button").style.display = "none";
-        }
-    });
-
-</script>
 {% block js %}
 {% endblock %}
 
