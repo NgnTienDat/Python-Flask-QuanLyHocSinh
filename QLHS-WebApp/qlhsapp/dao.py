@@ -640,7 +640,50 @@ def delete_subject(subject_id):
         raise ValueError("Không tìm thấy môn học cần xóa")
 
 
-def list_students(kw=None):
+# def load_student_list(kw=None, page=1):
+#     page_size = app.config['PAGE_SIZE']
+#     start = (page - 1) * page_size
+#
+#     query = StudentClass.query.filter_by(is_active=True)
+#
+#
+#     total_records = query.count()  # Tong so ban ghi
+#     total_pages = math.ceil(total_records / page_size)
+#
+#     if kw:
+#
+#         query = query.filter(StudentClass.students.name.contains(kw))
+#
+#     student_class = query.offset(start).limit(page_size).all()
+#     return student_class, total_pages
+def load_student_list(kw=None, class_id=None, page=1):
+    page_size = app.config['PAGE_SIZE']
+    start = (page - 1) * page_size
+
+    query = (
+        db.session.query(StudentClass, Student, Class)
+        .join(Student, StudentClass.student_id == Student.id)
+        .join(Class, StudentClass.class_id == Class.id)
+        .filter(StudentClass.is_active == True)
+    )
+
+    total_records = query.count()
+    total_pages = math.ceil(total_records / page_size)
+
+    if kw:
+        query = query.filter(Student.name.ilike(f"%{kw}%"))  # Sử dụng ilike để không phân biệt chữ hoa/chữ thường
+
+    if class_id:
+        query = query.filter(Class.id == class_id)
+
+    results = query.offset(start).limit(page_size).all()
+
+    return results, total_pages
+
+
+def list_students(kw=None, page=1):
+    page_size = app.config['PAGE_SIZE']
+    start = (page - 1) * page_size
     students = (
         db.session.query(Student.id,
                          Student.name,
@@ -653,13 +696,18 @@ def list_students(kw=None):
         .join(StudentClass, StudentClass.student_id == Student.id)
         .join(Class, StudentClass.class_id == Class.id)
         .filter(StudentClass.is_active == True)
-        .all()
+
     )
+
+
+    total_records = students.count()
+    total_pages = math.ceil(total_records / page_size)
 
     if kw:
         students = [s for s in students if s.name.lower().find(kw.lower()) >= 0]
-
-    return students
+    students = students.offset(start).limit(page_size).all()
+    print(students)
+    return students, total_pages
 
 
 def get_teacher_by_id(teacher_id):
