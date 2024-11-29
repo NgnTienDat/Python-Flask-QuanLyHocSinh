@@ -59,7 +59,7 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 16px;
-<<<<<<< HEAD
+
     }
     ul.pagination {
         display: flex;
@@ -90,10 +90,7 @@
         background-color: #007bff;
         color: white;
     }
-=======
 
-}
->>>>>>> main
 </style>
 
 {% endblock %}
@@ -150,7 +147,7 @@
                 <td>{{ s.name }}</td>
                 <td>{{ c.name }}</td>
                 <td>{{ s.gender }}</td>
-                <td>{{ s.date_of_birth }}</td>
+                <td>{{ s.date_of_birth.strftime('%d-%m-%Y') }}</td>
                 <td>
                     <a href="{{ url_for('student_detail', student_id=s.id) }}">
                         <button>Xem</button>
@@ -166,11 +163,11 @@
             {% endfor %}
             </tbody>
         </table>
-<<<<<<< HEAD
+
         <ul class="pagination">
             {% for idx in range(1, pages+1) %}
             <li class="page-item {% if idx == page %}active{% endif %}">
-                <a class="page-link" href="{{ url_for('find_student_page', page=idx) }}">{{ idx }}</a>
+                <a class="page-link" href="{{ url_for('find_student_page', page=idx, class_id=selected_class) }}">{{ idx }}</a>
             </li>
             {% endfor %}
         </ul>
@@ -206,9 +203,9 @@
 </script>
 
 
-=======
+
     </div>
 </div>
->>>>>>> main
+
 {% endblock %}
 

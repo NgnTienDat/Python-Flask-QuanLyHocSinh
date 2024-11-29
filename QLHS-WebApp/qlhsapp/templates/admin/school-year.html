@@ -1,0 +1,112 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    th {
+        background-color: #f4f4f4;
+    }
+
+    .button-container {
+        margin-top: 10px;
+        text-align: right;
+    }
+
+    table input {
+        border: none;
+        background-color: transparent;
+        text-align: center;
+    }
+    .delete-button {
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        font-size: 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .delete-button a {
+        color: white;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
+                <li class="breadcrumb-item">Năm học</li>
+            </ol>
+        </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <h3>Quy định cột điểm</h3>
+        <div class="d-flex justify-content-end mb-3">
+            <a href="{{ url_for('add_new_school_year') }}" class="btn btn-primary">Thêm mới</a>
+        </div>
+        <!-- Form -->
+        <table>
+            <thead>
+            <tr>
+                <th>STT</th>
+                <th>Năm học</th>
+                <th>Ngày bắt đầu HK1</th>
+                <th>Ngày kết thúc HK1</th>
+                <th>Ngày bắt đầu HK2</th>
+                <th>Ngày kết thúc HK2</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for id, school_year_data in school_years.items() %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ school_year_data.name }}</td>
+                <td>{{ school_year_data.semesters.HK1.start_date.strftime('%d-%m-%Y') }}</td>
+                <td>{{ school_year_data.semesters.HK1.finish_date.strftime('%d-%m-%Y') }}</td>
+                <td>{{ school_year_data.semesters.HK2.start_date.strftime('%d-%m-%Y') }}</td>
+                <td>{{ school_year_data.semesters.HK2.finish_date.strftime('%d-%m-%Y') }}</td>
+            </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+{% block js %}
+{% endblock %}
+
+{% endblock %}
