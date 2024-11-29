@@ -1,4 +1,4 @@
-from email.policy import default
+
 
 from flask import render_template, request, redirect, url_for, flash, make_response
 from qlhsapp import app, db, login_manager
@@ -161,6 +161,16 @@ def remove_student_from_class(student_id):
     else:
         flash('Loại điểm không tồn tại!', 'danger')
         return redirect(url_for('set_class_page'))
+
+
+@app.route('/school-year')
+def school_year_page():
+    return render_template('admin/school-year.html')
+
+@app.route('/school-year/new-school-year')
+def add_new_school_year():
+    return render_template('admin/new-school-year.html')
+
 
 
 # Quy định số cột điểm
@@ -340,8 +350,10 @@ def export_score():
 
 @app.route("/list-teacher")
 def list_teacher():
-    teachers = dao.Teacher.query.all()
-    return render_template('admin/teacher.html', teachers=teachers)
+    page = request.args.get('page', 1)
+    kw = request.args.get('kw')
+    teachers, pages = dao.load_teachers(kw=kw, page=int(page))
+    return render_template('admin/teacher.html', teachers=teachers, pages=pages, page=int(page))
 
 
 @app.route("/list-teacher/<int:teacher_id>")

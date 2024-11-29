@@ -209,7 +209,7 @@ class Student(BaseModel):
     # 1 - N: A student has many scoreboards
     score_boards = relationship('ScoreBoard', back_populates='student')  # done
 
-    student_classes = relationship('StudentClass', back_populates='students')
+    student_classes = relationship('StudentClass', back_populates='students', cascade="all, delete")
 
 
 # Bang diem
@@ -284,6 +284,9 @@ class Subject(BaseModel):
 class Semester(BaseModel):
     name = Column(String(20), nullable=False)
     school_year_id = Column(Integer, ForeignKey('school_year.id'), nullable=False)
+    start_date = Column(Date, nullable=False)
+    finish_date = Column(Date, nullable=False)
+
     # 1 - N: A semester belongs to one school year
     school_year = relationship('SchoolYear', back_populates='semesters')  # done
     # 1 - N: A semester has many scoreboard

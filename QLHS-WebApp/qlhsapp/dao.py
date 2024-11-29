@@ -468,8 +468,6 @@ def add_teaching_assignment(teacher_id, class_id, subject_id, school_year_id):
         exist_ta = TeachingAssignment.query.filter_by(class_id=class_id,
             subject_id=subject_id,school_year_id=school_year_id).first()
 
-        print(teacher_id)
-        print(exist_ta.teacher_id)
         if exist_ta and exist_ta.teacher_id == teacher_id:
             flash(f'Bản phân công này đã tồn tại!!', 'danger')
             return False
@@ -556,11 +554,16 @@ def update_student(student_id, name, address, email, date_of_birth, phone_number
         flash(f"Lỗi update: {str(e)}", "danger")
 
 
+
 # Trung code: Xóa học sinh
 def delete_student(student_id):
+    student_from_class = StudentClass.query.filter_by(student_id=student_id, is_active=True).first()
+    class_ = Class.query.get(student_from_class.class_id)
     student = Student.query.get(student_id)
-    if student:
+
+    if student_from_class and student and class_:
         db.session.delete(student)
+        class_.student_numbers -= 1
         db.session.commit()
     else:
         raise ValueError("Không tìm thấy học sinh cần xóa")
@@ -636,6 +639,19 @@ def delete_subject(subject_id):
         db.session.commit()
     else:
         raise ValueError("Không tìm thấy môn học cần xóa")
+
+def load_teachers(kw=None, page=1):
+    page_size = app.config['PAGE_SIZE']
+    start = (page - 1) * page_size
+    query = (db.session.query(Teacher, User)
+             .join(Teacher, User.id == Teacher.teacher_id)
+             )
+    total_records = query.count()
+    total_pages = math.ceil(total_records / page_size)
+    if kw:
+        query = query.filter(User.first_name.ilike(f"%{kw}%") | User.last_name.ilike(f"%{kw}%"))
+    results = query.offset(start).limit(page_size).all()
+    return results, total_pages
 
 
 def list_students(kw=None, class_id=None, page=1):

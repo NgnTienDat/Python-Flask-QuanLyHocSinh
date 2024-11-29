@@ -1,0 +1,177 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    th {
+        background-color: #f4f4f4;
+    }
+
+    .button-container {
+        margin-top: 10px;
+        text-align: right;
+    }
+
+    table input {
+        border: none;
+        background-color: transparent;
+        text-align: center;
+    }
+    .delete-button {
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        font-size: 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .delete-button a {
+        color: white;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
+                <li class="breadcrumb-item">Năm học</li>
+            </ol>
+        </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <h3>Quy định cột điểm</h3>
+        <div class="d-flex justify-content-end mb-3">
+            <a href="{{ url_for('add_new_school_year') }}" class="btn btn-primary">Thêm mới</a>
+        </div>
+        <!-- Form -->
+        <table>
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Năm học</th>
+                    <th>Ngày bắt đầu HK1</th>
+                    <th>Ngày kết thúc HK1</th>
+                    <th>Ngày bắt đầu HK2</th>
+                    <th>Ngày kết thúc HK2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>2023-2024</td>
+                    <td>12/8/2023</td>
+                    <td>31/1/2024</td>
+                    <td>10/2/2024</td>
+                    <td>31/5/2024</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>2023-2024</td>
+                    <td>12/8/2023</td>
+                    <td>31/1/2024</td>
+                    <td>10/2/2024</td>
+                    <td>31/5/2024</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>2023-2024</td>
+                    <td>12/8/2023</td>
+                    <td>31/1/2024</td>
+                    <td>10/2/2024</td>
+                    <td>31/5/2024</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script>
+    // Kích hoạt chế độ chỉnh sửa
+    document.getElementById("edit-button").addEventListener("click", function () {
+        // Bật chế độ chỉnh sửa cho các ô input
+        const inputs = document.querySelectorAll(".edit-input");
+        inputs.forEach(input => {
+            input.readOnly = false; // Cho phép chỉnh sửa
+        });
+
+        // Hiển thị nút Lưu và ẩn nút Thay đổi
+        document.getElementById("edit-button").style.display = "none";
+        document.getElementById("save-button").style.display = "inline";
+
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+        alert.style.display = "none"; // Ẩn thông báo
+        });
+    });
+
+
+    // Sau khi bấm Lưu
+    document.getElementById("save-button").addEventListener("click", function (event) {
+        // Lấy danh sách các ô input
+        const inputs = document.querySelectorAll(".edit-input");
+        let isValid = true;
+
+        // Kiểm tra giá trị các ô input
+        for (let input of inputs) {
+            const value = parseInt(input.value, 10);
+
+            // Kiểm tra nếu giá trị không hợp lệ
+            if (isNaN(value) || value < 1 || value > 10) {
+                alert("Giá trị phải nằm trong khoảng từ 1 đến 10."); // Hiển thị thông báo 1 lần
+                input.focus(); // Đặt con trỏ vào ô bị lỗi
+                isValid = false;
+                event.preventDefault(); // Ngăn form gửi nếu giá trị không hợp lệ
+                break; // Thoát khỏi vòng lặp ngay khi gặp lỗi
+            }
+        }
+
+        // Nếu tất cả giá trị hợp lệ
+        if (isValid) {
+            inputs.forEach(input => {
+                input.readOnly = true; // Đặt lại chỉ đọc sau khi lưu
+            });
+
+            // Hiển thị nút Thay đổi và ẩn nút Lưu
+            document.getElementById("edit-button").style.display = "inline";
+            document.getElementById("save-button").style.display = "none";
+        }
+    });
+
+</script>
+{% block js %}
+{% endblock %}
+
+{% endblock %}
