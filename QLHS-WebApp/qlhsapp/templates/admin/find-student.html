@@ -109,6 +109,15 @@
                 <li class="breadcrumb-item"><a>Tra cứu học sinh</a></li>
             </ol>
         </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
         <h1>Tra cứu học sinh</h1>
         <div class="search-bar">
 

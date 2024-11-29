@@ -732,7 +732,7 @@ def list_students(kw=None, class_id=None, page=1):
         query = query.filter(Class.id == class_id)
 
     results = query.offset(start).limit(page_size).all()
-
+    print(results)
     return results, total_pages
 
 
