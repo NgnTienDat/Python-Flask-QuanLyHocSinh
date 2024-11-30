@@ -20,6 +20,21 @@ from flask import request
 from datetime import datetime
 
 
+def load_list_users(kw=None, page=1):
+    page_size = app.config['PAGE_SIZE']
+    start = (page - 1) * page_size
+
+    query = User.query
+    print(query)
+    total_records = query.count()  # Tong so ban ghi
+    total_pages = math.ceil(total_records / page_size)
+
+    if kw:
+        query = query.filter(User.first_name.contains(kw) | User.last_name.contains(kw) | User.email.contains(kw))
+
+    users = query.offset(start).limit(page_size).all()
+    return users, total_pages
+
 
 def load_users(kw=None):
     page = request.args.get('page', 1, type=int)
