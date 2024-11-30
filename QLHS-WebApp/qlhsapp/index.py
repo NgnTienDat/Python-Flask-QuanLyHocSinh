@@ -432,7 +432,8 @@ def delete_teacher(teacher_id):
 
 @app.route("/list-subject")
 def list_subject():
-    subjects = dao.load_subject()
+    kw = request.args.get("key-name")
+    subjects = dao.load_subject(kw=kw)
     return render_template('admin/subject.html', subjects=subjects)
 
 
