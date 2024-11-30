@@ -122,9 +122,7 @@
         <div class="search-bar">
 
             <form method="GET">
-                <input type="text" name="key-name" placeholder="Tên học sinh cần tìm..."
-                       value="{{ request.args.get('key-name', '') }}">
-
+                <input type="text" name="key-name" placeholder="Tên học sinh cần tìm...">
                 <select name="class_id">
                     <option value="">Tất cả lớp</option>
                     {% for cls in classes %}

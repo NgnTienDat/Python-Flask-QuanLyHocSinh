@@ -669,8 +669,11 @@ def validate_input(name, address, phone_number, email):
     return True
 
 
-def load_subject():
+def load_subject(kw=None):
+
     subjects = Subject.query.all()
+    if kw:
+        subjects = Subject.query.filter(Subject.name.contains(kw))
     return subjects
 
 
