@@ -495,9 +495,10 @@ def update_class(class_id):
 
 @app.route("/list-user")
 def list_user():
+    page = request.args.get('page', 1)
     kw = request.args.get('kw')
-    users = dao.load_users(kw=kw)
-    return render_template('admin/list-user.html', users=users)
+    users, pages = dao.load_list_users(kw=kw, page=int(page))
+    return render_template('admin/list-user.html', users=users, pages=pages)
 
 
 @app.route("/delete-user/<int:id>", methods=['DELETE'])
