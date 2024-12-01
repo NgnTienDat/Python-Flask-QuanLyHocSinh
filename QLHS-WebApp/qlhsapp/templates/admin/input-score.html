@@ -110,8 +110,8 @@
                             <option value="all" {% if selected_class_filter=='all' %}selected{% endif %}>Chọn lớp
                             </option>
                             {% for cls in classes %}
-                            <option value="{{cls.id}}" {% if selected_class_filter== cls.id|string %}selected{%endif%}>
-                                {{cls.name}}
+                            <option value="{{cls.class_id}}" {% if selected_class_filter== cls.class_id|string %}selected{%endif%}>
+                                {{cls.class_}}
                             </option>
                             {% endfor %}
                         </select>

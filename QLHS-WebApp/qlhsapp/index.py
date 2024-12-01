@@ -353,12 +353,12 @@ def input_score():
     class_id = request.args.get('class_id') or request.form.get('class_id')
     semester_id = request.args.get('semester_id') or request.form.get('semester_id')
     subject_id = request.args.get('subject_id') or request.form.get('subject_id')
+
     current_year = dao.get_current_school_year()
-    classes = dao.get_all_class()
+    classes = dao.get_class_teacher(current_user.user.id)
     semesters = dao.get_semester(current_year.id) if current_year else []
     score_columns = dao.load_score_columns()
     students = dao.get_students_by_class(class_id)
-
     scores = dao.prepare_scores(subject_id, semester_id)
 
     if request.method == 'POST':
