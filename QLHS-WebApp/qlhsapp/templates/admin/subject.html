@@ -33,6 +33,15 @@
             <!-- Thêm nội dung breadcrumb nếu cần -->
         </nav>
         <div class="container" style=" text-align: center;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
             <h1>Danh Sách Môn Học</h1>
             <form method="GET">
                 <input type="text" name="key-name" placeholder="Tên môn học cần tìm...">
@@ -54,10 +63,14 @@
                     <td>{{s.name}}</td>
                     <td class="action-btns">
                         <div>
+                            <a href="{{ url_for('update_subject', subject_id=s.id) }}">
+                                <button class="btn-update">Chỉnh sửa</button>
+                            </a>
                             <a href="{{ url_for('delete_subject', subject_id=s.id) }}">
                                 <button class="btn-cancel">Xóa môn học</button>
                             </a>
                         </div>
+
                     </td>
                 </tr>
                 {% endfor %}

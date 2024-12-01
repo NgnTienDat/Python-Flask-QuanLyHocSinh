@@ -36,6 +36,17 @@ def load_list_users(kw=None, page=1):
     users = query.offset(start).limit(page_size).all()
     return users, total_pages
 
+
+def update_subject(subject_id, name):
+    subject = Subject.query.get(subject_id)
+    if subject:
+        subject.name = name
+        db.session.commit()
+        flash('Cập nhật thành công!', 'success')
+        return True
+    flash('Cập nhật không thành công!', 'danger')
+    return False
+
 def load_users(kw=None):
     page = request.args.get('page', 1, type=int)
     query = User.query
@@ -708,12 +719,19 @@ def get_subject_by_id(subject_id):
 
 
 def delete_subject(subject_id):
+    teaching_assignments = TeachingAssignment.query.filter_by(subject_id=subject_id).all()
+    # chua the xoa mon hoc neu trong qua khu co giao vien day mon hoc do du hien tai mon hoc khong con duoc day
+    if teaching_assignments:
+
+        return False
     subject = Subject.query.get(subject_id)
     if subject:
         db.session.delete(subject)
         db.session.commit()
-    else:
-        raise ValueError("Không tìm thấy môn học cần xóa")
+
+        return True
+    flash("Không tìm thấy môn học", "danger")
+    return False
 
 def load_teachers(kw=None, page=1):
     page_size = app.config['PAGE_SIZE']
