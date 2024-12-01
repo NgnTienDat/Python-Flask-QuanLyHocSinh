@@ -54,11 +54,13 @@ def find_student_page():
     kw = request.args.get("key-name")
     class_id = request.args.get("class_id")
     classes = dao.get_all_class()
+
     stu_class, pages = dao.list_students(kw=kw, class_id=class_id,page=int(page))
     if not stu_class:
         flash(f'Không có học sinh nào tên {kw}.', 'warning')
     return render_template('admin/find-student.html',
                            students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
+
 
 
 
@@ -312,8 +314,10 @@ def teaching_assignment():
             class_id = request.form.get('class_')
             school_year_id = request.form.get('school_year_id')
             teacher_id = request.form.get('teacher')
-
-
+            print(subject_id)
+            print(class_id)
+            print(school_year_id)
+            print(teacher_id)
             if dao.add_teaching_assignment(teacher_id=teacher_id, class_id=class_id,
                                            subject_id=subject_id, school_year_id=school_year_id):
                 # giu nguyen trang thai mon hoc da chon subject_filter=subject_id
@@ -335,10 +339,8 @@ def teaching_assignment():
     selected_class = class_id
     teachers = Teacher.query.filter_by(subject_id=subject_id).all()
 
-
     t_assignment_id = dao.get_teacher_id_assigned(class_id=class_id,
-                                                subject_id=subject_id, school_year_id=school_year.id)
-
+                                                  subject_id=subject_id, school_year_id=school_year.id)
 
     return render_template('admin/teaching-assignment.html', subjects=subjects,
                            classes=classes, school_year=school_year, selected_subject=selected_subject,
@@ -346,22 +348,38 @@ def teaching_assignment():
 
 
 # Nhập điểm
-@app.route("/input-score")
+@app.route("/input-score", methods=['get', 'post'])
 def input_score():
-    class_id = request.args.get('class_id')
+    class_id = request.args.get('class_id') or request.form.get('class_id')
+    semester_id = request.args.get('semester_id') or request.form.get('semester_id')
+    subject_id = request.args.get('subject_id') or request.form.get('subject_id')
     current_year = dao.get_current_school_year()
     classes = dao.get_all_class()
     semesters = dao.get_semester(current_year.id) if current_year else []
     score_columns = dao.load_score_columns()
-    print("Selected Class ID:", class_id)
     students = dao.get_students_by_class(class_id)
-    return render_template('admin/input-score.html',
-                           current_year=current_year,
-                           classes=classes,
-                           semesters=semesters,
-                           score_columns=score_columns,
-                           students=students,
-                           selected_filter=class_id)
+
+    scores = dao.prepare_scores(subject_id, semester_id)
+
+    if request.method == 'POST':
+        teacher_id = request.form.get('teacher_id')
+        for student in students:
+            student_id = student.student_id
+            score_data = dao.extract_score_data(student, score_columns, request.form) #lấy các cột điểm của hs từ form về dạng từ điểm để lưu
+            dao.save_score(student_id, subject_id, teacher_id, semester_id, score_columns, score_data)
+        scores = dao.prepare_scores(subject_id, semester_id) #load lại điểm lúc nhấn lưu
+
+    return render_template(
+        'admin/input-score.html',
+        current_year=current_year,
+        classes=classes,
+        semesters=semesters,
+        score_columns=score_columns,
+        students=students,
+        selected_class_filter=class_id,
+        scores=scores,
+        selected_semester_filter=semester_id
+    )
 
 
 # Xuất điểm

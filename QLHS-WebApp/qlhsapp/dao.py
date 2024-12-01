@@ -13,11 +13,12 @@ from flask_mail import Message
 from qlhsapp import app, db, mail
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
                             GenderEnum, Class, Teacher, Subject, StudentClass, User,
-                            SchoolYear, Semester, GradeLevel, Account, Staff, TeachingAssignment)
+                            SchoolYear, Semester, GradeLevel, Account, Staff, TeachingAssignment, ScoreBoard)
 
 from flask import request
 
 from datetime import datetime
+
 
 
 def load_list_users(kw=None, page=1):
@@ -34,7 +35,6 @@ def load_list_users(kw=None, page=1):
 
     users = query.offset(start).limit(page_size).all()
     return users, total_pages
-
 
 def load_users(kw=None):
     page = request.args.get('page', 1, type=int)
@@ -505,7 +505,7 @@ def automatic_assign_students_to_class():
 def add_teaching_assignment(teacher_id, class_id, subject_id, school_year_id):
     try:
         exist_ta = TeachingAssignment.query.filter_by(class_id=class_id,
-            subject_id=subject_id,school_year_id=school_year_id).first()
+                                                      subject_id=subject_id, school_year_id=school_year_id).first()
 
         if exist_ta and exist_ta.teacher_id == teacher_id:
             flash(f'Bản phân công này đã tồn tại!!', 'danger')
@@ -515,7 +515,6 @@ def add_teaching_assignment(teacher_id, class_id, subject_id, school_year_id):
             db.session.commit()
             flash(f'Cập nhật phân công mới thành công!!', 'success')
             return True
-
 
         ta = TeachingAssignment(teacher_id=teacher_id, class_id=class_id, subject_id=subject_id,
                                 school_year_id=school_year_id)
@@ -531,7 +530,7 @@ def add_teaching_assignment(teacher_id, class_id, subject_id, school_year_id):
 
 def get_teacher_id_assigned(subject_id, class_id, school_year_id):
     ta = TeachingAssignment.query.filter_by(class_id=class_id,
-                        subject_id=subject_id,school_year_id=school_year_id).first()
+                                            subject_id=subject_id, school_year_id=school_year_id).first()
     if ta:
         return ta.teacher_id
     return 0
@@ -628,6 +627,7 @@ def delete_student(student_id):
     student_from_class = StudentClass.query.filter_by(student_id=student_id, is_active=True).first()
     class_ = Class.query.get(student_from_class.class_id)
     student = Student.query.get(student_id)
+
 
     if student_from_class and student and class_:
         db.session.delete(student)
@@ -754,9 +754,6 @@ def list_students(kw=None, class_id=None, page=1):
     return results, total_pages
 
 
-
-
-
 def get_teacher_by_id(teacher_id):
     return Teacher.query.filter(Teacher.teacher_id == teacher_id).first()
 
@@ -811,5 +808,103 @@ def load_score_columns():
 
 
 def get_students_by_class(class_id):
-    students = StudentClass.query.filter_by(class_id=class_id).all()
+    students = (
+        StudentClass.query
+        .filter_by(class_id=class_id)
+        .join(Student, StudentClass.student_id == Student.id)
+        .filter(StudentClass.student_id != None)
+        .all()
+    )
     return students
+
+
+def calculate_average_score(score_columns, score_data, student_id):
+    total_score = 0
+    total_coefficient = 0
+    for col in score_columns:
+        for i in range(col.score_quantity):
+            score_key = f"score_{student_id}_{col.id}_{i + 1}"
+            score_value = score_data.get(score_key)
+
+            if score_value:
+                total_score += float(score_value) * col.coefficient
+                total_coefficient += col.coefficient
+
+    return total_score / total_coefficient if total_coefficient > 0 else 0
+
+
+def save_score(student_id, subject_id, teacher_id, semester_id, score_columns, score_data):
+    score_board = db.session.query(ScoreBoard).filter_by(
+        student_id=student_id,
+        subject_id=subject_id,
+        teacher_id=teacher_id,
+        semester_id=semester_id
+    ).first()
+
+    if not score_board:
+        score_board = ScoreBoard(
+            student_id=student_id,
+            subject_id=subject_id,
+            teacher_id=teacher_id,
+            semester_id=semester_id
+        )
+        db.session.add(score_board)
+        db.session.commit()
+
+    # Lấy các điểm đã lưu hiện tại theo scoretype và index để cập nhật neeus có cập nhật
+    existing_scores = {}
+    for score in score_board.scores:
+        existing_scores[(score.score_type, score.index)] = score
+
+    for col in score_columns:
+        for i in range(col.score_quantity):
+            score_key = f"score_{student_id}_{col.id}_{i + 1}"
+            score_value = score_data.get(score_key)
+
+            if score_value is not None:
+                score_value = float(score_value)
+
+                if (col.id, i) in existing_scores: #nếu có loại điểm và chỉ số cần cập nhật thì cập nhật lại điểm mới
+                    existing_scores[(col.id, i)].score_value = score_value
+                else:
+                    new_score = Score(
+                        score_type=col.id,
+                        index=i,
+                        score_value=score_value,
+                        score_board_id=score_board.id
+                    )
+                    db.session.add(new_score)
+
+    average_score = calculate_average_score(score_columns, score_data, student_id)
+    score_board.average_score = average_score
+    db.session.commit()
+
+
+def get_score_boards(subject_id, semester_id):
+    score_boards = db.session.query(ScoreBoard).filter_by(subject_id=subject_id,
+                                                          semester_id=semester_id).all()
+    return score_boards
+
+
+def extract_score_data(student, score_columns, form_data):
+    score_data = {}
+    for col in score_columns:
+        for i in range(col.score_quantity):
+            score_value = form_data.get(f"score_{student.student_id}_{col.id}_{i + 1}")
+            if score_value:
+                score_data[f"score_{student.student_id}_{col.id}_{i + 1}"] = float(score_value)
+    return score_data
+
+
+def prepare_scores(subject_id, semester_id):
+    scores = {}
+    if semester_id and subject_id:
+        score_boards = get_score_boards(subject_id, semester_id) #lấy hết bảng điểm của môn học X ở học kỳ Y
+        for score_board in score_boards:
+            student_id = score_board.student_id
+            scores[student_id] = {
+                'average_score': score_board.average_score  # Điểm trung bình
+            }
+            for score in score_board.scores: #lấy từng điêmr trong danh sách điểm của một hsinh
+                scores[student_id].setdefault(score.score_type, []).append(score.score_value)
+    return scores

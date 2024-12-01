@@ -85,97 +85,131 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="">Điểm</a></li>
-                <li class="breadcrumb-item"><a >Nhập điểm</a></li>
+                <li class="breadcrumb-item"><a>Nhập - xuất điểm môn học</a></li>
             </ol>
         </nav>
         <div class="container">
-            <h2>Nhập điểm môn học</h2>
+            <h2>Điểm môn học</h2>
 
-            <!-- Hàng chọn thông tin -->
-            <div class="row select-row">
-                <div class="col">
-                    <label for="subject-select">Môn học</label>
-                    <select id="subject-select" class="form-control" disabled>
-                        <option value="subject">{{current_user.user.teacher.subject.name}}</option>
-                    </select>
+            <form action="{{ url_for('input_score') }}" method="post">
+                <!-- Hàng chọn thông tin -->
+                <div class="row select-row">
+                    <div class="col">
+                        <label for="subject-select">Môn học</label>
+                        <select id="subject-select" class="form-control" disabled>
+                            <option>
+                                {{current_user.user.teacher.subject.name}}
+                            </option>
+                        </select>
+                        <input type="hidden" name="subject_id" value="{{current_user.user.teacher.subject.id}}">
+                        <input type="hidden" name="teacher_id" value="{{current_user.user.id}}">
+                    </div>
+                    <div class="col">
+                        <label for="class-select">Lớp</label>
+                        <select id="class-select" class="form-control" name="class_id">
+                            <option value="all" {% if selected_class_filter=='all' %}selected{% endif %}>Chọn lớp
+                            </option>
+                            {% for cls in classes %}
+                            <option value="{{cls.id}}" {% if selected_class_filter== cls.id|string %}selected{%endif%}>
+                                {{cls.name}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="semester-select">Học kỳ</label>
+                        <select id="semester-select" class="form-control" name="semester_id">
+                            <option value="all" {% if selected_semester_filter==
+                            'all' %}selected{% endif %}>Chọn học kỳ</option>
+                            {% for semester in semesters %}
+                            <option value="{{ semester.id }}" {% if selected_semester_filter== semester.id|string
+                                    %}selected{% endif %}>
+                                {{ semester.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="school-year-select">Niên khóa</label>
+                        <select id="school-year-select" class="form-control" disabled>
+                            <option>{{current_year.name}}</option>
+                        </select>
+                    </div>
+
                 </div>
-                <div class="col">
-                    <label for="class-select">Lớp</label>
-                    <select id="class-select" class="form-control">
-                        <option value="all" {% if selected_filter=='all' %}selected{% endif %}>Chọn lớp</option>
-                        {% for cls in classes %}
-                        <option value="{{cls.id}}" {% if selected_filter== cls.id|string %}selected{%endif%}>
-                            {{cls.name}}
-                        </option>
-                        {% endfor %}
-                    </select>
+                <!-- Hàng các nút chức năng -->
+                <div class="actions">
+                    <button id="export-excel-btn">Xuất Excel</button>
+                    <button id="export-pdf-btn">Xuất PDF</button>
                 </div>
-                <div class="col">
-                    <label for="semester-select">Học kỳ</label>
-                    <select id="semester-select" class="form-control">
-                        {% for semester in semesters %}
-                        <option value="{{semester.id}}">{{semester.name}}</option>
+                <!-- Bảng danh sách học sinh -->
+                <div class="student-list">
+                    <table class="student-table">
+                        <thead>
+                        <tr>
+                            <th>Mã HS</th>
+                            <th style="width: 200px">Họ và Tên</th>
+                            {% for col in score_columns %}
+                            {% for i in range(col.score_quantity) %}
+                            <th>{{col.name}} ({{i+1}})</th>
+                            {% endfor %}
+                            {% endfor %}
+                            <th>Trung bình</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>
+                                <input type="hidden" name="student_id_{{ student.student_id }}"
+                                       value="{{ student.student_id }}">
+                                {{ student.student_id }}
+                            </td>
+                            <td>{{ student.students.name }}</td>
+                            {% for col in score_columns %}
+                            {% for i in range(col.score_quantity) %}
+                            <td>
+                                <input min="0" max="10" type="number" class="score-input"
+                                       name="score_{{ student.student_id }}_{{ col.id }}_{{ i + 1 }}"
+                                       value="{% if scores.get(student.student_id) and scores[student.student_id].get(col.id) and i < scores[student.student_id][col.id]|length %}{{ scores[student.student_id][col.id][i] }}{% else %}{% endif %}">
+                            </td>
+                            {% endfor %}
+                            {% endfor %}
+                            <td>{{ scores.get(student.student_id, {}).get('average_score', 0) }}</td>
+                        </tr>
                         {% endfor %}
-                    </select>
+                        </tbody>
+
+
+                    </table>
                 </div>
-                <div class="col">
-                    <label for="school-year-select">Niên khóa</label>
-                    <select id="school-year-select" class="form-control" disabled>
-                        <option>{{current_year.name}}</option>
-                    </select>
+
+                <!-- Nút lưu -->
+                <div class="button-group">
+                    <button type="submit">Lưu</button>
+                    <button class="btn-cancel">Hủy</button>
                 </div>
-
-            </div>
-
-            <!-- Bảng danh sách học sinh -->
-            <div class="student-list">
-                <table class="student-table">
-                    <thead>
-                    <tr>
-                        <th>Mã HS</th>
-                        <th style="width: 200px">Họ và Tên</th>
-                        {% for col in score_columns %}
-                        {% for i in range(col.score_quantity) %}
-                        <th>{{col.name}} ({{i+1}})</th>
-                        {% endfor %}
-                        {% endfor %}
-                        <th>Trung bình</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for student in students %}
-                    <tr>
-                        <td>{{ student.id }}</td>
-                        <td>{{ student.students.name }}</td>
-                        {% for col in score_columns %}
-                        {% for i in range(col.score_quantity) %}
-                        <td><input min="0" max="10"  type="number" class="score-input"
-                                   name="score_{{ col.id }}_{{ i + 1 }}"></td>
-                        {% endfor %}
-                        {% endfor %}
-                        <td><input type="number" class="average-input" disabled></td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-
-                </table>
-            </div>
-
-            <!-- Nút lưu -->
-            <div class="button-group">
-                <button>Lưu</button>
-                <button class="btn-cancel">Hủy</button>
-            </div>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-    document.getElementById('class-select').addEventListener('change', function () {
-    const selectedClassId = this.value;
-    // Điều hướng đến URL với tham số lớp được chọn
-    window.location.href = "{{ url_for('input_score') }}?class_id=" + selectedClassId;
-});
+    // Function to handle change event
+     function updateURL() {
+         const selectedClassId = document.getElementById('class-select').value;
+         const selectedSemesterId = document.getElementById('semester-select').value;
+         const selectedSubjectId = document.querySelector('input[name="subject_id"]').value;
+
+         // Redirect with selected values
+         window.location.href = "{{ url_for('input_score') }}?class_id=" + selectedClassId +
+             "&semester_id=" + selectedSemesterId +
+             "&subject_id=" + selectedSubjectId;
+     }
+
+     // Add event listeners for both dropdowns
+     document.getElementById('class-select').addEventListener('change', updateURL);
+     document.getElementById('semester-select').addEventListener('change', updateURL);
 
 </script>
 {% endblock %}
