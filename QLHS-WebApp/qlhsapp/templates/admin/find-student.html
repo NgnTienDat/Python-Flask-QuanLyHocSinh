@@ -59,7 +59,7 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 16px;
-<<<<<<< HEAD
+
     }
     ul.pagination {
         display: flex;
@@ -91,9 +91,6 @@
         color: white;
     }
 
-
-}
-
 </style>
 
 {% endblock %}
@@ -112,13 +109,20 @@
                 <li class="breadcrumb-item"><a>Tra cứu học sinh</a></li>
             </ol>
         </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
         <h1>Tra cứu học sinh</h1>
         <div class="search-bar">
 
             <form method="GET">
-                <input type="text" name="key-name" placeholder="Tên học sinh cần tìm..."
-                       value="{{ request.args.get('key-name', '') }}">
-
+                <input type="text" name="key-name" placeholder="Tên học sinh cần tìm...">
                 <select name="class_id">
                     <option value="">Tất cả lớp</option>
                     {% for cls in classes %}
@@ -150,7 +154,7 @@
                 <td>{{ s.name }}</td>
                 <td>{{ c.name }}</td>
                 <td>{{ s.gender }}</td>
-                <td>{{ s.date_of_birth }}</td>
+                <td>{{ s.date_of_birth.strftime('%d-%m-%Y') }}</td>
                 <td>
                     <a href="{{ url_for('student_detail', student_id=s.id) }}">
                         <button>Xem</button>

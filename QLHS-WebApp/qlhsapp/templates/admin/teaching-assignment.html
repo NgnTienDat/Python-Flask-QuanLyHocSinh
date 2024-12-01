@@ -47,6 +47,10 @@
     <div class="row g-4">
         <!-- Thanh Breadcrumb -->
         <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('list_teacher') }}">Giáo viên</a></li>
+                <li class="breadcrumb-item"><a >Phân công giảng dạy</a></li>
+            </ol>
         </nav>
         <div class="container">
             {% with messages = get_flashed_messages(with_categories=true) %}

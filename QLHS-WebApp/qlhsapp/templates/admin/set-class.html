@@ -130,12 +130,7 @@
             <div class="student-list">
                 <form action="{{ url_for('set_class_page') }}" method="post">
                     <div class="row">
-                        <div class="col">
-                            <div class="form-group">
-                                <label for="student-name">Họ và tên</label>
-                                <input type="text" id="student-name" name="student_name" placeholder="Nhập họ và tên">
-                            </div>
-                        </div>
+
                         <div class="col">
                             <div class="form-group">
                                 <label for="class-select">Chuyển đến lớp</label>
@@ -150,7 +145,7 @@
                     </div>
 
                     <div class="actions">
-                        <button class="btn btn-danger">Hủy phân lớp</button>
+                        <button type="reset" class="btn btn-danger">Hủy phân lớp</button>
                         <button type="submit" name="action" value="automatic">Phân lớp tự động</button>
                         <button type="submit" name="action" value="handmade">Lưu</button>
 
@@ -190,7 +185,7 @@
                     <ul class="pagination">
                         {% for idx in range(1, pages+1) %}
                         <li class="page-item {% if idx == page %}active{% endif %}">
-                            <a class="page-link" href="{{ url_for('set_class_page', page=idx, selected_class_id=class_id) }}">{{ idx }}</a>
+                            <a class="page-link" href="{{ url_for('set_class_page', page=idx, class_sel_id=selected_class_id) }}">{{ idx }}</a>
                         </li>
                         {% endfor %}
                     </ul>

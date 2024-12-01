@@ -1,5 +1,3 @@
-from email.policy import default
-
 from flask import render_template, request, redirect, url_for, flash, make_response
 from qlhsapp import app, db, login_manager
 import dao
@@ -7,7 +5,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 import math
 
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
-                            Teacher, GradeLevel, SchoolYear, Class, StudentClass, Subject, TeachingAssignment)
+                            Teacher, GradeLevel, SchoolYear, Class, StudentClass, Subject, TeachingAssignment, Semester)
 
 import cloudinary.uploader
 
@@ -56,9 +54,14 @@ def find_student_page():
     kw = request.args.get("key-name")
     class_id = request.args.get("class_id")
     classes = dao.get_all_class()
-    stu_class, pages = dao.list_students(kw=kw, class_id=class_id, page=int(page))
+
+    stu_class, pages = dao.list_students(kw=kw, class_id=class_id,page=int(page))
+    if not stu_class:
+        flash(f'Không có học sinh nào tên {kw}.', 'warning')
     return render_template('admin/find-student.html',
                            students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
+
+
 
 
 @app.route("/logout")
@@ -160,6 +163,38 @@ def remove_student_from_class(student_id):
     else:
         flash('Loại điểm không tồn tại!', 'danger')
         return redirect(url_for('set_class_page'))
+
+
+@app.route('/school-year')
+def school_year_page():
+    school_years = SchoolYear.query.order_by(SchoolYear.id.desc()).all()
+    semesters = Semester.query.order_by(Semester.id.desc()).all()
+    school_years_semesters = dao.get_school_years_with_semesters()
+    results = dao.format_school_year_data(school_years_semesters)
+    return render_template('admin/school-year.html', school_years=results)
+
+@app.route('/school-year/new-school-year', methods=['get','post'])
+def add_new_school_year():
+
+    if request.method == 'POST':
+        try:
+            year1 = request.form.get('school_year1')
+            year2 = request.form.get('school_year2')
+            start_hk1 = request.form.get('start_hk1')
+            finish_hk1 = request.form.get('finish_hk1')
+            start_hk2 = request.form.get('start_hk2')
+            finish_hk2 = request.form.get('finish_hk2')
+
+            if dao.add_new_school_year(year1, year2, start_hk1, finish_hk1, start_hk2, finish_hk2):
+                return redirect(url_for('school_year_page'))
+
+
+        except (TypeError, ValueError):
+            flash('Dữ liệu không hợp lệ!!', 'warning')
+            return redirect(url_for('school_year_page'))
+
+    return render_template('admin/new-school-year.html')
+
 
 
 # Quy định số cột điểm
@@ -355,8 +390,10 @@ def export_score():
 
 @app.route("/list-teacher")
 def list_teacher():
-    teachers = dao.Teacher.query.all()
-    return render_template('admin/teacher.html', teachers=teachers)
+    page = request.args.get('page', 1)
+    kw = request.args.get('kw')
+    teachers, pages = dao.load_teachers(kw=kw, page=int(page))
+    return render_template('admin/teacher.html', teachers=teachers, pages=pages, page=int(page))
 
 
 @app.route("/list-teacher/<int:teacher_id>")
@@ -413,7 +450,8 @@ def delete_teacher(teacher_id):
 
 @app.route("/list-subject")
 def list_subject():
-    subjects = dao.load_subject()
+    kw = request.args.get("key-name")
+    subjects = dao.load_subject(kw=kw)
     return render_template('admin/subject.html', subjects=subjects)
 
 
@@ -475,9 +513,10 @@ def update_class(class_id):
 
 @app.route("/list-user")
 def list_user():
+    page = request.args.get('page', 1)
     kw = request.args.get('kw')
-    users = dao.load_users(kw=kw)
-    return render_template('admin/list-user.html', users=users)
+    users, pages = dao.load_list_users(kw=kw, page=int(page))
+    return render_template('admin/list-user.html', users=users, pages=pages)
 
 
 @app.route("/delete-user/<int:id>", methods=['DELETE'])
