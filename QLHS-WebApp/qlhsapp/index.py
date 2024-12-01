@@ -437,6 +437,38 @@ def list_subject():
     return render_template('admin/subject.html', subjects=subjects)
 
 
+@app.route("/list-subject/delete-subject/<int:subject_id>", methods=['get', 'post'])
+def delete_subject(subject_id):
+    if request.method.__eq__('POST'):
+        try:
+            if dao.delete_subject(subject_id):
+                flash("Xóa môn học thành công.", "success")
+            else:
+                flash("Không thể xóa môn học vì đang có giáo viên giảng dạy.", "danger")
+            return redirect(url_for('list_subject'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('list_subject'))
+
+    subject = dao.get_subject_by_id(subject_id)
+    return render_template('admin/delete-subject.html', subject=subject)
+
+@app.route("/update-subject/<int:subject_id>", methods=['get', 'post'])
+def update_subject(subject_id):
+    subject = Subject.query.get(subject_id)
+    if request.method=='POST':
+
+        try:
+            name = request.form.get('subject_name')
+            if dao.update_subject(subject_id, name):
+                return redirect(url_for('list_subject'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('list_subject'))
+
+    return  render_template('admin/update-subject.html', subject=subject)
+
+
 @app.route("/list-class")
 def list_class():
     page = request.args.get('page', 1)
@@ -691,17 +723,6 @@ def add_new_subject():
     return render_template('admin/add-subject.html')
 
 
-@app.route("/list-subject/delete-subject/<int:subject_id>", methods=['get', 'post'])
-def delete_subject(subject_id):
-    subject = dao.get_subject_by_id(subject_id)
-    if request.method.__eq__('POST'):
-        try:
-            dao.delete_subject(subject_id)
-            return redirect(url_for('list_subject'))
-        except Exception as e:
-            flash(f"Lỗi: {str(e)}", "danger")
-            return redirect(url_for('list_subject'))
-    return render_template('admin/delete-subject.html', subject=subject)
 
 
 @app.route('/my-account/<int:id>', methods=['GET', 'POST'])
