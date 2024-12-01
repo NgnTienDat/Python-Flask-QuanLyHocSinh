@@ -20,7 +20,6 @@ from flask import request
 from datetime import datetime
 
 
-
 def load_list_users(kw=None, page=1):
     page_size = app.config['PAGE_SIZE']
     start = (page - 1) * page_size
@@ -46,6 +45,7 @@ def update_subject(subject_id, name):
         return True
     flash('Cập nhật không thành công!', 'danger')
     return False
+
 
 def load_users(kw=None):
     page = request.args.get('page', 1, type=int)
@@ -370,7 +370,7 @@ def update_class(class_id, new_homeroom_teacher_id, class_name):
 
 
 def add_new_school_year(year1, year2, start_hk1, finish_hk1, start_hk2, finish_hk2):
-    if len(year1) == 4 and len(year2) == 4 and int(year2) == int(year1)+1:
+    if len(year1) == 4 and len(year2) == 4 and int(year2) == int(year1) + 1:
         start_hk1 = datetime.strptime(start_hk1, "%Y-%m-%d")
         finish_hk1 = datetime.strptime(finish_hk1, "%Y-%m-%d")
         start_hk2 = datetime.strptime(start_hk2, "%Y-%m-%d")
@@ -639,17 +639,12 @@ def delete_student(student_id):
     class_ = Class.query.get(student_from_class.class_id)
     student = Student.query.get(student_id)
 
-
     if student_from_class and student and class_:
         db.session.delete(student)
         class_.student_numbers -= 1
         db.session.commit()
     else:
         raise ValueError("Không tìm thấy học sinh cần xóa")
-
-
-
-
 
 
 # Trung code: Tiếp nhận học sinh
@@ -696,7 +691,6 @@ def validate_input(name, address, phone_number, email):
 
 
 def load_subject(kw=None):
-
     subjects = Subject.query.all()
     if kw:
         subjects = Subject.query.filter(Subject.name.contains(kw))
@@ -722,7 +716,6 @@ def delete_subject(subject_id):
     teaching_assignments = TeachingAssignment.query.filter_by(subject_id=subject_id).all()
     # chua the xoa mon hoc neu trong qua khu co giao vien day mon hoc do du hien tai mon hoc khong con duoc day
     if teaching_assignments:
-
         return False
     subject = Subject.query.get(subject_id)
     if subject:
@@ -732,6 +725,7 @@ def delete_subject(subject_id):
         return True
     flash("Không tìm thấy môn học", "danger")
     return False
+
 
 def load_teachers(kw=None, page=1):
     page_size = app.config['PAGE_SIZE']
@@ -882,7 +876,7 @@ def save_score(student_id, subject_id, teacher_id, semester_id, score_columns, s
             if score_value is not None:
                 score_value = float(score_value)
 
-                if (col.id, i) in existing_scores: #nếu có loại điểm và chỉ số cần cập nhật thì cập nhật lại điểm mới
+                if (col.id, i) in existing_scores:  # nếu có loại điểm và chỉ số cần cập nhật thì cập nhật lại điểm mới
                     existing_scores[(col.id, i)].score_value = score_value
                 else:
                     new_score = Score(
@@ -917,12 +911,22 @@ def extract_score_data(student, score_columns, form_data):
 def prepare_scores(subject_id, semester_id):
     scores = {}
     if semester_id and subject_id:
-        score_boards = get_score_boards(subject_id, semester_id) #lấy hết bảng điểm của môn học X ở học kỳ Y
+        score_boards = get_score_boards(subject_id, semester_id)  # lấy hết bảng điểm của môn học X ở học kỳ Y
         for score_board in score_boards:
             student_id = score_board.student_id
             scores[student_id] = {
                 'average_score': score_board.average_score  # Điểm trung bình
             }
-            for score in score_board.scores: #lấy từng điêmr trong danh sách điểm của một hsinh
+            for score in score_board.scores:  # lấy từng điêmr trong danh sách điểm của một hsinh
                 scores[student_id].setdefault(score.score_type, []).append(score.score_value)
     return scores
+
+
+def get_class_teacher(teacher_id):
+    current_school_year = get_current_school_year()
+    class_teacher = TeachingAssignment.query.filter_by(teacher_id=teacher_id,
+                                                       school_year_id=current_school_year.id).all()
+    print(current_school_year)
+    print(teacher_id)
+    return class_teacher
+
