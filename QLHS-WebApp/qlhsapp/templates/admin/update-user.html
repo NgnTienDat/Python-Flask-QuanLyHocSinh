@@ -2,71 +2,79 @@
 {% block title %} Trang chủ {% endblock %}
 
 {% block css %}
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-        }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+    }
 
-        .form-group label {
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
+    .form-group label {
+        margin-bottom: 8px;
+        font-weight: bold;
+    }
 
-        .form-group input, .form-group select {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+    .form-group input, .form-group select {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
 
-        .button-group {
-            width: 100%;
-            text-align: right; /* Căn nút sang bên phải */
-            margin-top: 20px;
-        }
+    .button-group {
+        width: 100%;
+        text-align: right; /* Căn nút sang bên phải */
+        margin-top: 20px;
+    }
 
-        .button-group button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 0 10px;
-        }
+    .button-group button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 0 10px;
+    }
+    #status label {
+        margin-right: 20px;
+        font-weight: normal;
+    }
 
-    </style>
+    #status input[type="radio"] {
+        margin-right: 5px;
+    }
+
+</style>
 {% endblock %}
 {% block sidebar %}
-    {% include 'layout/sidebar-admin.html' %}
+{% include 'layout/sidebar-admin.html' %}
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid pt-4 px-4">
-        <div class="row g-4">
-            <!-- Thanh Breadcrumb -->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/">Ngươ dùng</a></li>
-                    <li class="breadcrumb-item"><a href="/update-user/{{ user.id }}">Cập nhật người dùng</a></li>
-                </ol>
-            </nav>
-            <h1>Cập nhật người dùng</h1>
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Người dùng</a></li>
+                <li class="breadcrumb-item"><a href="/update-user/{{ user.id }}">Cập nhật người dùng</a></li>
+            </ol>
+        </nav>
+        <h1>Cập nhật người dùng</h1>
 
-            <form action="/update-user/{{ user.id }}" method="post">
-                <div class="row">
-                    {% if err_msg %}
-                        <div class="alert alert-danger">
-                        {{ err_msg }}
+        <form action="/update-user/{{ user.id }}" method="post">
+            <div class="row">
+                {% if err_msg %}
+                <div class="alert alert-danger">
+                    {{ err_msg }}
                     {% endif %}
                     <div class="col-md-6">
                         <!-- Họ -->
                         <div class="form-group">
-                            <label for="fisrt_name">Họ và tên</label>
+                            <label for="first_name">Họ và tên</label>
                             <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}"
                                    placeholder="Nhập họ" required>
                         </div>
@@ -82,6 +90,11 @@
                             <label for="address">Địa chỉ</label>
                             <input type="text" id="address" name="address" value="{{ user.address }}"
                                    placeholder="Nhập địa chỉ" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Vai trò</label>
+                            <input type="text" id="role" style="background-color: gray"
+                                   value="{{ user.account.role.name }}" readonly>
                         </div>
                     </div>
 
@@ -100,16 +113,32 @@
                                    placeholder="Nhập số điện thoại"
                                    required>
                         </div>
+                        <!-- Trạng thái hoạt động -->
+                        <div class="form-group">
+                            <label for="status">Trạng thái hoạt động</label>
+                            <div id="status">
+                                <label>
+                                    <input type="radio" name="status" value="1"
+                                           {% if user.account.active== 1 %}checked{% endif %}>
+                                    Hoạt động
+                                </label>
+                                <label>
+                                    <input type="radio" name="status" value="0"
+                                           {% if user.account.active== 0%}checked{% endif %}>
+                                    Không hoạt động
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="button-group">
                         <button type="submit" class="btn btn-warning">Cập nhật</button>
                     </div>
-                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
+</div>
 
 
 {% endblock %}

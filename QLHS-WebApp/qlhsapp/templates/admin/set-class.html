@@ -118,9 +118,11 @@
             <div class="class-list">
                 <h4>Danh sách lớp</h4>
                 <select size="10" id="class-list">
-                    <option value="0">Chưa phân lớp ({{ total_unassigned_students }})</option>
+                    <option value="0" {% if selected_class_id== 0 %}selected{%endif%} >Chưa phân lớp ({{ total_unassigned_students }})</option>
                     {% for c in classes %}
-                    <option value="{{ c.id }}">{{ c.name }} ({{ c.student_numbers }})</option>
+                    <option value="{{ c.id }}" {% if selected_class_id== c.id %}selected{%endif%} >
+                        {{ c.name }} ({{ c.student_numbers }})
+                    </option>
                     {% endfor %}
 
                 </select>
