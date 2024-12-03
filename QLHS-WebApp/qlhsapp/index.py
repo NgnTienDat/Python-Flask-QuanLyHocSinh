@@ -516,7 +516,7 @@ def add_new_class():
         print(type(homeroom_teacher_id))
         print(type(school_year_id))
 
-        if dao.handle_add_new_class(class_name, grade_level_id, homeroom_teacher_id, school_year_id, school_year):
+        if dao.handle_add_new_class(class_name, grade_level_id, homeroom_teacher_id, school_year_id, school_year, current_user.account_id):
             return redirect(url_for('add_new_class'))
 
     teachers = Teacher.query.filter_by(is_homeroom_teacher=False).all()

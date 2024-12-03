@@ -275,7 +275,7 @@ def update_age_regulation(min_age, max_age):
         return True
 
 
-def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_id, school_year_name):
+def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_id, school_year_name, staff_id):
     if Class.query.filter_by(name=name, school_year_id=school_year_id).first():
         flash(f'Lớp {name} thuộc năm học {school_year_name} đã tồn tại trong hệ thống!', 'warning')
         return False
@@ -284,7 +284,7 @@ def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_
     teacher.is_homeroom_teacher = True
     # tam thoi dung staff_id = 5 -> Sau nay dang nhap dc se sua
     new_class = Class(name=name, grade_level_id=grade_level_id,
-                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id, staff_id=2,
+                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id, staff_id=staff_id,
                       student_numbers=0)
     db.session.add(new_class)
     db.session.commit()
