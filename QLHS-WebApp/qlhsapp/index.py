@@ -5,7 +5,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 import math
 
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
-                            Teacher, GradeLevel, SchoolYear, Class, StudentClass, Subject, TeachingAssignment, Semester)
+                            Teacher, GradeLevel, SchoolYear, Class, StudentClass, Subject, TeachingAssignment, Semester,
+                            Account)
 
 import cloudinary.uploader
 
@@ -37,10 +38,12 @@ def login_process():
         # trung check
         print(username)
         print(password)
-        user = dao.auth_account(username=username, password=password)
-        if user:
+        user, is_active = dao.auth_account(username=username, password=password)
+        if user and is_active:
             login_user(user)
             return redirect(url_for('get_home_page'))
+        elif user and is_active==False:
+            flash('Tài khoản bị ngừng hoạt động!', 'danger')
         else:
             flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')
 
@@ -551,15 +554,19 @@ def list_user():
     return render_template('admin/list-user.html', users=users, pages=pages)
 
 
-@app.route("/delete-user/<int:id>", methods=['DELETE'])
-def delete_user(id):
-    try:
-        dao.delete_account_from_db(id)
-        dao.delete_user_from_db(id)
-        print("Xóa thành công")
-        return {"message": "Xóa thành công"}
-    except Exception as e:
-        print("Xóa thất bại")
+@app.route("/delete-user/<int:user_id>", methods=['get', 'post'])
+def delete_user(user_id):
+    user = dao.get_user(user_id)
+    if request.method == 'POST':
+        try:
+            dao.delete_account_from_db(id)
+            dao.delete_user_from_db(id)
+            print("Xóa thành công")
+            return {"message": "Xóa thành công"}
+        except Exception as e:
+            print("Xóa thất bại")
+
+    return render_template('admin/delete-user.html', user=user)
 
 
 # Route để cập nhật thông tin khách hàng
@@ -575,6 +582,8 @@ def update_user(id):
         address = request.form['address']
         email = request.form['email']
         phone_number = request.form['phone_number']
+        status = request.form.get('status')
+
         # Kiểm tra xem email có bị trùng với người dùng khác không
         existing_user = dao.find_user_by_email(email)
         if existing_user and existing_user.id != id:  # Kiểm tra email trùng với người khác
@@ -586,11 +595,15 @@ def update_user(id):
             user.address = address
             user.email = email
             user.phone_number = phone_number
+            account = Account.query.get(user.id)
+            if account:
+                account.active = int(status)
+
 
             try:
                 # Lưu thay đổi vào database
                 db.session.commit()
-                return redirect(url_for('get_home_page'))  # Chuyển hướng về trang chủ
+                return redirect(url_for('list_user')) 
             except Exception as e:
                 db.session.rollback()
                 err_msg = "Đã xảy ra lỗi trong quá trình cập nhật."

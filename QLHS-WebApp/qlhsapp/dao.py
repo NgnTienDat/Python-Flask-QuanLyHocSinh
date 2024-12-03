@@ -21,7 +21,7 @@ from datetime import datetime
 
 
 def load_list_users(kw=None, page=1):
-    page_size = app.config['PAGE_SIZE']
+    page_size = 4
     start = (page - 1) * page_size
 
     query = User.query
@@ -58,6 +58,8 @@ def load_users(kw=None):
 
     return query.paginate(page=page, per_page=page_size)
 
+def get_user(user_id):
+    return User.query.get(user_id)
 
 def delete_user_from_db(user_id):
     user = User.query.get(user_id)
@@ -82,9 +84,16 @@ def find_user(id):
 
 
 def auth_account(username, password):
+    is_active = False
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
-    return Account.query.filter(Account.username.__eq__(username.strip()),
+    account =  Account.query.filter(Account.username.__eq__(username.strip()),
                                 Account.password.__eq__(password)).first()
+    if account and account.active == 1:
+        is_active = True
+    return account, is_active
+
+
+
 
 
 def add_account(account_id, username, password, role):
