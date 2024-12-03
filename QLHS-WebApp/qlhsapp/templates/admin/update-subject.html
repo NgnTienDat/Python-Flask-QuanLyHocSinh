@@ -1,0 +1,84 @@
+
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    }
+
+    form .form-group {
+    flex: 1 1 calc(50% - 10px);
+    display: flex;
+    flex-direction: column;
+}
+form .form-group label {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+form .form-group input,
+form .form-group select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+</style>
+{% endblock %}
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('find_student_page') }}">Học sinh</a></li>
+                <li class="breadcrumb-item"><a >Cập nhật học sinh</a></li>
+            </ol>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <h1>Cập nhật môn học</h1>
+        <form action="{{ url_for('update_subject', subject_id=subject.id) }}" method="post" class="form-container">
+            <!-- Họ và tên -->
+            <div class="form-group">
+                <label for="subject_name">Tên môn học</label>
+                <input type="text" id="subject_name" name="subject_name" value="{{subject.name}}" required>
+            </div>
+            <!-- Địa chỉ -->
+            <div class="form-group">
+                <label for="sub_id">Mã môn học</label>
+                <input type="text" id="sub_id" name="sub_id" value="{{subject.id}}" readonly>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Lưu</button>
+                <a href="{{ url_for('list_subject') }}" class="btn btn-danger">Hủy</a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+
+
+
+

@@ -47,6 +47,10 @@
     <div class="row g-4">
         <!-- Thanh Breadcrumb -->
         <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('list_teacher') }}">Giáo viên</a></li>
+                <li class="breadcrumb-item"><a >Phân công giảng dạy</a></li>
+            </ol>
         </nav>
         <div class="container">
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -87,7 +91,7 @@
                         <input type="text" id="school_year_id" style="display: none;"
                                name="school_year_id" value="{{ school_year.id }}">
                     </div>
-                    <a class="col-md-3 d-flex align-items-end">
+                    <a class="col-md-3 d-flex align-items-end"style="padding-top: 30px">
                         <button class="btn btn-primary w-100">Lưu</button>
                     </a>
                 </div>

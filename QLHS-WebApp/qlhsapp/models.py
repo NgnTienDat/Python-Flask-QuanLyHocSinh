@@ -41,9 +41,7 @@ class Action(PyEnum):
         return self.value
 
 
-
 class User(BaseModel, UserMixin):
-
     first_name = Column(String(20), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(50), unique=True, nullable=False)
@@ -108,17 +106,13 @@ class Administrator(db.Model):
     # create_subject = relationship('Subject', back_populates='admin_creator')  # done
 
 
-
-
 class StudentClass(BaseModel):
-
     student_id = Column(Integer, ForeignKey('student.id'), nullable=False)
     class_id = Column(Integer, ForeignKey('class.id'), nullable=False)
     is_active = Column(Boolean, default=True)
 
     students = relationship('Student', back_populates='student_classes')
     classes = relationship('Class', back_populates='student_classes')
-
 
 
 class TeachingAssignment(BaseModel):
@@ -131,7 +125,6 @@ class TeachingAssignment(BaseModel):
     class_ = relationship('Class', back_populates='teaching_assignment')
     subject = relationship('Subject', back_populates='teaching_assignment')
     school_year = relationship('SchoolYear', back_populates='teaching_assignment')
-
 
 
 # Giao vien
@@ -152,6 +145,7 @@ class Teacher(db.Model):
     # 1 - N: A teacher enter scores for many scoreboards
     enter_scores = relationship('ScoreBoard', back_populates='teacher')  # done
     teaching_assignment = relationship('TeachingAssignment', back_populates='teacher')
+
     def __str__(self):
         return self.name
 
@@ -199,7 +193,7 @@ class Student(BaseModel):
     gender = Column(Enum(GenderEnum, name="gender_enum"), nullable=False)
     phone_number = Column(String(10))
     date_of_birth = Column(Date, nullable=False)
-    in_assigned = Column(Boolean, default=False) # Da duoc phan vao lop hay chua
+    in_assigned = Column(Boolean, default=False)  # Da duoc phan vao lop hay chua
 
     staff_id = Column(Integer, ForeignKey('staff.staff_id'), nullable=False)
     # N - N: A student can study in many classes
@@ -209,7 +203,7 @@ class Student(BaseModel):
     # 1 - N: A student has many scoreboards
     score_boards = relationship('ScoreBoard', back_populates='student')  # done
 
-    student_classes = relationship('StudentClass', back_populates='students')
+    student_classes = relationship('StudentClass', back_populates='students', cascade="all, delete")
 
 
 # Bang diem
@@ -218,6 +212,7 @@ class ScoreBoard(BaseModel):
     subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
     semester_id = Column(Integer, ForeignKey('semester.id'), nullable=False)
     teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), nullable=False)
+    average_score = Column(Float, nullable=True, default=0)  # Thêm cột average_score
     # 1 - N: A subject's scoreboard has many scores
     scores = relationship('Score', back_populates='score_board')  # done
     # 1 - N: A scoreboard is scored by a teacher
@@ -234,6 +229,7 @@ class ScoreBoard(BaseModel):
 class Score(BaseModel):
     score_type = Column(Integer, ForeignKey('score_type.id'), nullable=False)
     score_value = Column(Float, nullable=False)
+    index = db.Column(db.Integer, nullable=False)  # Add this column
     score_board_id = Column(Integer, ForeignKey('score_board.id'), nullable=False)
     # 1 - N: A score belongs to one scoreboard
     score_board = relationship('ScoreBoard', back_populates='scores')  # done
@@ -284,6 +280,9 @@ class Subject(BaseModel):
 class Semester(BaseModel):
     name = Column(String(20), nullable=False)
     school_year_id = Column(Integer, ForeignKey('school_year.id'), nullable=False)
+    start_date = Column(Date, nullable=False)
+    finish_date = Column(Date, nullable=False)
+
     # 1 - N: A semester belongs to one school year
     school_year = relationship('SchoolYear', back_populates='semesters')  # done
     # 1 - N: A semester has many scoreboard
@@ -292,6 +291,77 @@ class Semester(BaseModel):
     def __str__(self):
         return self.name
 
+
+from datetime import date
+from random import randint
+from sqlalchemy.orm import Session
+#
+#
+# def create_students(session: Session):
+#     # Danh sách các học sinh
+#     students = []
+#
+#     # Tạo 33 học sinh nam
+#     for i in range(33):
+#         student = Student(
+#             name=f"Nguyễn Văn Nam {i + 1}",
+#             address="Hồ Chí Minh",
+#             email=f"nam{i + 1}@example.com",
+#             gender=GenderEnum.MALE,
+#             phone_number=f"090{randint(1000000, 9999999)}",
+#             date_of_birth=date(2005, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
+#             staff_id=7
+#         )
+#         students.append(student)
+#
+#     # Tạo 33 học sinh nữ
+#     for i in range(33):
+#         student = Student(
+#             name=f"Hà Kiều Nữ {i + 1}",
+#             address="Hồ Chí Minh",
+#             email=f"nu{i + 1}@example.com",
+#             gender=GenderEnum.FEMALE,
+#             phone_number=f"091{randint(1000000, 9999999)}",
+#             date_of_birth=date(2005, randint(1, 12), randint(1, 28)),  # Ngày tháng ngẫu nhiên
+#             staff_id=7
+#         )
+#         students.append(student)
+#
+#     # Thêm danh sách vào session
+#     session.add_all(students)
+#     session.commit()
+#     print("Đã thêm 66 học sinh vào cơ sở dữ liệu.")
+
+def create_students(session: Session):
+    # Danh sách các đối tượng StudentClass
+    studentClasses = []
+
+    # Số lượng học sinh mỗi lớp
+    students_per_class = 11
+
+    # Tạo danh sách lớp
+    classes = [("10A1", 1), ("10A2", 2), ("10A3", 3), ("10A4", 4), ("10A5", 5), ("10A6", 6)]
+
+    # Biến đếm student_id
+    student_id = 1
+
+    for class_name, class_id in classes:
+        for i in range(students_per_class):
+            studentClass = StudentClass(
+                student_id=student_id,  # Mỗi học sinh có ID duy nhất
+                class_id=class_id  # ID của lớp học
+            )
+            studentClasses.append(studentClass)
+            student_id += 1  # Tăng ID cho học sinh tiếp theo
+
+    # Thêm danh sách vào session
+    session.add_all(studentClasses)
+    session.commit()
+    print("Đã thêm học sinh cho tất cả các lớp vào cơ sở dữ liệu.")
+
+
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        # db.create_all()
+        with Session(engine) as session:  # Đảm bảo bạn đã kết nối đúng engine
+            create_students(session)

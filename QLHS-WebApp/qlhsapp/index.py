@@ -1,5 +1,3 @@
-from email.policy import default
-
 from flask import render_template, request, redirect, url_for, flash, make_response
 from qlhsapp import app, db, login_manager
 import dao
@@ -7,7 +5,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 import math
 
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
-                            Teacher, GradeLevel, SchoolYear, Class, StudentClass, Subject, TeachingAssignment)
+                            Teacher, GradeLevel, SchoolYear, Class, StudentClass, Subject, TeachingAssignment, Semester)
 
 import cloudinary.uploader
 
@@ -15,7 +13,15 @@ import cloudinary.uploader
 @app.route("/")
 @login_required
 def get_home_page():
-    return render_template('admin/index.html')
+    quantity_student = dao.count_student()
+    quantity_teacher = dao.count_teacher()
+    quantity_subject = dao.count_subject()
+    quantity_class = dao.count_class()
+    return render_template('admin/index.html',
+                           quantity_class=quantity_class,
+                           quantity_student=quantity_student,
+                           quantity_subject=quantity_subject,
+                           quantity_teacher=quantity_teacher)
 
 
 @login_manager.user_loader
@@ -44,10 +50,16 @@ def login_process():
 # Trung code: Tra cuu hoc sinh
 @app.route("/students")
 def find_student_page():
+    page = request.args.get('page', 1)
     kw = request.args.get("key-name")
-    stu = dao.list_students(kw=kw)
+    class_id = request.args.get("class_id")
+    classes = dao.get_all_class()
+
+    stu_class, pages = dao.list_students(kw=kw, class_id=class_id, page=int(page))
+    if not stu_class:
+        flash(f'Không có học sinh nào tên {kw}.', 'warning')
     return render_template('admin/find-student.html',
-                           students=stu)
+                           students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
 
 
 @app.route("/logout")
@@ -149,6 +161,37 @@ def remove_student_from_class(student_id):
     else:
         flash('Loại điểm không tồn tại!', 'danger')
         return redirect(url_for('set_class_page'))
+
+
+@app.route('/school-year')
+def school_year_page():
+    school_years = SchoolYear.query.order_by(SchoolYear.id.desc()).all()
+    semesters = Semester.query.order_by(Semester.id.desc()).all()
+    school_years_semesters = dao.get_school_years_with_semesters()
+    results = dao.format_school_year_data(school_years_semesters)
+    return render_template('admin/school-year.html', school_years=results)
+
+
+@app.route('/school-year/new-school-year', methods=['get', 'post'])
+def add_new_school_year():
+    if request.method == 'POST':
+        try:
+            year1 = request.form.get('school_year1')
+            year2 = request.form.get('school_year2')
+            start_hk1 = request.form.get('start_hk1')
+            finish_hk1 = request.form.get('finish_hk1')
+            start_hk2 = request.form.get('start_hk2')
+            finish_hk2 = request.form.get('finish_hk2')
+
+            if dao.add_new_school_year(year1, year2, start_hk1, finish_hk1, start_hk2, finish_hk2):
+                return redirect(url_for('school_year_page'))
+
+
+        except (TypeError, ValueError):
+            flash('Dữ liệu không hợp lệ!!', 'warning')
+            return redirect(url_for('school_year_page'))
+
+    return render_template('admin/new-school-year.html')
 
 
 # Quy định số cột điểm
@@ -268,8 +311,10 @@ def teaching_assignment():
             class_id = request.form.get('class_')
             school_year_id = request.form.get('school_year_id')
             teacher_id = request.form.get('teacher')
-
-
+            print(subject_id)
+            print(class_id)
+            print(school_year_id)
+            print(teacher_id)
             if dao.add_teaching_assignment(teacher_id=teacher_id, class_id=class_id,
                                            subject_id=subject_id, school_year_id=school_year_id):
                 # giu nguyen trang thai mon hoc da chon subject_filter=subject_id
@@ -291,10 +336,8 @@ def teaching_assignment():
     selected_class = class_id
     teachers = Teacher.query.filter_by(subject_id=subject_id).all()
 
-
     t_assignment_id = dao.get_teacher_id_assigned(class_id=class_id,
-                                                subject_id=subject_id, school_year_id=school_year.id)
-
+                                                  subject_id=subject_id, school_year_id=school_year.id)
 
     return render_template('admin/teaching-assignment.html', subjects=subjects,
                            classes=classes, school_year=school_year, selected_subject=selected_subject,
@@ -302,24 +345,36 @@ def teaching_assignment():
 
 
 # Nhập điểm
-@app.route("/input-score")
+@app.route("/input-score", methods=['get', 'post'])
 def input_score():
-    class_id = request.args.get('class_id')  # Lấy ID lớp từ tham số URL
+    class_id = request.args.get('class_id') or request.form.get('class_id')
+    semester_id = request.args.get('semester_id') or request.form.get('semester_id')
+    subject_id = request.args.get('subject_id') or request.form.get('subject_id')
+
     current_year = dao.get_current_school_year()
-    subjects = dao.load_subject()
-    classes = dao.get_all_class()
+    if current_year is None:
+        print("No current school year found!")
+        # Xử lý trường hợp không có năm học hiện tại, ví dụ:
+        return "Error: No current school year available"
+    classes = dao.get_class_teacher(current_user.user.id)
     semesters = dao.get_semester(current_year.id) if current_year else []
     score_columns = dao.load_score_columns()
-    print("Selected Class ID:", class_id)
     students = dao.get_students_by_class(class_id)
-    return render_template('admin/input-score.html',
-                           current_year=current_year,
-                           subjects=subjects,
-                           classes=classes,
-                           semesters=semesters,
-                           score_columns=score_columns,
-                           students=students,
-                           selected_filter=class_id)
+    scores = dao.prepare_scores(subject_id, semester_id)
+
+    if request.method == 'POST':
+        teacher_id = request.form.get('teacher_id')
+        for student in students:
+            student_id = student.student_id
+            score_data = dao.extract_score_data(student, score_columns,
+                                                request.form)  # lấy các cột điểm của hs từ form về dạng từ điểm để lưu
+            dao.save_score(student_id, subject_id, teacher_id, semester_id, score_columns, score_data)
+        scores = dao.prepare_scores(subject_id, semester_id)  # load lại điểm lúc nhấn lưu
+
+    return render_template('admin/input-score.html', current_year=current_year, classes=classes, semesters=semesters,
+                           score_columns=score_columns, students=students, selected_class_filter=class_id,
+                           scores=scores, selected_semester_filter=semester_id
+                           )
 
 
 # Xuất điểm
@@ -330,8 +385,10 @@ def export_score():
 
 @app.route("/list-teacher")
 def list_teacher():
-    teachers = dao.Teacher.query.all()
-    return render_template('admin/teacher.html', teachers=teachers)
+    page = request.args.get('page', 1)
+    kw = request.args.get('kw')
+    teachers, pages = dao.load_teachers(kw=kw, page=int(page))
+    return render_template('admin/teacher.html', teachers=teachers, pages=pages, page=int(page))
 
 
 @app.route("/list-teacher/<int:teacher_id>")
@@ -388,8 +445,42 @@ def delete_teacher(teacher_id):
 
 @app.route("/list-subject")
 def list_subject():
-    subjects = dao.load_subject()
+    kw = request.args.get("key-name")
+    subjects = dao.load_subject(kw=kw)
     return render_template('admin/subject.html', subjects=subjects)
+
+
+@app.route("/list-subject/delete-subject/<int:subject_id>", methods=['get', 'post'])
+def delete_subject(subject_id):
+    if request.method.__eq__('POST'):
+        try:
+            if dao.delete_subject(subject_id):
+                flash("Xóa môn học thành công.", "success")
+            else:
+                flash("Không thể xóa môn học vì đang có giáo viên giảng dạy.", "danger")
+            return redirect(url_for('list_subject'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('list_subject'))
+
+    subject = dao.get_subject_by_id(subject_id)
+    return render_template('admin/delete-subject.html', subject=subject)
+
+
+@app.route("/update-subject/<int:subject_id>", methods=['get', 'post'])
+def update_subject(subject_id):
+    subject = Subject.query.get(subject_id)
+    if request.method == 'POST':
+
+        try:
+            name = request.form.get('subject_name')
+            if dao.update_subject(subject_id, name):
+                return redirect(url_for('list_subject'))
+        except Exception as e:
+            flash(f"Lỗi: {str(e)}", "danger")
+            return redirect(url_for('list_subject'))
+
+    return render_template('admin/update-subject.html', subject=subject)
 
 
 @app.route("/list-class")
@@ -450,9 +541,10 @@ def update_class(class_id):
 
 @app.route("/list-user")
 def list_user():
+    page = request.args.get('page', 1)
     kw = request.args.get('kw')
-    users = dao.load_users(kw=kw)
-    return render_template('admin/list-user.html', users=users)
+    users, pages = dao.load_list_users(kw=kw, page=int(page))
+    return render_template('admin/list-user.html', users=users, pages=pages)
 
 
 @app.route("/delete-user/<int:id>", methods=['DELETE'])
@@ -506,7 +598,7 @@ def update_user(id):
 @app.route("/add-user", methods=['GET', 'POST'])
 def add_user_page():
     err_msg = ''
-    subjects = dao.load_subject() # Lấy danh sách môn học từ database
+    subjects = dao.load_subject()  # Lấy danh sách môn học từ database
     if request.method == 'POST':
         first_name = request.form['first_name']
         last_name = request.form['last_name']
@@ -588,12 +680,49 @@ def change_password(id):
 
 @app.route("/subject-summary-score")
 def subject_summary_score():
-    return render_template('admin/subject-summary.html')
+    if current_user.role == "STAFF":
+        return redirect(url_for('get_home_page'))
+
+    class_id = request.args.get('class_id') or request.form.get('class_id')
+    semester_id = request.args.get('semester_id') or request.form.get('semester_id')
+    subject_id = request.args.get('subject_id') or request.form.get('subject_id')
+
+    # Kiểm tra giá trị của class_id
+    if class_id == 'all':
+        class_id = None  # Nếu chọn 'all', set class_id về None hoặc giá trị mặc định
+
+    current_year = dao.get_current_school_year()
+    classes = dao.get_class_teacher(current_user.user.id)
+    semesters = dao.get_semester(current_year.id) if current_year else []
+    teacher_classes = dao.get_teacher_classes_details(current_user.user.id, semester_id, subject_id, class_id)
+
+    return render_template('admin/subject-summary.html', class_id=class_id, semester_id=semester_id,
+                           subject_id=subject_id, current_year=current_year, classes=classes, semesters=semesters,
+                           teacher_classes=teacher_classes)
 
 
 @app.route("/class-summary-score")
 def class_summary_score():
-    return render_template('admin/class-summary.html')
+    if current_user.role == "STAFF":
+        return redirect(url_for('get_home_page'))
+
+    semester_id = request.args.get('semester_id') or request.form.get('semester_id')
+    # Chuyển semester_id sang kiểu int, nếu là chuỗi và có thể chuyển đổi được
+    if semester_id and semester_id != 'all':
+        try:
+            semester_id = int(semester_id)
+        except ValueError:
+            semester_id = None
+
+    class_name = dao.get_class_by_homeroom_teacher_id(current_user.user.id)
+    current_year = dao.get_current_school_year()
+    semesters = dao.get_semester(current_year.id) if current_year else []
+
+
+
+    students = dao.get_student_ids_by_class_id(class_name.id, semester_id)
+    return render_template('admin/class-summary.html', semester_id=semester_id,
+                           class_name=class_name, current_year=current_year, semesters=semesters, students=students)
 
 
 @app.route("/students/<int:student_id>")
@@ -650,19 +779,6 @@ def add_new_subject():
         dao.save_subject(name)
         flash("Thêm môn học thành công!", "success")
     return render_template('admin/add-subject.html')
-
-
-@app.route("/list-subject/delete-subject/<int:subject_id>", methods=['get', 'post'])
-def delete_subject(subject_id):
-    subject = dao.get_subject_by_id(subject_id)
-    if request.method.__eq__('POST'):
-        try:
-            dao.delete_subject(subject_id)
-            return redirect(url_for('list_subject'))
-        except Exception as e:
-            flash(f"Lỗi: {str(e)}", "danger")
-            return redirect(url_for('list_subject'))
-    return render_template('admin/delete-subject.html', subject=subject)
 
 
 @app.route('/my-account/<int:id>', methods=['GET', 'POST'])

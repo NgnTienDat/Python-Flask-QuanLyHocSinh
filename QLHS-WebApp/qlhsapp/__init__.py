@@ -17,8 +17,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:%s@localhost/datab
 
 
 
-
-
 # Cấu hình mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Gmail SMTP server
 app.config['MAIL_PORT'] = 587  # Sử dụng TLS
