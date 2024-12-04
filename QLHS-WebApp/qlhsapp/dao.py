@@ -670,13 +670,16 @@ def add_student(name, address, gender, date_of_birth, staff_id, **kwargs):
                           phone_number=kwargs.get('phone_number'))
         db.session.add(student)
         db.session.commit()
+        flash("Thêm học sinh thành công!", "success")
+        return True
     except ValueError as ve:
         db.session.rollback()
         print(f"Lỗi thêm giới tính: {gender}. Error: {ve}")
     except Exception as e:
         db.session.rollback()
         print(f"Lỗi thêm học sinh: {e}")
-
+    flash("Thêm học sinh không thành công!", "danger")
+    return False
 
 def check_email_student(current_email):
     existing_student = Student.query.filter_by(email=current_email).first()

@@ -51,7 +51,7 @@
                 <tr>
                     <th>Mã Môn Học</th>
                     <th>Tên Môn Học</th>
-                    <th>Thao Tác</th>
+
                 </tr>
                 </thead>
                 <tbody>
@@ -59,26 +59,12 @@
                 <tr>
                     <td>{{s.id}}</td>
                     <td>{{s.name}}</td>
-                    <td class="action-btns">
-                        <div>
-                            <a href="{{ url_for('update_subject', subject_id=s.id) }}">
-                                <button class="btn-update">Chỉnh sửa</button>
-                            </a>
-                            <a href="{{ url_for('delete_subject', subject_id=s.id) }}">
-                                <button class="btn-cancel">Xóa môn học</button>
-                            </a>
-                        </div>
 
-                    </td>
                 </tr>
                 {% endfor %}
                 </tbody>
             </table>
-            <div class="button-group">
-                <a href="{{ url_for('add_new_subject') }}">
-                    <button>Thêm môn học mới</button>
-                </a>
-            </div>
+
         </div>
     </div>
 </div>

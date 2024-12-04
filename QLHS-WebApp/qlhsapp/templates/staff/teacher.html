@@ -1,0 +1,143 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    table th, table td {
+        text-align: center;
+        padding: 12px;
+        border: 1px solid #ddd;
+    }
+
+    table th {
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+    }
+
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .btn-edit {
+        background-color: #ffc107;
+        color: black;
+    }
+    .btn-edit:hover {
+        background-color: #e0a800;
+    }
+    .search-bar {
+        margin-bottom: 20px;
+    }
+    .search-bar input[type="text"] {
+        padding: 8px;
+        width: 300px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    ul.pagination {
+        display: flex;
+        justify-content: center; /* Căn giữa các nút phân trang */
+        margin-top: 15px; /* Thêm khoảng cách phía trên */
+        padding: 0;
+    }
+
+    ul.pagination li {
+        margin: 0 5px; /* Thêm một chút khoảng cách giữa các nút */
+    }
+
+    ul.pagination .page-item {
+        list-style: none;
+    }
+
+    ul.pagination .page-link {
+        text-decoration: none;
+        padding: 8px 16px; /* Điều chỉnh kích thước nút */
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        color: #007bff;
+    }
+
+
+    ul.pagination .page-link:hover {
+        background-color: #007bff;
+        color: white;
+    }
+</style>
+
+{% endblock %}
+
+{% block sidebar %}
+{% include 'layout/sidebar-admin.html'%}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('list_teacher') }}">Giáo viên</a></li>
+
+            </ol>
+        </nav>
+        <div class="container">
+            <h1>Danh Sách Giáo Viên</h1>
+            <div class="search-bar" style="display: flex">
+                <a href="{{ url_for('teaching_assignment') }}">
+                    <button>Phân công giáo viên giảng dạy</button>
+                </a>
+                <form method="get">
+
+                    <input type="text" name="kw" placeholder="Tên giáo viên cần tìm...">
+                    <button>Tìm kiếm</button>
+                </form>
+
+            </div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Mã Giáo Viên</th>
+                    <th>Tên Giáo Viên</th>
+                    <th>Môn Dạy</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for t, u in teachers %}
+                <tr>
+                    <td>{{t.teacher_id}}</td>
+                    <td>{{u}}</td>
+                    <td>{{t.subject.name}}</td>
+
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <ul class="pagination">
+                {% for idx in range(1, pages+1) %}
+                <li class="page-item {% if idx == page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('find_student_page', page=idx) }}">{{ idx }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
