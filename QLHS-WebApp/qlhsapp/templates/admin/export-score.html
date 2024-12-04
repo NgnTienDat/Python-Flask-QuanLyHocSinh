@@ -94,118 +94,107 @@
             <h2>Xuất điểm</h2>
 
             <!-- Hàng chọn thông tin -->
+            <!-- Hàng chọn thông tin -->
             <div class="row select-row">
                 <div class="col">
                     <label for="subject-select">Môn học</label>
-                    <select id="subject-select" class="form-control">
-                        <option value="math">Toán</option>
-                        <option value="literature">Văn</option>
-                        <option value="physics">Lý</option>
+                    <select id="subject-select" class="form-control" disabled>
+                        <option>
+                            {{current_user.user.teacher.subject.name}}
+                        </option>
                     </select>
+                    <input type="hidden" name="subject_id" value="{{current_user.user.teacher.subject.id}}">
+                    <input type="hidden" name="teacher_id" value="{{current_user.user.id}}">
                 </div>
                 <div class="col">
                     <label for="class-select">Lớp</label>
-                    <select id="class-select" class="form-control">
-                        <option value="10a1">10A1</option>
-                        <option value="10a2">10A2</option>
-                        <option value="10a3">10A3</option>
+                    <select id="class-select" class="form-control" name="class_id">
+                        <option value="all" {% if selected_class_filter=='all' %}selected{% endif %}>Chọn lớp
+                        </option>
+                        {% for cls in classes %}
+                        <option value="{{cls.class_id}}" {% if selected_class_filter== cls.class_id|string
+                                %}selected{%endif%}>
+                            {{cls.class_}}
+                        </option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col">
                     <label for="semester-select">Học kỳ</label>
-                    <select id="semester-select" class="form-control">
-                        <option value="1">Học kỳ 1</option>
-                        <option value="2">Học kỳ 2</option>
+                    <select id="semester-select" class="form-control" name="semester_id">
+                        <option value="all" {% if selected_semester_filter=='all' %}selected{% endif %}>Chọn học kỳ
+                        </option>
+                        {% for semester in semesters %}
+                        <option value="{{ semester.id }}" {% if selected_semester_filter== semester.id|string
+                                %}selected{% endif %}>
+                            {{ semester.name }}
+                        </option>
+                        {% endfor %}
+                        <option value="all_semester" {% if selected_semester_filter=='all_semester' %}selected{% endif
+                                %}>Cả năm
+                        </option>
                     </select>
                 </div>
                 <div class="col">
                     <label for="school-year-select">Niên khóa</label>
-                    <select id="school-year-select" class="form-control">
-                        <option value="2023-2024">2023-2024</option>
-                        <option value="2024-2025">2024-2025</option>
+                    <select id="school-year-select" class="form-control" disabled>
+                        <option>{{current_year.name}}</option>
                     </select>
                 </div>
+
             </div>
 
             <!-- Hàng các nút chức năng -->
             <div class="actions">
-                <button id="view-btn">Xem</button>
-                <button id="export-excel-btn">Xuất Excel</button>
-                <button id="export-pdf-btn">Xuất PDF</button>
+                <button id="export-excel-btn" onclick="updateURL(true)">Xuất Excel</button>
             </div>
 
             <!-- Bảng hiển thị dữ liệu -->
             <div id="score-table-container" class="score-table-container">
                 <table class="score-table">
-
                     <thead>
                     <tr>
-                        <th>STT</th>
-                        <th>Họ và Tên</th>
-                        <th>15' (1)</th>
-                        <th>15' (2)</th>
-                        <th>15' (3)</th>
-                        <th>15' (4)</th>
-                        <th>15' (5)</th>
-                        <th>45' (1)</th>
-                        <th>45' (2)</th>
-                        <th>Cuối kỳ</th>
+                        <th>Mã HS</th>
+                        <th style="width: 200px">Họ và Tên</th>
+                        {%if selected_semester_filter == "all_semester"%}
+                        <th> Điểm trung bình HK1</th>
+                        <th> Điểm trung bình HK2</th>
+                        {% else %}
+                        {% for col in score_columns %}
+                        {% for i in range(col.score_quantity) %}
+                        <th>{{col.name}} ({{i+1}})</th>
+                        {% endfor %}
+                        {% endfor %}
                         <th>Trung bình</th>
+                        {% endif %}
+
                     </tr>
                     </thead>
                     <tbody>
+                    {% for student in students %}
                     <tr>
-                        <td>1</td>
-                        <td>Nguyễn Văn A</td>
-                        <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                        <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                        <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
+                        <td>{{ student.student_id }}</td>
+                        <td>{{ student.students.name }}</td>
+                        {% if selected_semester_filter == "all_semester" %}
+                        <td>{{ scores.get(student.student_id, {}).get("TBHK1") }}</td>
+                        <td>{{ scores.get(student.student_id, {}).get("TBHK2") }}</td>
+                        {% else %}
+                        {% for col in score_columns %}
+                        {% for i in range(col.score_quantity) %}
+                        <td>
+                            {% if scores.get(student.student_id) and scores[student.student_id].get(col.id) and
+                            i < scores[student.student_id][col.id]|length %}
+                            {{ scores[student.student_id][col.id][i] }}
+                            {% else %}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        {% endfor %}
+                        <td>{{ scores.get(student.student_id, {}).get("average_score", 0) }}</td>
+                        {% endif %}
                     </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Trần Thị B</td>
-                         <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                        <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                        <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Lê Hoàng C</td>
-                         <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                        <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                        <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td>Phạm Thị D</td>
-                         <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                        <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                        <td>7.5</td>
-                        <td>8.0</td>
-                        <td>7.75</td>
-                    </tr>
+                    {% endfor %}
+
                     </tbody>
                 </table>
             </div>
@@ -214,6 +203,32 @@
 
     </div>
 </div>
+<script>
+    function updateURL(exportExcel = false) {
+        const selectedClassId = document.getElementById('class-select').value;
+        const selectedSemesterId = document.getElementById('semester-select').value;
+        const selectedSubjectId = document.querySelector('input[name="subject_id"]').value;
+
+        const baseUrl = "{{ url_for('export_score') }}";
+        const queryParams = `?class_id=${selectedClassId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}`;
+        const exportParam = exportExcel ? "&export=excel" : "";
+        window.location.href = baseUrl + queryParams + exportParam;
+    }
+
+
+    document.getElementById('class-select').addEventListener('change', function() {
+        updateURL();
+    });
+
+    document.getElementById('semester-select').addEventListener('change', function() {
+        updateURL();
+    });
+
+    document.getElementById('export-excel-btn').addEventListener('click', function() {
+        updateURL(true);
+    });
+</script>
+
 {% endblock %}
 
 

@@ -4,10 +4,12 @@ import random
 import string
 import math
 import hashlib
+import pandas as pd
+from io import BytesIO
 import cloudinary.uploader
 
 import unicodedata
-from flask import flash
+from flask import flash, make_response
 from sqlalchemy import func
 from flask_mail import Message
 from qlhsapp import app, db, mail
@@ -660,22 +662,36 @@ def delete_student(student_id):
 def add_student(name, address, gender, date_of_birth, staff_id, **kwargs):
     gender = GenderEnum(gender)
     date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
-    try:
-        student = Student(name=name,
-                          address=address,
-                          gender=gender,
-                          date_of_birth=date_of_birth,
-                          staff_id=staff_id,
-                          email=kwargs.get('email'),
-                          phone_number=kwargs.get('phone_number'))
-        db.session.add(student)
-        db.session.commit()
-    except ValueError as ve:
-        db.session.rollback()
-        print(f"Lỗi thêm giới tính: {gender}. Error: {ve}")
-    except Exception as e:
-        db.session.rollback()
-        print(f"Lỗi thêm học sinh: {e}")
+    # xử lý độ tuổi
+    # Ngày hiện tại
+    today = datetime.today().date()
+
+    age = today.year - date_of_birth.year
+
+    min_age = int(Regulation.query.filter_by(key_name='MIN_AGE').first().value)
+    max_age = int(Regulation.query.filter_by(key_name='MAX_AGE').first().value)
+    print(min_age)
+    print(max_age)
+    if min_age <= age <= max_age:
+        try:
+            student = Student(name=name,
+                              address=address,
+                              gender=gender,
+                              date_of_birth=date_of_birth,
+                              staff_id=staff_id,
+                              email=kwargs.get('email'),
+                              phone_number=kwargs.get('phone_number'))
+            db.session.add(student)
+            db.session.commit()
+        except ValueError as ve:
+            db.session.rollback()
+            print(f"Lỗi thêm giới tính: {gender}. Error: {ve}")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Lỗi thêm học sinh: {e}")
+        flash("Thêm học sinh thành công!", "success")
+    else:
+        flash("Độ tuổi không nằm trong khoảng tiếp nhận", "warning")
 
 
 def check_email_student(current_email):
@@ -877,7 +893,7 @@ def save_score(student_id, subject_id, teacher_id, semester_id, score_columns, s
     for score in score_board.scores:
         existing_scores[(score.score_type, score.index)] = score
 
-    for col in score_columns:
+    for col in score_columns:  # score_columns=score_type
         for i in range(col.score_quantity):
             score_key = f"score_{student_id}_{col.id}_{i + 1}"
             score_value = score_data.get(score_key)
@@ -917,6 +933,37 @@ def extract_score_data(student, score_columns, form_data):
     return score_data
 
 
+def get_semester_ids_by_school_year(school_year_id):
+    semesters = get_semester(school_year_id)  # danh sach hoc ky cua nam hoc duoc lay ra
+    semester_mapping = {}
+
+    for semester in semesters:
+        if "HK1" in semester.name:
+            semester_mapping["TBHK1"] = semester.id
+        elif "HK2" in semester.name:
+            semester_mapping["TBHK2"] = semester.id
+
+    return semester_mapping  # tra ve {'TBHK1': 1, 'TBHK2': 2} 1 va 2 la id semester cua nam hoc duoc lay
+
+
+def get_all_average_scores(subject_id, class_id, school_year_id):
+    scores = {}
+    students = get_students_by_class(class_id)
+
+    semester_mapping = get_semester_ids_by_school_year(school_year_id)
+
+    for student in students:
+        student_id = student.student_id
+        scores[student_id] = {"TBHK1": 0, "TBHK2": 0}
+
+        for key, semester_id in semester_mapping.items():
+            semester_scores = prepare_scores(subject_id, semester_id)
+            if student_id in semester_scores:
+                scores[student_id][key] = semester_scores[student_id].get("average_score", 0)
+
+    return scores
+
+
 def prepare_scores(subject_id, semester_id):
     scores = {}
     if semester_id and subject_id:
@@ -928,6 +975,7 @@ def prepare_scores(subject_id, semester_id):
             }
             for score in score_board.scores:  # lấy từng điêmr trong danh sách điểm của một hsinh
                 scores[student_id].setdefault(score.score_type, []).append(score.score_value)
+
     return scores
 
 
@@ -939,3 +987,37 @@ def get_class_teacher(teacher_id):
     print(teacher_id)
     return class_teacher
 
+
+def export_to_excel(semester_id, scores, students):
+    data = []
+    score_types = load_score_columns()
+    for student in students:
+        row = {
+            "Mã HS": student.student_id,
+            "Họ và Tên": student.students.name,
+        }
+        if semester_id == "all_semester":
+            row["TBHK1"] = scores.get(student.student_id, {}).get("TBHK1", "")
+            row["TBHK2"] = scores.get(student.student_id, {}).get("TBHK2", "")
+        else:
+            for score_type in score_types:
+                score_values = scores.get(student.student_id, {}).get(score_type.id, [])
+                for i in range(score_type.score_quantity):
+                    score_type_name = f"{score_type.name} ({i + 1})"
+                    row[score_type_name] = score_values[i] if i < len(score_values) else ""
+
+            row["Trung bình"] = scores.get(student.student_id, {}).get("average_score", 0)  # Điểm trung bình
+
+        data.append(row)
+
+    df = pd.DataFrame(data)
+
+    output = BytesIO()  # Tạo buffer trong bộ nhớ
+    df.to_excel(output, index=False, engine='openpyxl')  # Ghi dữ liệu vào buffer
+    output.seek(0)  # Đưa con trỏ về đầu buffer
+
+    # Trả về file dưới dạng HTTP response
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=scores.xlsx"
+    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return response
