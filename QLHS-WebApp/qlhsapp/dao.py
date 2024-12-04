@@ -382,12 +382,33 @@ def update_class(class_id, new_homeroom_teacher_id, class_name):
 
 def add_new_school_year(year1, year2, start_hk1, finish_hk1, start_hk2, finish_hk2):
     if len(year1) == 4 and len(year2) == 4 and int(year2) == int(year1) + 1:
-        start_hk1 = datetime.strptime(start_hk1, "%Y-%m-%d")
-        finish_hk1 = datetime.strptime(finish_hk1, "%Y-%m-%d")
-        start_hk2 = datetime.strptime(start_hk2, "%Y-%m-%d")
-        finish_hk2 = datetime.strptime(finish_hk2, "%Y-%m-%d")
+        try:
+            start_hk1 = datetime.strptime(start_hk1, "%Y-%m-%d")
+            finish_hk1 = datetime.strptime(finish_hk1, "%Y-%m-%d")
+            start_hk2 = datetime.strptime(start_hk2, "%Y-%m-%d")
+            finish_hk2 = datetime.strptime(finish_hk2, "%Y-%m-%d")
+        except ValueError:
+            flash('Định dạng ngày tháng không hợp lệ!', 'danger')
+            return False
+
+        if not (start_hk1.year == int(year1) and finish_hk1.year in [int(year1), int(year2)]):
+            flash('Thời gian học kỳ 1 không hợp lệ!', 'danger')
+            return False
+
+        if not (start_hk2.year in [int(year1), int(year2)] and finish_hk2.year == int(year2)):
+            flash('Thời gian học kỳ 2 không hợp lệ!', 'danger')
+            return False
+
+        if not (start_hk1 < finish_hk1 < start_hk2 < finish_hk2):
+            flash('Thời gian các học kỳ không hợp lệ!', 'danger')
+            return False
+
 
         sy = f'{year1}-{year2}'
+        exist_sy = SchoolYear.query.filter_by(name=sy).first()
+        if exist_sy:
+            flash('Năm học đã tồn tại!', 'danger')
+            return False
         school_year = SchoolYear(name=sy)
         db.session.add(school_year)
         db.session.flush()
