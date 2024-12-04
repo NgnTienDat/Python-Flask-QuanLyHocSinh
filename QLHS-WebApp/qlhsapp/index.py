@@ -67,6 +67,10 @@ def find_student_page():
     if r.value == 'STAFF':
         return render_template('staff/find-student.html',
                            students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
+    elif r.value == 'TEACHER':
+        return render_template('teacher/find-student.html',
+                               students=stu_class, pages=pages, page=int(page), classes=classes,
+                               selected_class=class_id)
     return render_template('admin/find-student.html',
                            students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
 
