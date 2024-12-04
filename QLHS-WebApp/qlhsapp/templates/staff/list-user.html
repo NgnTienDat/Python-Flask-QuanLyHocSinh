@@ -1,0 +1,126 @@
+{% extends 'layout/base.html' %}
+{% block title %} Danh sách Người Dùng {% endblock %}
+
+{% block css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    table th, table td {
+        text-align: left;
+        padding: 12px;
+        border: 1px solid #ddd;
+    }
+
+    table th {
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+    }
+
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+    ul.pagination {
+        display: flex;
+        justify-content: center; /* Căn giữa các nút phân trang */
+        margin-top: 15px; /* Thêm khoảng cách phía trên */
+        padding: 0;
+    }
+
+    ul.pagination li {
+        margin: 0 5px; /* Thêm một chút khoảng cách giữa các nút */
+    }
+
+    ul.pagination .page-item {
+        list-style: none;
+    }
+
+    ul.pagination .page-link {
+        text-decoration: none;
+        padding: 8px 16px; /* Điều chỉnh kích thước nút */
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        color: #007bff;
+    }
+
+
+    ul.pagination .page-link:hover {
+        background-color: #007bff;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
+                <li class="breadcrumb-item"><a href="/list-user">Tra cứu người dùng</a></li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between mb-3">
+            <form class="search-bar" method="get" action="/list-user">
+                <input type="text" name="kw" placeholder="Tên người dùng cần tìm..."
+                       value="{{ request.args.get('kw', '') }}">
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                <a href="/add-user" class="btn btn-primary"><i class="fa fa-plus"></i> Thêm người dùng</a>
+            </form>
+        </div>
+        <div class="container">
+            <h1>Danh Sách Người Dùng</h1>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Họ Tên</th>
+                    <th>Email</th>
+                    <th>Số Điện Thoại</th>
+                    <th>Địa Chỉ</th>
+
+                </tr>
+                </thead>
+                <tbody id="user-table-body">
+                {% for s in users %}
+                <tr>
+                    <td>{{ s.id }}</td>
+                    <td>{{ s.first_name +" "+ s.last_name }}</td>
+                    <td>{{ s.email }}</td>
+                    <td>{{ s.phone_number }}</td>
+                    <td>{{ s.address }}</td>
+
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <ul class="pagination">
+                {% for idx in range(1, pages+1) %}
+                <li class="page-item {% if idx == page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('list_user', page=idx) }}">{{
+                        idx }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+
+    </div>
+</div>
+
+{% endblock %}
+
+
+
+

@@ -662,36 +662,27 @@ def delete_student(student_id):
 def add_student(name, address, gender, date_of_birth, staff_id, **kwargs):
     gender = GenderEnum(gender)
     date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
-    # xử lý độ tuổi
-    # Ngày hiện tại
-    today = datetime.today().date()
 
-    age = today.year - date_of_birth.year
-
-    min_age = int(Regulation.query.filter_by(key_name='MIN_AGE').first().value)
-    max_age = int(Regulation.query.filter_by(key_name='MAX_AGE').first().value)
-    print(min_age)
-    print(max_age)
-    if min_age <= age <= max_age:
-        try:
-            student = Student(name=name,
-                              address=address,
-                              gender=gender,
-                              date_of_birth=date_of_birth,
-                              staff_id=staff_id,
-                              email=kwargs.get('email'),
-                              phone_number=kwargs.get('phone_number'))
-            db.session.add(student)
-            db.session.commit()
-        except ValueError as ve:
-            db.session.rollback()
-            print(f"Lỗi thêm giới tính: {gender}. Error: {ve}")
-        except Exception as e:
-            db.session.rollback()
-            print(f"Lỗi thêm học sinh: {e}")
+    try:
+        student = Student(name=name,
+                          address=address,
+                          gender=gender,
+                          date_of_birth=date_of_birth,
+                          staff_id=staff_id,
+                          email=kwargs.get('email'),
+                          phone_number=kwargs.get('phone_number'))
+        db.session.add(student)
+        db.session.commit()
         flash("Thêm học sinh thành công!", "success")
-    else:
-        flash("Độ tuổi không nằm trong khoảng tiếp nhận", "warning")
+        return True
+    except ValueError as ve:
+        db.session.rollback()
+        print(f"Lỗi thêm giới tính: {gender}. Error: {ve}")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Lỗi thêm học sinh: {e}")
+    flash("Thêm học sinh không thành công!", "danger")
+    return False
 
 
 def check_email_student(current_email):

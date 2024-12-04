@@ -36,9 +36,7 @@
 </style>
 {% endblock %}
 
-{% block sidebar %}
-{% include 'layout/sidebar-admin.html'%}
-{% endblock %}
+
 
 {% block content %}
 <div class="container-fluid pt-4 px-4">
@@ -47,7 +45,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
-                <li class="breadcrumb-item">Quy định số học sinh</li>
+                <li class="breadcrumb-item"><a href="">Quy định số học sinh</a></li>
             </ol>
         </nav>
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -61,37 +59,16 @@
         {% endwith %}
         <h3>Sĩ số học sinh tối đa trong một lớp học</h3>
         <div class="container">
-            <form action="{{ url_for('numbers_regulations_page') }}" method="post" novalidate>
+
                 <div class="display">
                     <input type="number" class="edit-input" value="{{ class_size.value }}"
                            name="class_max_size" min="1" max="100" step="1" readonly>
                 </div>
-                <button id="edit-button" type="button">Thay đổi</button>
-                <button type="submit">Lưu</button>
-            </form>
+
         </div>
 
     </div>
 </div>
-<script>
-    document.getElementById("edit-button").addEventListener("click", function () {
-        // Bật chế độ chỉnh sửa cho các ô input
-        const inputs = document.querySelectorAll(".edit-input");
-        inputs.forEach(input => {
-            input.readOnly = false; // Cho phép chỉnh sửa
-        });
-
-
-
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(alert => {
-        alert.style.display = "none"; // Ẩn thông báo
-        });
-    });
-
-
-
-</script>
 
 {% endblock %}
 

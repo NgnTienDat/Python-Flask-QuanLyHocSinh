@@ -49,7 +49,7 @@
 {% endblock %}
 
 {% block sidebar %}
-{% include 'layout/sidebar-admin.html'%}
+{% include 'layout/sidebar-staff.html'%}
 {% endblock %}
 
 {% block content %}
@@ -72,9 +72,7 @@
         {% endif %}
         {% endwith %}
         <h3>Quy định năm học</h3>
-        <div class="d-flex justify-content-end mb-3">
-            <a href="{{ url_for('add_new_school_year') }}" class="btn btn-primary">Thêm mới</a>
-        </div>
+
         <!-- Form -->
         <table>
             <thead>

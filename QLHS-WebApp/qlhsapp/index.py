@@ -61,6 +61,12 @@ def find_student_page():
     stu_class, pages = dao.list_students(kw=kw, class_id=class_id, page=int(page))
     if not stu_class:
         flash(f'Không có học sinh nào tên {kw}.', 'warning')
+
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'STAFF':
+        return render_template('staff/find-student.html',
+                           students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
     return render_template('admin/find-student.html',
                            students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
 
@@ -82,7 +88,7 @@ def add_student_page():
             gender = request.form.get('gender')
             date_of_birth = request.form.get('date_of_birth')
             phone_number = request.form.get('phone_number')
-            staff_id = '2'
+            staff_id = current_user.account_id
             print(f"Received data: name={name}, address={address}, email={email}, "
                   f"gender={gender}, date_of_birth={date_of_birth}, phone_number={phone_number}")
             # kiểm tra tính hợp lệ của thông tin nhập vào
@@ -93,9 +99,10 @@ def add_student_page():
                 flash("Email đã tồn tại !!!", "warning")
                 return redirect(url_for('add_student_page'))
 
-            dao.add_student(name=name, address=address, gender=gender, date_of_birth=date_of_birth, staff_id=staff_id,
+            if dao.add_student(name=name, address=address, gender=gender, date_of_birth=date_of_birth, staff_id=staff_id,
                             email=email,
-                            phone_number=phone_number)
+                            phone_number=phone_number):
+                return redirect(url_for('find_student_page'))
 
         except Exception as ex:
             print(f"Error occurred: {ex}")
@@ -148,7 +155,7 @@ def set_class_page():
     else:
         students, pages = dao.load_student_no_assigned(page=int(page))
 
-    return render_template('admin/set-class.html',
+    return render_template('staff/set-class.html',
                            classes=classes, students=students, pages=pages, page=int(page),
                            total_unassigned_students=total_unassigned_students,
                            selected_class_id=selected_class_id)
@@ -172,7 +179,12 @@ def school_year_page():
     semesters = Semester.query.order_by(Semester.id.desc()).all()
     school_years_semesters = dao.get_school_years_with_semesters()
     results = dao.format_school_year_data(school_years_semesters)
-    return render_template('admin/school-year.html', school_years=results)
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value =='ADMIN':
+        return render_template('admin/school-year.html', school_years=results)
+
+    return render_template('staff/school-year.html', school_years=results)
 
 
 @app.route('/school-year/new-school-year', methods=['get', 'post'])
@@ -229,7 +241,13 @@ def score_regulations_page():
         return redirect(url_for('score_regulations_page'))
 
     score_types = dao.load_score_regulation()
-    return render_template('admin/score.html', score_types=score_types)
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/score.html', score_types=score_types)
+
+    return render_template('staff/score.html',  score_types=score_types)
+
 
 
 @app.route("/add-new-score-type", methods=['get', 'post'])
@@ -270,6 +288,7 @@ def delete_score_type(score_type_id):
 # Quy định số học sinh
 @app.route("/numbers-regulation", methods=['get', 'post'])
 def numbers_regulations_page():
+
     if request.method == 'POST':
         try:
             class_max_size = int(request.form.get('class_max_size'))
@@ -281,7 +300,12 @@ def numbers_regulations_page():
             return redirect(url_for('numbers_regulations_page'))
 
     class_size = Regulation.query.filter_by(key_name='CLASS_MAX_SIZE').first()
-    return render_template('admin/numbers.html', class_size=class_size)
+
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/numbers.html', class_size=class_size)
+    return render_template('staff/numbers.html', class_size=class_size)
 
 
 # Quy định tuổi
@@ -303,7 +327,12 @@ def age_regulations_page():
     max_age = Regulation.query.filter_by(key_name='MAX_AGE').first()
     min_age = Regulation.query.filter_by(key_name='MIN_AGE').first()
 
-    return render_template('admin/age.html', max_age=max_age, min_age=min_age)
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/age.html', max_age=max_age, min_age=min_age)
+    return render_template('staff/age.html', max_age=max_age, min_age=min_age)
+
 
 
 @app.route("/list-teacher/teaching-assignment", methods=['get', 'post'])
@@ -422,7 +451,12 @@ def list_teacher():
     page = request.args.get('page', 1)
     kw = request.args.get('kw')
     teachers, pages = dao.load_teachers(kw=kw, page=int(page))
-    return render_template('admin/teacher.html', teachers=teachers, pages=pages, page=int(page))
+
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/teacher.html', teachers=teachers, pages=pages, page=int(page))
+    return render_template('staff/teacher.html', teachers=teachers, pages=pages, page=int(page))
 
 
 @app.route("/list-teacher/<int:teacher_id>")
@@ -481,7 +515,12 @@ def delete_teacher(teacher_id):
 def list_subject():
     kw = request.args.get("key-name")
     subjects = dao.load_subject(kw=kw)
-    return render_template('admin/subject.html', subjects=subjects)
+
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/subject.html', subjects=subjects)
+    return render_template('staff/subject.html', subjects=subjects)
 
 
 @app.route("/list-subject/delete-subject/<int:subject_id>", methods=['get', 'post'])
@@ -526,7 +565,7 @@ def list_class():
 
     grade_levels = GradeLevel.query.all()
     selected_filter = grade_level_id
-    return render_template('admin/class.html', classes=classes,
+    return render_template('staff/class.html', classes=classes,
                            grade_levels=grade_levels, selected_filter=selected_filter, pages=pages, page=int(page))
 
 
@@ -578,7 +617,12 @@ def list_user():
     page = request.args.get('page', 1)
     kw = request.args.get('kw')
     users, pages = dao.load_list_users(kw=kw, page=int(page))
-    return render_template('admin/list-user.html', users=users, pages=pages)
+
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/list-user.html', users=users, pages=pages)
+    return render_template('staff/list-user.html', users=users, pages=pages)
 
 
 @app.route("/delete-user/<int:user_id>", methods=['get', 'post'])
