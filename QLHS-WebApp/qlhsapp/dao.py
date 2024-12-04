@@ -1009,6 +1009,6 @@ def export_to_excel(semester_id, scores, students):
 
     # Trả về file dưới dạng HTTP response
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=scores.xlsx"
+    response.headers["Content-Disposition"] = "attachment"
     response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return response
