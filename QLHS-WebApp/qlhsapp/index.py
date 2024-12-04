@@ -55,13 +55,11 @@ def find_student_page():
     class_id = request.args.get("class_id")
     classes = dao.get_all_class()
 
-    stu_class, pages = dao.list_students(kw=kw, class_id=class_id,page=int(page))
+    stu_class, pages = dao.list_students(kw=kw, class_id=class_id, page=int(page))
     if not stu_class:
         flash(f'Không có học sinh nào tên {kw}.', 'warning')
     return render_template('admin/find-student.html',
                            students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
-
-
 
 
 @app.route("/logout")
@@ -95,7 +93,7 @@ def add_student_page():
             dao.add_student(name=name, address=address, gender=gender, date_of_birth=date_of_birth, staff_id=staff_id,
                             email=email,
                             phone_number=phone_number)
-            flash("Thêm học sinh thành công!", "success")
+
         except Exception as ex:
             print(f"Error occurred: {ex}")
             flash(f"Đã xảy ra lỗi khi thêm học sinh: {ex}", "error")
@@ -173,9 +171,9 @@ def school_year_page():
     results = dao.format_school_year_data(school_years_semesters)
     return render_template('admin/school-year.html', school_years=results)
 
-@app.route('/school-year/new-school-year', methods=['get','post'])
-def add_new_school_year():
 
+@app.route('/school-year/new-school-year', methods=['get', 'post'])
+def add_new_school_year():
     if request.method == 'POST':
         try:
             year1 = request.form.get('school_year1')
@@ -194,7 +192,6 @@ def add_new_school_year():
             return redirect(url_for('school_year_page'))
 
     return render_template('admin/new-school-year.html')
-
 
 
 # Quy định số cột điểm
@@ -359,15 +356,16 @@ def input_score():
     semesters = dao.get_semester(current_year.id) if current_year else []
     score_columns = dao.load_score_columns()
     students = dao.get_students_by_class(class_id)
+
     scores = dao.prepare_scores(subject_id, semester_id)
 
     if request.method == 'POST':
         teacher_id = request.form.get('teacher_id')
         for student in students:
             student_id = student.student_id
-            score_data = dao.extract_score_data(student, score_columns, request.form) #lấy các cột điểm của hs từ form về dạng từ điểm để lưu
+            score_data = dao.extract_score_data(student, score_columns, request.form)  # lấy các cột điểm của hs từ form về dạng từ điểm để lưu
             dao.save_score(student_id, subject_id, teacher_id, semester_id, score_columns, score_data)
-        scores = dao.prepare_scores(subject_id, semester_id) #load lại điểm lúc nhấn lưu
+        scores = dao.prepare_scores(subject_id, semester_id)  # load lại điểm lúc nhấn lưu
 
     return render_template(
         'admin/input-score.html',
@@ -383,9 +381,37 @@ def input_score():
 
 
 # Xuất điểm
-@app.route("/export-score")
+@app.route("/export-score", methods=['get', 'post'])
 def export_score():
-    return render_template('admin/export-score.html')
+    class_id = request.args.get('class_id') or request.form.get('class_id')
+    semester_id = request.args.get('semester_id') or request.form.get('semester_id')
+    subject_id = request.args.get('subject_id') or request.form.get('subject_id')
+    export_format = request.args.get('export')  # Kiểm tra nếu xuất Excel
+
+    current_year = dao.get_current_school_year()
+    classes = dao.get_class_teacher(current_user.user.id)
+    semesters = dao.get_semester(current_year.id) if current_year else []
+    score_columns = dao.load_score_columns()
+    students = dao.get_students_by_class(class_id)
+
+    # lay diem hien len giao dien
+    if semester_id == "all_semester":
+        scores = dao.get_all_average_scores(subject_id, class_id, current_year.id)
+    else:
+        scores = dao.prepare_scores(subject_id, semester_id)
+
+    if export_format == "excel":
+        # Gọi hàm tạo file Excel
+        return dao.export_to_excel(semester_id, scores, students)
+    return render_template('admin/export-score.html',
+                           current_year=current_year,
+                           classes=classes,
+                           semesters=semesters,
+                           score_columns=score_columns,
+                           students=students,
+                           selected_class_filter=class_id,
+                           scores=scores,
+                           selected_semester_filter=semester_id)
 
 
 @app.route("/list-teacher")
@@ -471,10 +497,11 @@ def delete_subject(subject_id):
     subject = dao.get_subject_by_id(subject_id)
     return render_template('admin/delete-subject.html', subject=subject)
 
+
 @app.route("/update-subject/<int:subject_id>", methods=['get', 'post'])
 def update_subject(subject_id):
     subject = Subject.query.get(subject_id)
-    if request.method=='POST':
+    if request.method == 'POST':
 
         try:
             name = request.form.get('subject_name')
@@ -484,7 +511,7 @@ def update_subject(subject_id):
             flash(f"Lỗi: {str(e)}", "danger")
             return redirect(url_for('list_subject'))
 
-    return  render_template('admin/update-subject.html', subject=subject)
+    return render_template('admin/update-subject.html', subject=subject)
 
 
 @app.route("/list-class")
@@ -739,8 +766,6 @@ def add_new_subject():
         dao.save_subject(name)
         flash("Thêm môn học thành công!", "success")
     return render_template('admin/add-subject.html')
-
-
 
 
 @app.route('/my-account/<int:id>', methods=['GET', 'POST'])
