@@ -29,7 +29,8 @@ def load_list_users(kw=None, page=1):
     page_size = app.config['PAGE_SIZE']
     start = (page - 1) * page_size
 
-    query = User.query
+    query = User.query.join(Account).filter(Account.active == True)
+
     print(query)
     total_records = query.count()  # Tong so ban ghi
     total_pages = math.ceil(total_records / page_size)

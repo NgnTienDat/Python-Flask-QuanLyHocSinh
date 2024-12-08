@@ -541,21 +541,31 @@ def update_class(class_id):
 
 @app.route("/list-user")
 def list_user():
-    page = request.args.get('page', 1)
-    kw = request.args.get('kw')
-    users, pages = dao.load_list_users(kw=kw, page=int(page))
-    return render_template('admin/list-user.html', users=users, pages=pages)
+    if current_user.role.value == "ADMIN":
+        page = request.args.get('page', 1)
+        kw = request.args.get('kw')
+        users, pages = dao.load_list_users(kw=kw, page=int(page))
+        return render_template('admin/list-user.html', users=users, pages=pages)
+    else:
+        flash("Bạn không có quyền truy cập quản lý người dùng.", "error")
+        return redirect(url_for('get_home_page'))
+
 
 
 @app.route("/delete-user/<int:id>", methods=['DELETE'])
 def delete_user(id):
+    print(id)
     try:
-        dao.delete_account_from_db(id)
-        dao.delete_user_from_db(id)
+        a = dao.get_account_by_id(id)
+        a.active = False
+        db.session.add(a)
+        db.session.commit()
         print("Xóa thành công")
         return {"message": "Xóa thành công"}
     except Exception as e:
-        print("Xóa thất bại")
+        print("Xóa thất bại", e)
+        return {"message": "Xóa thất bại", "error": str(e)}
+
 
 
 # Route để cập nhật thông tin khách hàng
