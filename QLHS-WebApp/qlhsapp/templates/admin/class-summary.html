@@ -102,7 +102,17 @@
                         <div class="col">
                             <label for="class-select">Lớp</label>
                             <select id="class-select" class="form-control">
+                                {% if current_user.role.value == "ADMIN" %}
+                                    <option value="all" {% if class_id == 'all' %}selected{% endif %}>Chọn lớp</option>
+                                    {% for cls in classes %}
+                                        <option value="{{ cls.id }}"
+                                                {% if class_id == cls.id|string %}selected{% endif %}>
+                                            {{ cls.name }}
+                                        </option>
+                                    {% endfor %}
+                                {% else %}
                                 <option>{{ class_name.name }}</option>
+                                {% endif %}
                             </select>
                         </div>
                         <div class="col">
@@ -121,7 +131,18 @@
                         <div class="col">
                             <label for="school-year-select">Niên khóa</label>
                             <select id="school-year-select" class="form-control">
-                                <option>{{ current_year.name }}</option>
+                                {% if current_user.role.value == "ADMIN" %}
+                                    <option value="all" {% if school_year_id == 'all' %}selected{% endif %}>Chọn niên khoá
+                                    </option>
+                                    {% for year in school_years %}
+                                        <option value="{{ year.id }}"
+                                            {% if school_year_id == year.id|string %}selected{% endif %}>
+                                            {{ year.name }}
+                                        </option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option>{{ current_year.name }}</option>
+                                {% endif %}
                             </select>
                         </div>
                     </div>
@@ -171,12 +192,16 @@
     <script>
         const updateURL = () => {
             const selectedSemesterId = document.getElementById('semester-select').value;
+            const selectedSchoolYearId = document.getElementById('school-year-select').value;
+            const selectedClassId = document.getElementById('class-select').value;
 
             // Chỉ gửi semester_id trong URL, không cần class_id nữa
-            window.location.href = `{{ url_for('class_summary_score') }}?semester_id=${selectedSemesterId}`;
+            window.location.href = `{{ url_for('class_summary_score') }}?class_id=${selectedClassId}&semester_id=${selectedSemesterId}&school_year_id=${selectedSchoolYearId}`;
         };
 
         document.getElementById('semester-select').addEventListener('change', updateURL);
+        document.getElementById('class-select').addEventListener('change', updateURL);
+        document.getElementById('school-year-select').addEventListener('change', updateURL);
 
         document.getElementById('export-excel-btn').addEventListener('click', (e) => {
             e.preventDefault();  // Ngừng hành động mặc định của nút

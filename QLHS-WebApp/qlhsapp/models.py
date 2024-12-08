@@ -47,7 +47,7 @@ class User(BaseModel, UserMixin):
     email = Column(String(50), unique=True, nullable=False)
     phone_number = Column(String(12), nullable=False)
     address = Column(String(255))
-    avatar = Column(String(255))
+    avatar = Column(String(255), default="https://res.cloudinary.com/derx1izam/image/upload/v1733139904/u1znxkazv1qst2w908tr.jpg")
     # Create by Administrator's id
     create_by_Id = Column(Integer, ForeignKey('administrator.admin_id'), nullable=True)
 
@@ -292,9 +292,9 @@ class Semester(BaseModel):
         return self.name
 
 
-from datetime import date
-from random import randint
-from sqlalchemy.orm import Session
+# from datetime import date
+# from random import randint
+# from sqlalchemy.orm import Session
 #
 #
 # def create_students(session: Session):
@@ -332,36 +332,45 @@ from sqlalchemy.orm import Session
 #     session.commit()
 #     print("Đã thêm 66 học sinh vào cơ sở dữ liệu.")
 
-def create_students(session: Session):
-    # Danh sách các đối tượng StudentClass
-    studentClasses = []
-
-    # Số lượng học sinh mỗi lớp
-    students_per_class = 11
-
-    # Tạo danh sách lớp
-    classes = [("10A1", 1), ("10A2", 2), ("10A3", 3), ("10A4", 4), ("10A5", 5), ("10A6", 6)]
-
-    # Biến đếm student_id
-    student_id = 1
-
-    for class_name, class_id in classes:
-        for i in range(students_per_class):
-            studentClass = StudentClass(
-                student_id=student_id,  # Mỗi học sinh có ID duy nhất
-                class_id=class_id  # ID của lớp học
-            )
-            studentClasses.append(studentClass)
-            student_id += 1  # Tăng ID cho học sinh tiếp theo
-
-    # Thêm danh sách vào session
-    session.add_all(studentClasses)
-    session.commit()
-    print("Đã thêm học sinh cho tất cả các lớp vào cơ sở dữ liệu.")
+# def create_students(session: Session):
+#     # Danh sách các đối tượng StudentClass
+#     studentClasses = []
+#
+#     # Số lượng học sinh mỗi lớp
+#     students_per_class = 11
+#
+#     # Tạo danh sách lớp
+#     classes = [("10A1", 1), ("10A2", 2), ("10A3", 3), ("10A4", 4), ("10A5", 5), ("10A6", 6)]
+#
+#     # Biến đếm student_id
+#     student_id = 1
+#
+#     for class_name, class_id in classes:
+#         for i in range(students_per_class):
+#             studentClass = StudentClass(
+#                 student_id=student_id,  # Mỗi học sinh có ID duy nhất
+#                 class_id=class_id  # ID của lớp học
+#             )
+#             studentClasses.append(studentClass)
+#             student_id += 1  # Tăng ID cho học sinh tiếp theo
+#
+#     # Thêm danh sách vào session
+#     session.add_all(studentClasses)
+#     session.commit()
+#     print("Đã thêm học sinh cho tất cả các lớp vào cơ sở dữ liệu.")
 
 
 if __name__ == '__main__':
     with app.app_context():
-        # db.create_all()
-        with Session(engine) as session:  # Đảm bảo bạn đã kết nối đúng engine
-            create_students(session)
+        db.create_all()
+        # with Session(engine) as session:  # Đảm bảo bạn đã kết nối đúng engine
+        #     create_students(session)
+
+
+        # import hashlib
+        # u = User(first_name='Tran', last_name='Truong', email='admin@gmail.com', phone_number='0123456789', address='HT13, Hiệp Thành')
+        # a = Account(account_id=u.id,username='admin',password=str(hashlib.md5('123456'.encode('utf-8')).hexdigest()),
+        #          user_role=UserRole.ADMIN)
+        # db.session.add(u)
+        # db.session.add(a)
+        # db.session.commit()

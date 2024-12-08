@@ -101,21 +101,35 @@
                         <div class="col">
                             <label for="subject-select">Môn học</label>
                             <select id="subject-select" class="form-control">
+                                {% if current_user.role.value == "ADMIN" %}
+                                    <option value="all" {% if subject_id == 'all' %}selected{% endif %}>Chọn môn học
+                                    </option>
+                                    {% for s in subjects %}
+                                    <option value="{{ s.id }}"
+                                            {% if subject_id == s.id|string %}selected{% endif %}>
+                                            {{ s.name }}
+                                    </option>
+                                    {% endfor %}
+                                {% else %}
                                 <option>
                                     {{ current_user.user.teacher.subject.name }}
                                 </option>
+                                {% endif %}
                             </select>
-                            <input type="hidden" name="subject_id" value="{{ current_user.user.teacher.subject.id }}">
-                            <input type="hidden" name="teacher_id" value="{{ current_user.user.id }}">
+                            {% if current_user.user and current_user.user.teacher and current_user.user.teacher.subject %}
+                                <input type="hidden" name="subject_id" value="{{ current_user.user.teacher.subject.id }}">
+                                <input type="hidden" name="teacher_id" value="{{ current_user.user.id }}">
+                            {% endif %}
+
                         </div>
                         <div class="col">
                             <label for="class-select">Lớp</label>
                             <select id="class-select" class="form-control" name="class_id">
                                 <option value="all" {% if class_id == 'all' %}selected{% endif %}>Chọn lớp</option>
                                 {% for cls in classes %}
-                                    <option value="{{ cls.class_id }}"
-                                            {% if class_id == cls.class_id|string %}selected{% endif %}>
-                                        {{ cls.class_ }}
+                                    <option value="{{ cls.id }}"
+                                            {% if class_id == cls.id|string %}selected{% endif %}>
+                                        {{ cls.name }}
                                     </option>
                                 {% endfor %}
                             </select>
@@ -124,19 +138,31 @@
                             <label for="semester-select">Học kỳ</label>
                             <select id="semester-select" class="form-control" name="semester_id">
                                 <option value="all" {% if semester_id == 'all' %}selected{% endif %}>Chọn học kỳ
-                                </option>
-                                {% for semester in semesters %}
-                                    <option value="{{ semester.id }}"
-                                            {% if semester_id == semester.id|string %}selected{% endif %}>
-                                        {{ semester.name }}
                                     </option>
-                                {% endfor %}
+                                    {% for semester in semesters %}
+                                        <option value="{{ semester.id }}"
+                                            {% if semester_id == semester.id|string %}selected{% endif %}>
+                                            {{ semester.name }}
+                                        </option>
+                                    {% endfor %}
                             </select>
                         </div>
                         <div class="col">
                             <label for="school-year-select">Niên khóa</label>
                             <select id="school-year-select" class="form-control">
-                                <option>{{ current_year.name }}</option>
+                                {% if current_user.role.value == "ADMIN" %}
+                                    <option value="all" {% if school_year_id == 'all' %}selected{% endif %}>Chọn niên khoá
+                                    </option>
+                                    {% for year in school_years %}
+                                        <option value="{{ year.id }}"
+                                            {% if school_year_id == year.id|string %}selected{% endif %}>
+                                            {{ year.name }}
+                                        </option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option>{{ current_year.name }}</option>
+                                {% endif %}
+
                             </select>
                         </div>
                     </div>
@@ -181,16 +207,29 @@
         </form>
     </div>
     <script>
+        const userRole = "{{ role }}"; // Lấy role từ server
         const updateURL = () => {
             const selectedClassId = document.getElementById('class-select').value;
             const selectedSemesterId = document.getElementById('semester-select').value;
-            const selectedSubjectId = document.querySelector('input[name="subject_id"]').value;
+            const selectedSchoolYearId = document.getElementById('school-year-select').value;
+            if (userRole === "ADMIN") {
+                const subjectSelectElement = document.getElementById('subject-select');
+                selectedSubjectId = subjectSelectElement ? subjectSelectElement.value : null;
+            } else {
+                const subjectInputElement = document.querySelector('input[name="subject_id"]');
+                selectedSubjectId = subjectInputElement ? subjectInputElement.value : null;
+            }
+            if (!selectedSubjectId) {
+            console.error("Subject ID is missing");
+            return;
+        }
 
-            window.location.href = `{{ url_for('subject_summary_score') }}?class_id=${selectedClassId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}`;
+            window.location.href = `{{ url_for('subject_summary_score') }}?class_id=${selectedClassId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}&school_year_id=${selectedSchoolYearId}`;
         };
-
+        document.getElementById('subject-select').addEventListener('change', updateURL);
         document.getElementById('class-select').addEventListener('change', updateURL);
         document.getElementById('semester-select').addEventListener('change', updateURL);
+        document.getElementById('school-year-select').addEventListener('change', updateURL);
 
         document.getElementById('export-excel-btn').addEventListener('click', (e) => {
             e.preventDefault();  // Ngừng hành động mặc định của nút

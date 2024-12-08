@@ -680,33 +680,55 @@ def change_password(id):
 
 @app.route("/subject-summary-score")
 def subject_summary_score():
-    if current_user.role == "STAFF":
+    # Role = STAFF
+    if current_user.role.value == "STAFF":
+        flash("Bạn không có quyền truy cập báo cáo thống kê.", "error")
         return redirect(url_for('get_home_page'))
 
     class_id = request.args.get('class_id') or request.form.get('class_id')
     semester_id = request.args.get('semester_id') or request.form.get('semester_id')
     subject_id = request.args.get('subject_id') or request.form.get('subject_id')
+    school_year_id = request.args.get('school_year_id') or request.form.get('school_year_id')
+    role = current_user.role.value
 
     # Kiểm tra giá trị của class_id
     if class_id == 'all':
         class_id = None  # Nếu chọn 'all', set class_id về None hoặc giá trị mặc định
 
-    current_year = dao.get_current_school_year()
-    classes = dao.get_class_teacher(current_user.user.id)
-    semesters = dao.get_semester(current_year.id) if current_year else []
-    teacher_classes = dao.get_teacher_classes_details(current_user.user.id, semester_id, subject_id, class_id)
+    # Role = ADMIN
+    if current_user.role.value == "ADMIN":
+        classes = dao.get_all_class()
+        subjects = dao.get_all_subject()
+        school_years = dao.get_all_school_year()  # Danh sách các niên khóa
+        current_year = school_years[0] if school_years else None  # Lấy niên khóa đầu tiên hoặc để None
+        if school_year_id:
+            semesters = dao.get_semester(school_year_id) if current_year else []
+        else:
+            semesters = dao.get_semester(current_year.id) if current_year else []
+    else:  # Role = TEACHER
+        classes = dao.get_class_teacher(current_user.user.id)
+        subjects = []
+        school_years = []
+        current_year = dao.get_current_school_year()
+        semesters = dao.get_semester(current_year.id) if current_year else []
 
+    teacher_classes = dao.get_teacher_classes_details(current_user.user.id, semester_id, subject_id, class_id)
     return render_template('admin/subject-summary.html', class_id=class_id, semester_id=semester_id,
-                           subject_id=subject_id, current_year=current_year, classes=classes, semesters=semesters,
-                           teacher_classes=teacher_classes)
+                           subject_id=subject_id, school_year_id=school_year_id, current_year=current_year,
+                           classes=classes, semesters=semesters,
+                           teacher_classes=teacher_classes, subjects=subjects, school_years=school_years, role=role)
 
 
 @app.route("/class-summary-score")
 def class_summary_score():
-    if current_user.role == "STAFF":
+    if current_user.role.value == "STAFF":
+        flash("Bạn không có quyền truy cập báo cáo thống kê.", "error")
         return redirect(url_for('get_home_page'))
 
     semester_id = request.args.get('semester_id') or request.form.get('semester_id')
+    school_year_id = request.args.get('school_year_id') or request.form.get('school_year_id')
+    class_id = request.args.get('class_id') or request.form.get('class_id')
+
     # Chuyển semester_id sang kiểu int, nếu là chuỗi và có thể chuyển đổi được
     if semester_id and semester_id != 'all':
         try:
@@ -714,15 +736,33 @@ def class_summary_score():
         except ValueError:
             semester_id = None
 
-    class_name = dao.get_class_by_homeroom_teacher_id(current_user.user.id)
-    current_year = dao.get_current_school_year()
-    semesters = dao.get_semester(current_year.id) if current_year else []
+    # Role = ADMIN
+    if current_user.role.value == "ADMIN":
+        classes = dao.get_all_class()
+        class_name = classes[0] if classes else None
+        if class_id and class_id != 'all':
+            students = dao.get_student_ids_by_class_id(int(class_id), semester_id)
+        else:
+            students = dao.get_student_ids_by_class_id(class_name.id, semester_id)
 
+        school_years = dao.get_all_school_year()  # Danh sách các niên khóa
+        current_year = school_years[0] if school_years else None  # Lấy niên khóa đầu tiên hoặc để None
+        if school_year_id:
+            semesters = dao.get_semester(school_year_id) if current_year else []
+        else:
+            semesters = dao.get_semester(current_year.id) if current_year else []
+    else:  # Role = TEACHER
+        class_name = dao.get_class_by_homeroom_teacher_id(current_user.user.id)
+        current_year = dao.get_current_school_year()
+        semesters = dao.get_semester(current_year.id) if current_year else []
+        students = dao.get_student_ids_by_class_id(class_name.id, semester_id)
+        school_years = []
+        classes = []
 
-
-    students = dao.get_student_ids_by_class_id(class_name.id, semester_id)
-    return render_template('admin/class-summary.html', semester_id=semester_id,
-                           class_name=class_name, current_year=current_year, semesters=semesters, students=students)
+    return render_template('admin/class-summary.html', semester_id=semester_id, class_id=class_id,
+                           school_year_id=school_year_id,
+                           class_name=class_name, current_year=current_year, semesters=semesters, students=students,
+                           school_years=school_years, classes=classes)
 
 
 @app.route("/students/<int:student_id>")

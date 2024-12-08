@@ -726,6 +726,9 @@ def handel_save_subject(name):
 def get_subject_by_id(subject_id):
     return Subject.query.get(subject_id)
 
+def get_all_subject():
+    return Subject.query.all()
+
 
 def delete_subject(subject_id):
     teaching_assignments = TeachingAssignment.query.filter_by(subject_id=subject_id).all()
@@ -942,18 +945,21 @@ def prepare_scores(subject_id, semester_id):
 
 def get_class_teacher(teacher_id):
     current_school_year = get_current_school_year()
-    class_teacher = TeachingAssignment.query.filter_by(teacher_id=teacher_id,
-                                                       school_year_id=current_school_year.id).all()
-    print(current_school_year)
-    print(teacher_id)
+
+    if teacher_id == 1:
+        # Khi teacher_id là 1, lấy tất cả các lớp trong cơ sở dữ liệu cho học kỳ hiện tại
+        class_teacher = TeachingAssignment.query.filter_by(school_year_id=current_school_year.id).all()
+    else:
+        # Khi teacher_id khác 1, chỉ lấy các lớp mà giáo viên đó dạy trong học kỳ hiện tại
+        class_teacher = TeachingAssignment.query.filter_by(teacher_id=teacher_id,
+                                                           school_year_id=current_school_year.id).all()
+
     return class_teacher
 
 
 def get_class_by_id(class_id):
     class_info = Class.query.filter_by(id=class_id).first()  # Lọc theo class_id để lấy thông tin lớp
     return class_info
-
-
 
 
 def get_teacher_classes_details(teacher_id, semester_id, subject_id,class_id=None):
