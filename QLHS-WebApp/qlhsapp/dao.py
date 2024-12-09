@@ -5,9 +5,10 @@ import string
 import math
 import hashlib
 import cloudinary.uploader
-
+import pandas as pd
+from io import BytesIO
 import unicodedata
-from flask import flash
+from flask import flash, make_response
 from sqlalchemy import func
 from flask_mail import Message
 from qlhsapp import app, db, mail
@@ -731,6 +732,7 @@ def handel_save_subject(name):
 def get_subject_by_id(subject_id):
     return Subject.query.get(subject_id)
 
+
 def get_all_subject():
     return Subject.query.all()
 
@@ -828,6 +830,7 @@ def delete_teacher(teacher_id):
 
 def get_current_school_year():
     return SchoolYear.query.order_by(SchoolYear.id.desc()).first()
+
 
 def get_all_school_year():
     return SchoolYear.query.all()
@@ -968,7 +971,7 @@ def get_class_by_id(class_id):
     return class_info
 
 
-def get_teacher_classes_details(teacher_id, semester_id, subject_id,class_id=None):
+def get_teacher_classes_details(teacher_id, semester_id, subject_id, class_id=None):
     # Lấy các lớp mà giáo viên dạy
     class_teacher = get_class_teacher(teacher_id)
     class_ids = [assignment.class_id for assignment in class_teacher]  # Lấy danh sách các class_id
@@ -996,7 +999,7 @@ def get_teacher_classes_details(teacher_id, semester_id, subject_id,class_id=Non
 
             # Lấy số học sinh đạt của lớp cho môn học và học kỳ
             passed_students = get_passed_students(class_info.id, semester_id, subject_id)
-            rate = get_pass_rate(class_info.id, semester_id ,subject_id)
+            rate = get_pass_rate(class_info.id, semester_id, subject_id)
 
             # Thêm thông tin lớp vào danh sách
             class_details.append({
@@ -1021,11 +1024,11 @@ def get_passed_students(class_id, semester_id, subject_id):
     passed_students = db.session.query(func.count(ScoreBoard.student_id)) \
         .join(StudentClass, StudentClass.student_id == ScoreBoard.student_id) \
         .filter(
-            StudentClass.class_id == class_id,
-            ScoreBoard.average_score >= 5,
-            ScoreBoard.semester_id == semester_id,  # Lọc theo học kỳ
-            ScoreBoard.subject_id == subject_id     # Lọc theo môn học
-        ) \
+        StudentClass.class_id == class_id,
+        ScoreBoard.average_score >= 5,
+        ScoreBoard.semester_id == semester_id,  # Lọc theo học kỳ
+        ScoreBoard.subject_id == subject_id  # Lọc theo môn học
+    ) \
         .scalar()
 
     return passed_students
@@ -1100,7 +1103,6 @@ def calculate_student_average(student_id, class_id, semester_id):
         return 0.0
 
 
-
 def get_student_ids_by_class_id(class_id, semester_id):
     """
     Lấy danh sách thông tin chi tiết (student_id, name, gender, điểm trung bình, học lực) của học sinh
@@ -1160,3 +1162,69 @@ def get_student_ids_by_class_id(class_id, semester_id):
         })
 
     return students_with_averages
+
+
+def export_to_excel(semester_id, scores, students):
+    data = []
+    score_types = load_score_columns()
+    for student in students:
+        row = {
+            "Mã HS": student.student_id,
+            "Họ và Tên": student.students.name,
+        }
+        if semester_id == "all_semester":
+            row["TBHK1"] = scores.get(student.student_id, {}).get("TBHK1", "")
+            row["TBHK2"] = scores.get(student.student_id, {}).get("TBHK2", "")
+        else:
+            for score_type in score_types:
+                score_values = scores.get(student.student_id, {}).get(score_type.id, [])
+                for i in range(score_type.score_quantity):
+                    score_type_name = f"{score_type.name} ({i + 1})"
+                    row[score_type_name] = score_values[i] if i < len(score_values) else ""
+
+            row["Trung bình"] = scores.get(student.student_id, {}).get("average_score", 0)  # Điểm trung bình
+
+        data.append(row)
+
+    df = pd.DataFrame(data)
+
+    output = BytesIO()  # Tạo buffer trong bộ nhớ
+    df.to_excel(output, index=False, engine='openpyxl')  # Ghi dữ liệu vào buffer
+    output.seek(0)  # Đưa con trỏ về đầu buffer
+
+    # Trả về file dưới dạng HTTP response
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=scores.xlsx"
+    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return response
+
+
+def get_semester_ids_by_school_year(school_year_id):
+    semesters = get_semester(school_year_id)  # danh sach hoc ky cua nam hoc duoc lay ra
+    semester_mapping = {}
+
+    for semester in semesters:
+        if "HK1" in semester.name:
+            semester_mapping["TBHK1"] = semester.id
+        elif "HK2" in semester.name:
+            semester_mapping["TBHK2"] = semester.id
+
+    return semester_mapping  # tra ve {'TBHK1': 1, 'TBHK2': 2} 1 va 2 la id semester cua nam hoc duoc lay
+
+
+def get_all_average_scores(subject_id, class_id, school_year_id):
+    scores = {}
+    students = get_students_by_class(class_id)
+
+    semester_mapping = get_semester_ids_by_school_year(school_year_id)
+
+    for student in students:
+        student_id = student.student_id
+        scores[student_id] = {"TBHK1": 0, "TBHK2": 0}
+
+        for key, semester_id in semester_mapping.items():
+            semester_scores = prepare_scores(subject_id, semester_id)
+            if student_id in semester_scores:
+                scores[student_id][key] = semester_scores[student_id].get("average_score", 0)
+
+    return scores
