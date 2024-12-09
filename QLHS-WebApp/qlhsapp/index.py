@@ -145,7 +145,7 @@ def set_class_page():
     else:
         students, pages = dao.load_student_no_assigned(page=int(page))
 
-    return render_template('admin/set-class.html',
+    return render_template('staff/set-class.html',
                            classes=classes, students=students, pages=pages, page=int(page),
                            total_unassigned_students=total_unassigned_students,
                            selected_class_id=selected_class_id)
@@ -529,7 +529,7 @@ def list_class():
 
     grade_levels = GradeLevel.query.all()
     selected_filter = grade_level_id
-    return render_template('admin/class.html', classes=classes,
+    return render_template('staff/class.html', classes=classes,
                            grade_levels=grade_levels, selected_filter=selected_filter, pages=pages, page=int(page))
 
 
