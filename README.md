@@ -78,8 +78,6 @@ Dự án là đồ án môn **Công nghệ phần mềm** do giảng viên **Dư
      ```bash
      python index.py
      ```
-   - Truy cập ứng dụng tại `http://localhost:5000`.
-
 ---
 
 
