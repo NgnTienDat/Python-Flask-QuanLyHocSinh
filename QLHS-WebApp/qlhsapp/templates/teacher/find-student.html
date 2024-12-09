@@ -157,12 +157,6 @@
                     <a href="{{ url_for('student_detail', student_id=s.id) }}">
                         <button>Xem</button>
                     </a>
-                    <a href="{{ url_for('student_update', student_id=s.id) }}">
-                        <button class="btn btn-edit">Cập nhật</button>
-                    </a>
-                    <a href="{{ url_for('student_delete', student_id=s.id) }}">
-                        <button class="btn-cancel">Xóa</button>
-                    </a>
                 </td>
             </tr>
             {% endfor %}

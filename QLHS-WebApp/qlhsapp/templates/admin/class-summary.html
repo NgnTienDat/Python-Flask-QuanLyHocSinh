@@ -111,7 +111,7 @@
                                         </option>
                                     {% endfor %}
                                 {% else %}
-                                <option>{{ class_name.name }}</option>
+                                    <option>{{ class_name.name }}</option>
                                 {% endif %}
                             </select>
                         </div>
@@ -132,11 +132,12 @@
                             <label for="school-year-select">Niên khóa</label>
                             <select id="school-year-select" class="form-control">
                                 {% if current_user.role.value == "ADMIN" %}
-                                    <option value="all" {% if school_year_id == 'all' %}selected{% endif %}>Chọn niên khoá
+                                    <option value="all" {% if school_year_id == 'all' %}selected{% endif %}>Chọn niên
+                                        khoá
                                     </option>
                                     {% for year in school_years %}
                                         <option value="{{ year.id }}"
-                                            {% if school_year_id == year.id|string %}selected{% endif %}>
+                                                {% if school_year_id == year.id|string %}selected{% endif %}>
                                             {{ year.name }}
                                         </option>
                                     {% endfor %}
@@ -233,8 +234,8 @@
                     datasets: [{
                         label: 'Điểm trung bình',
                         data: averageScores, // Điểm trung bình
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: averageScores.map(score => score > 4 ? 'rgba(75, 192, 192, 0.6)' : 'rgba(255, 99, 132, 0.6)'), // Màu cột dựa vào điểm
+                        borderColor: averageScores.map(score => score > 4 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)'), // Màu viền cột
                         borderWidth: 1
                     }]
                 },

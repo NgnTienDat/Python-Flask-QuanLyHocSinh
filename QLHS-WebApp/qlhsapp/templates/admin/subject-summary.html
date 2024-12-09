@@ -105,19 +105,20 @@
                                     <option value="all" {% if subject_id == 'all' %}selected{% endif %}>Chọn môn học
                                     </option>
                                     {% for s in subjects %}
-                                    <option value="{{ s.id }}"
-                                            {% if subject_id == s.id|string %}selected{% endif %}>
+                                        <option value="{{ s.id }}"
+                                                {% if subject_id == s.id|string %}selected{% endif %}>
                                             {{ s.name }}
-                                    </option>
+                                        </option>
                                     {% endfor %}
                                 {% else %}
-                                <option>
-                                    {{ current_user.user.teacher.subject.name }}
-                                </option>
+                                    <option>
+                                        {{ current_user.user.teacher.subject.name }}
+                                    </option>
                                 {% endif %}
                             </select>
                             {% if current_user.user and current_user.user.teacher and current_user.user.teacher.subject %}
-                                <input type="hidden" name="subject_id" value="{{ current_user.user.teacher.subject.id }}">
+                                <input type="hidden" name="subject_id"
+                                       value="{{ current_user.user.teacher.subject.id }}">
                                 <input type="hidden" name="teacher_id" value="{{ current_user.user.id }}">
                             {% endif %}
 
@@ -138,24 +139,25 @@
                             <label for="semester-select">Học kỳ</label>
                             <select id="semester-select" class="form-control" name="semester_id">
                                 <option value="all" {% if semester_id == 'all' %}selected{% endif %}>Chọn học kỳ
-                                    </option>
-                                    {% for semester in semesters %}
-                                        <option value="{{ semester.id }}"
+                                </option>
+                                {% for semester in semesters %}
+                                    <option value="{{ semester.id }}"
                                             {% if semester_id == semester.id|string %}selected{% endif %}>
-                                            {{ semester.name }}
-                                        </option>
-                                    {% endfor %}
+                                        {{ semester.name }}
+                                    </option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col">
                             <label for="school-year-select">Niên khóa</label>
                             <select id="school-year-select" class="form-control">
                                 {% if current_user.role.value == "ADMIN" %}
-                                    <option value="all" {% if school_year_id == 'all' %}selected{% endif %}>Chọn niên khoá
+                                    <option value="all" {% if school_year_id == 'all' %}selected{% endif %}>Chọn niên
+                                        khoá
                                     </option>
                                     {% for year in school_years %}
                                         <option value="{{ year.id }}"
-                                            {% if school_year_id == year.id|string %}selected{% endif %}>
+                                                {% if school_year_id == year.id|string %}selected{% endif %}>
                                             {{ year.name }}
                                         </option>
                                     {% endfor %}
@@ -220,9 +222,9 @@
                 selectedSubjectId = subjectInputElement ? subjectInputElement.value : null;
             }
             if (!selectedSubjectId) {
-            console.error("Subject ID is missing");
-            return;
-        }
+                console.error("Subject ID is missing");
+                return;
+            }
 
             window.location.href = `{{ url_for('subject_summary_score') }}?class_id=${selectedClassId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}&school_year_id=${selectedSchoolYearId}`;
         };

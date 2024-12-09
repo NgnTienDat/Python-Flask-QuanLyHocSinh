@@ -48,9 +48,7 @@
 </style>
 {% endblock %}
 
-{% block sidebar %}
-{% include 'layout/sidebar-admin.html'%}
-{% endblock %}
+
 
 {% block content %}
 <div class="container-fluid pt-4 px-4">
@@ -59,7 +57,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
-                <li class="breadcrumb-item">Năm học</li>
+                <li class="breadcrumb-item">Quy định số cột điểm</li>
             </ol>
         </nav>
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -71,39 +69,42 @@
         {% endfor %}
         {% endif %}
         {% endwith %}
-        <h3>Quy định năm học</h3>
-        <div class="d-flex justify-content-end mb-3">
-            <a href="{{ url_for('add_new_school_year') }}" class="btn btn-primary">Thêm mới</a>
-        </div>
+        <h3>Quy định cột điểm</h3>
         <!-- Form -->
-        <table>
-            <thead>
-            <tr>
-                <th>STT</th>
-                <th>Năm học</th>
-                <th>Ngày bắt đầu HK1</th>
-                <th>Ngày kết thúc HK1</th>
-                <th>Ngày bắt đầu HK2</th>
-                <th>Ngày kết thúc HK2</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for id, school_year_data in school_years.items() %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ school_year_data.name }}</td>
-                <td>{{ school_year_data.semesters.HK1.start_date.strftime('%d-%m-%Y') }}</td>
-                <td>{{ school_year_data.semesters.HK1.finish_date.strftime('%d-%m-%Y') }}</td>
-                <td>{{ school_year_data.semesters.HK2.start_date.strftime('%d-%m-%Y') }}</td>
-                <td>{{ school_year_data.semesters.HK2.finish_date.strftime('%d-%m-%Y') }}</td>
-            </tr>
-            {% endfor %}
+        <form action="{{ url_for('score_regulations_page') }}" method="post" novalidate>
+            <table>
+                <thead>
+                <tr>
+                    <th>Loại điểm</th>
+                    <th>Số cột</th>
+                    <th>Hệ số</th>
 
-            </tbody>
-        </table>
+                </tr>
+                </thead>
+                <tbody id="score-table-body">
+                {% for s in score_types %}
+                <tr>
+                    <td>
+                        <input type="text" value="{{ s.name }}" name="score_type_{{ loop.index }}" readonly>
+                    </td>
+                    <td>
+                        <input type="number" value="{{ s.score_quantity }}" class="edit-input"
+                               name="score_quantity_{{ loop.index }}" readonly min="1" max="10" step="1">
+                    </td>
+                    <td>
+                        <input type="number" value="{{ s.coefficient }}" class="edit-input"
+                               name="coefficient_{{ loop.index }}" readonly min="1" max="10" step="1">
+                    </td>
+
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+
+        </form>
     </div>
 </div>
-
 
 
 {% block js %}

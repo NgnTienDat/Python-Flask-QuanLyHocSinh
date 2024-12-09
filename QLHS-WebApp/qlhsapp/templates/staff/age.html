@@ -1,0 +1,87 @@
+{% extends 'layout/base.html'%}
+{% block title %} Trang chủ {% endblock %}
+
+{% block css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+
+    }
+    .container {
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 10px;
+        display: inline-block;
+        background-color: #f9f9f9;
+        width: 500px;
+        text-align: center;
+    }
+    .button-container {
+        margin-top: 10px;
+    }
+    .age-row {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .age-row label {
+            font-size: 16px;
+            flex: 1;
+            text-align: left;
+        }
+        .age-row input {
+            flex: 1;
+            text-align: center;
+            padding: 5px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
+                <li class="breadcrumb-item"><a href="/find-student">Quy định độ tuổi</a></li>
+            </ol>
+        </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <h3>Quy định số tuổi học sinh</h3>
+        <div class="container">
+
+            <div class="age-row">
+                <label for="min-age">Tuổi tối thiểu:</label>
+                <input type="number" id="min-age" class="edit-input" name="min_age"
+                       value="{{ min_age.value }}" min="14" max="50" readonly/>
+            </div>
+            <div class="age-row">
+                <label for="max-age">Tuổi tối đa:</label>
+                <input type="number" id="max-age" class="edit-input" name="max_age"
+                       value="{{ max_age.value }}" min="14" max="50" readonly/>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+{% endblock %}
+
+

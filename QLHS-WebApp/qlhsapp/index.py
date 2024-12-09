@@ -716,13 +716,20 @@ def subject_summary_score():
         else:
             semesters = dao.get_semester(current_year.id) if current_year else []
     else:  # Role = TEACHER
-        classes = dao.get_class_teacher(current_user.user.id)
+        temp = dao.get_class_teacher(current_user.user.id)
+        classes = []  # Tạo danh sách rỗng để chứa thông tin lớp học
+        for t in temp:
+            class_info = dao.get_class_by_id(t.class_id)  # Lấy thông tin lớp dựa vào class_id
+            if class_info:  # Kiểm tra nếu class_info không rỗng
+                classes.append(class_info)  # Thêm thông tin lớp vào danh sách
+
         subjects = []
         school_years = []
         current_year = dao.get_current_school_year()
         semesters = dao.get_semester(current_year.id) if current_year else []
 
     teacher_classes = dao.get_teacher_classes_details(current_user.user.id, semester_id, subject_id, class_id)
+
     return render_template('admin/subject-summary.html', class_id=class_id, semester_id=semester_id,
                            subject_id=subject_id, school_year_id=school_year_id, current_year=current_year,
                            classes=classes, semesters=semesters,

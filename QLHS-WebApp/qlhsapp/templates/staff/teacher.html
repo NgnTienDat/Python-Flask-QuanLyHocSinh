@@ -93,9 +93,7 @@
         <div class="container">
             <h1>Danh Sách Giáo Viên</h1>
             <div class="search-bar" style="display: flex">
-                <a href="{{ url_for('teaching_assignment') }}">
-                    <button>Phân công giáo viên giảng dạy</button>
-                </a>
+
                 <form method="get">
 
                     <input type="text" name="kw" placeholder="Tên giáo viên cần tìm...">
@@ -110,7 +108,6 @@
                     <th>Mã Giáo Viên</th>
                     <th>Tên Giáo Viên</th>
                     <th>Môn Dạy</th>
-                    <th>Thao Tác</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -119,15 +116,7 @@
                     <td>{{t.teacher_id}}</td>
                     <td>{{u}}</td>
                     <td>{{t.subject.name}}</td>
-                    <td class="action-btns">
-                        <a href="{{ url_for('teacher_detail', teacher_id=t.teacher_id) }}">
-                            <button>Xem</button>
-                        </a>
-                        <a href="{{ url_for('teacher_update', teacher_id=t.teacher_id) }}">
-                            <button class="btn btn-edit">Cập nhật</button>
-                        </a>
 
-                    </td>
                 </tr>
                 {% endfor %}
                 </tbody>

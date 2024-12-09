@@ -60,9 +60,6 @@
 </style>
 {% endblock %}
 
-{% block sidebar %}
-{% include 'layout/sidebar-admin.html' %}
-{% endblock %}
 
 {% block content %}
 <div class="container-fluid pt-4 px-4">
@@ -71,7 +68,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
-                <li class="breadcrumb-item"><a href="/list-user">Quản lý người dùng</a></li>
+                <li class="breadcrumb-item"><a href="/list-user">Tra cứu người dùng</a></li>
             </ol>
         </nav>
         <div class="d-flex justify-content-between mb-3">
@@ -92,7 +89,7 @@
                     <th>Email</th>
                     <th>Số Điện Thoại</th>
                     <th>Địa Chỉ</th>
-                    <th>Thao Tác</th>
+
                 </tr>
                 </thead>
                 <tbody id="user-table-body">
@@ -103,13 +100,7 @@
                     <td>{{ s.email }}</td>
                     <td>{{ s.phone_number }}</td>
                     <td>{{ s.address }}</td>
-                    <td>
-                        <a href="{{ url_for('update_user', id=s.id) }}">
-                            <button>
-                                Cập nhật
-                            </button>
-                        </a>
-                    </td>
+
                 </tr>
                 {% endfor %}
                 </tbody>

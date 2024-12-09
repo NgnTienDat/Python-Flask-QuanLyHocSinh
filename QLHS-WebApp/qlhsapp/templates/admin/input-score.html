@@ -119,8 +119,7 @@
                     <div class="col">
                         <label for="semester-select">Học kỳ</label>
                         <select id="semester-select" class="form-control" name="semester_id">
-                            <option value="all" {% if selected_semester_filter==
-                            'all' %}selected{% endif %}>Chọn học kỳ</option>
+                            <option value="all" {% if selected_semester_filter=='all' %}selected{% endif %}>Chọn học kỳ</option>
                             {% for semester in semesters %}
                             <option value="{{ semester.id }}" {% if selected_semester_filter== semester.id|string
                                     %}selected{% endif %}>
@@ -136,11 +135,6 @@
                         </select>
                     </div>
 
-                </div>
-                <!-- Hàng các nút chức năng -->
-                <div class="actions">
-                    <button id="export-excel-btn">Xuất Excel</button>
-                    <button id="export-pdf-btn">Xuất PDF</button>
                 </div>
                 <!-- Bảng danh sách học sinh -->
                 <div class="student-list">
