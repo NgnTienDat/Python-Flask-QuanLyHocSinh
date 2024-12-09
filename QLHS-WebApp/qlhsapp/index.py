@@ -404,7 +404,7 @@ def input_score():
         scores = dao.prepare_scores(subject_id, semester_id)  # load lại điểm lúc nhấn lưu
 
     return render_template(
-        'admin/input-score.html',
+        'teacher/input-score.html',
         current_year=current_year,
         classes=classes,
         semesters=semesters,
@@ -439,7 +439,7 @@ def export_score():
     if export_format == "excel":
         # Gọi hàm tạo file Excel
         return dao.export_to_excel(semester_id, scores, students)
-    return render_template('admin/export-score.html',
+    return render_template('teacher/export-score.html',
                            current_year=current_year,
                            classes=classes,
                            semesters=semesters,
