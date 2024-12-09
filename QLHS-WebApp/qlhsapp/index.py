@@ -38,11 +38,14 @@ def login_process():
         print(username)
         print(password)
         user = dao.auth_account(username=username, password=password)
-        if user:
-            login_user(user)
-            return redirect(url_for('get_home_page'))
+        if user:  # Nếu tài khoản tồn tại
+            if user.active:  # Kiểm tra trạng thái active
+                login_user(user)  # Đăng nhập
+                return redirect(url_for('get_home_page'))  # Chuyển hướng đến trang chính
+            else:
+                flash('Tài khoản không tồn tại hoặc chưa được kích hoạt!', 'warning')  # Thông báo lỗi
         else:
-            flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')
+            flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')  # Thông báo lỗi
 
     return render_template('login.html')
 
@@ -692,7 +695,7 @@ def change_password(id):
 def subject_summary_score():
     # Role = STAFF
     if current_user.role.value == "STAFF":
-        flash("Bạn không có quyền truy cập báo cáo thống kê.", "error")
+        flash("Bạn không có quyền truy cập báo cáo thống kê.", "warning")
         return redirect(url_for('get_home_page'))
 
     class_id = request.args.get('class_id') or request.form.get('class_id')
@@ -739,7 +742,7 @@ def subject_summary_score():
 @app.route("/class-summary-score")
 def class_summary_score():
     if current_user.role.value == "STAFF":
-        flash("Bạn không có quyền truy cập báo cáo thống kê.", "error")
+        flash("Bạn không có quyền truy cập báo cáo thống kê.", "warning")
         return redirect(url_for('get_home_page'))
 
     semester_id = request.args.get('semester_id') or request.form.get('semester_id')
