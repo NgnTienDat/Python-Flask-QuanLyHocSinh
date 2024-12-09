@@ -71,7 +71,7 @@ Dự án là đồ án môn **Công nghệ phần mềm** do giảng viên **Dư
 2. **Cấu hình cơ sở dữ liệu**
    - Tạo cơ sở dữ liệu MySQL.
    - Cập nhật thông tin kết nối trong file `__init__.py`.
-   - Chạy file models.py để tạo các bảng dữ liệu dưới database.
+   - Chạy file `models.py` để tạo các bảng dữ liệu dưới database.
 
 3. **Chạy ứng dụng**
    - Chạy ứng dụng Flask:
