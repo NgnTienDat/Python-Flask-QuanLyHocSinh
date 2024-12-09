@@ -4,15 +4,18 @@ import random
 import string
 import math
 import hashlib
-import pandas as pd
-from io import BytesIO
 import cloudinary.uploader
 
 import unicodedata
-from flask import flash, make_response
+from flask import flash
 from sqlalchemy import func
 from flask_mail import Message
 from qlhsapp import app, db, mail
+
+from qlhsapp.models import Student, User, Account, Subject, Staff, Teacher
+import hashlib
+import cloudinary.uploader
+
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
                             GenderEnum, Class, Teacher, Subject, StudentClass, User,
                             SchoolYear, Semester, GradeLevel, Account, Staff, TeachingAssignment, ScoreBoard)
@@ -23,10 +26,11 @@ from datetime import datetime
 
 
 def load_list_users(kw=None, page=1):
-    page_size = 4
+    page_size = app.config['PAGE_SIZE']
     start = (page - 1) * page_size
 
-    query = User.query
+    query = User.query.join(Account).filter(Account.active == True)
+
     print(query)
     total_records = query.count()  # Tong so ban ghi
     total_pages = math.ceil(total_records / page_size)
@@ -60,8 +64,10 @@ def load_users(kw=None):
 
     return query.paginate(page=page, per_page=page_size)
 
-def get_user(user_id):
-    return User.query.get(user_id)
+
+def load_subject():
+    return Subject.query.all()
+
 
 def delete_user_from_db(user_id):
     user = User.query.get(user_id)
@@ -86,16 +92,9 @@ def find_user(id):
 
 
 def auth_account(username, password):
-    is_active = False
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
-    account =  Account.query.filter(Account.username.__eq__(username.strip()),
+    return Account.query.filter(Account.username.__eq__(username.strip()),
                                 Account.password.__eq__(password)).first()
-    if account and account.active == 1:
-        is_active = True
-    return account, is_active
-
-
-
 
 
 def add_account(account_id, username, password, role):
@@ -105,12 +104,6 @@ def add_account(account_id, username, password, role):
                 password=password,
                 role=role)
     db.session.add(a)
-    if a.role == 'TEACHER':
-        teacher = Teacher(teacher_id=account_id)
-        db.session.add(teacher)
-    if a.role == 'STAFF':
-        staff = Staff(staff_id=account_id)
-        db.session.add(staff)
     db.session.commit()
 
 
@@ -139,6 +132,18 @@ def add_user(first_name, last_name, address, email, phone_number, avatar=None):
     db.session.add(u)
     db.session.commit()
     return u.id
+
+
+def add_staff(staff_id):
+    s = Staff(staff_id=staff_id)
+    db.session.add(s)
+    db.session.commit()
+
+
+def add_teacher(teacher_id, subject_id):
+    t = Teacher(teacher_id=teacher_id, subject_id=subject_id)
+    db.session.add(t)
+    db.session.commit()
 
 
 def find_user_by_email(email):
@@ -277,7 +282,7 @@ def update_age_regulation(min_age, max_age):
         return True
 
 
-def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_id, school_year_name, staff_id):
+def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_id, school_year_name):
     if Class.query.filter_by(name=name, school_year_id=school_year_id).first():
         flash(f'Lớp {name} thuộc năm học {school_year_name} đã tồn tại trong hệ thống!', 'warning')
         return False
@@ -286,7 +291,7 @@ def handle_add_new_class(name, grade_level_id, homeroom_teacher_id, school_year_
     teacher.is_homeroom_teacher = True
     # tam thoi dung staff_id = 5 -> Sau nay dang nhap dc se sua
     new_class = Class(name=name, grade_level_id=grade_level_id,
-                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id, staff_id=staff_id,
+                      homeroom_teacher_id=homeroom_teacher_id, school_year_id=school_year_id, staff_id=2,
                       student_numbers=0)
     db.session.add(new_class)
     db.session.commit()
@@ -662,7 +667,6 @@ def delete_student(student_id):
 def add_student(name, address, gender, date_of_birth, staff_id, **kwargs):
     gender = GenderEnum(gender)
     date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
-
     try:
         student = Student(name=name,
                           address=address,
@@ -673,16 +677,12 @@ def add_student(name, address, gender, date_of_birth, staff_id, **kwargs):
                           phone_number=kwargs.get('phone_number'))
         db.session.add(student)
         db.session.commit()
-        flash("Thêm học sinh thành công!", "success")
-        return True
     except ValueError as ve:
         db.session.rollback()
         print(f"Lỗi thêm giới tính: {gender}. Error: {ve}")
     except Exception as e:
         db.session.rollback()
         print(f"Lỗi thêm học sinh: {e}")
-    flash("Thêm học sinh không thành công!", "danger")
-    return False
 
 
 def check_email_student(current_email):
@@ -726,6 +726,9 @@ def handel_save_subject(name):
 
 def get_subject_by_id(subject_id):
     return Subject.query.get(subject_id)
+
+def get_all_subject():
+    return Subject.query.all()
 
 
 def delete_subject(subject_id):
@@ -821,6 +824,9 @@ def delete_teacher(teacher_id):
 def get_current_school_year():
     return SchoolYear.query.order_by(SchoolYear.id.desc()).first()
 
+def get_all_school_year():
+    return SchoolYear.query.all()
+
 
 def get_all_class():
     return Class.query.all()
@@ -884,7 +890,7 @@ def save_score(student_id, subject_id, teacher_id, semester_id, score_columns, s
     for score in score_board.scores:
         existing_scores[(score.score_type, score.index)] = score
 
-    for col in score_columns:  # score_columns=score_type
+    for col in score_columns:
         for i in range(col.score_quantity):
             score_key = f"score_{student_id}_{col.id}_{i + 1}"
             score_value = score_data.get(score_key)
@@ -924,37 +930,6 @@ def extract_score_data(student, score_columns, form_data):
     return score_data
 
 
-def get_semester_ids_by_school_year(school_year_id):
-    semesters = get_semester(school_year_id)  # danh sach hoc ky cua nam hoc duoc lay ra
-    semester_mapping = {}
-
-    for semester in semesters:
-        if "HK1" in semester.name:
-            semester_mapping["TBHK1"] = semester.id
-        elif "HK2" in semester.name:
-            semester_mapping["TBHK2"] = semester.id
-
-    return semester_mapping  # tra ve {'TBHK1': 1, 'TBHK2': 2} 1 va 2 la id semester cua nam hoc duoc lay
-
-
-def get_all_average_scores(subject_id, class_id, school_year_id):
-    scores = {}
-    students = get_students_by_class(class_id)
-
-    semester_mapping = get_semester_ids_by_school_year(school_year_id)
-
-    for student in students:
-        student_id = student.student_id
-        scores[student_id] = {"TBHK1": 0, "TBHK2": 0}
-
-        for key, semester_id in semester_mapping.items():
-            semester_scores = prepare_scores(subject_id, semester_id)
-            if student_id in semester_scores:
-                scores[student_id][key] = semester_scores[student_id].get("average_score", 0)
-
-    return scores
-
-
 def prepare_scores(subject_id, semester_id):
     scores = {}
     if semester_id and subject_id:
@@ -966,39 +941,220 @@ def prepare_scores(subject_id, semester_id):
             }
             for score in score_board.scores:  # lấy từng điêmr trong danh sách điểm của một hsinh
                 scores[student_id].setdefault(score.score_type, []).append(score.score_value)
-
     return scores
 
 
 def get_class_teacher(teacher_id):
     current_school_year = get_current_school_year()
-    class_teacher = TeachingAssignment.query.filter_by(teacher_id=teacher_id,
-                                                       school_year_id=current_school_year.id).all()
-    print(current_school_year)
-    print(teacher_id)
+
+    if teacher_id == 1:
+        # Khi teacher_id là 1, lấy tất cả các lớp trong cơ sở dữ liệu cho học kỳ hiện tại
+        class_teacher = TeachingAssignment.query.filter_by(school_year_id=current_school_year.id).all()
+    else:
+        # Khi teacher_id khác 1, chỉ lấy các lớp mà giáo viên đó dạy trong học kỳ hiện tại
+        class_teacher = TeachingAssignment.query.filter_by(teacher_id=teacher_id,
+                                                           school_year_id=current_school_year.id).all()
+
     return class_teacher
 
 
-def export_to_excel(semester_id, scores, students):
-    data = []
-    score_types = load_score_columns()
-    for student in students:
-        row = {
-            "Mã HS": student.student_id,
-            "Họ và Tên": student.students.name,
-        }
-        if semester_id == "all_semester":
-            row["TBHK1"] = scores.get(student.student_id, {}).get("TBHK1", "")
-            row["TBHK2"] = scores.get(student.student_id, {}).get("TBHK2", "")
+def get_class_by_id(class_id):
+    class_info = Class.query.filter_by(id=class_id).first()  # Lọc theo class_id để lấy thông tin lớp
+    return class_info
+
+
+def get_teacher_classes_details(teacher_id, semester_id, subject_id,class_id=None):
+    # Lấy các lớp mà giáo viên dạy
+    class_teacher = get_class_teacher(teacher_id)
+    class_ids = [assignment.class_id for assignment in class_teacher]  # Lấy danh sách các class_id
+
+    # Lấy thông tin chi tiết của từng lớp
+    class_details = []
+
+    # Nếu có class_id, chỉ lấy thông tin lớp đó
+    if class_id:
+        class_info = get_class_by_id(class_id)
+        passed_students = get_passed_students(class_info.id, semester_id, subject_id)
+        rate = get_pass_rate(class_info.id, semester_id, subject_id)
+
+        class_details.append({
+            'id': class_info.id,  # Trả về id lớp
+            'name': class_info.name,  # Trả về tên lớp
+            'student_numbers': class_info.student_numbers,  # Trả về số học sinh
+            'passed_students': passed_students,  # Trả về số học sinh đạt
+            'rate': rate  # Trả về tỷ lệ phần trăm học sinh đạt
+        })
+    else:
+        # Nếu không có class_id, lấy tất cả các lớp mà giáo viên dạy
+        for cls_id in class_ids:
+            class_info = get_class_by_id(cls_id)
+
+            # Lấy số học sinh đạt của lớp cho môn học và học kỳ
+            passed_students = get_passed_students(class_info.id, semester_id, subject_id)
+            rate = get_pass_rate(class_info.id, semester_id ,subject_id)
+
+            # Thêm thông tin lớp vào danh sách
+            class_details.append({
+                'id': class_info.id,  # Trả về id lớp
+                'name': class_info.name,  # Trả về tên lớp
+                'student_numbers': class_info.student_numbers,  # Trả về số học sinh
+                'passed_students': passed_students,  # Trả về số học sinh đạt
+                'rate': rate  # Trả về tỷ lệ phần trăm học sinh đạt
+            })
+
+    return class_details
+
+
+def get_passed_students(class_id, semester_id, subject_id):
+    """
+    Trả về số lượng học sinh đạt của một lớp trong một học kỳ cho một môn học cụ thể.
+    :param class_id: ID của lớp học.
+    :param semester_id: ID của học kỳ.
+    :param subject_id: ID của môn học.
+    :return: Số lượng học sinh đạt.
+    """
+    passed_students = db.session.query(func.count(ScoreBoard.student_id)) \
+        .join(StudentClass, StudentClass.student_id == ScoreBoard.student_id) \
+        .filter(
+            StudentClass.class_id == class_id,
+            ScoreBoard.average_score >= 5,
+            ScoreBoard.semester_id == semester_id,  # Lọc theo học kỳ
+            ScoreBoard.subject_id == subject_id     # Lọc theo môn học
+        ) \
+        .scalar()
+
+    return passed_students
+
+
+def get_pass_rate(class_id, semester_id, subject_id):
+    """
+    Tính tỷ lệ phần trăm học sinh đậu trong một lớp học.
+
+    Args:
+        class_id (int): ID của lớp học.
+
+    Returns:
+        float: Tỷ lệ học sinh đậu (từ 0 đến 100).
+    """
+    # Lấy tổng số học sinh trong lớp
+    total_students = db.session.query(func.count(Student.id)) \
+        .join(StudentClass, Student.id == StudentClass.student_id) \
+        .filter(StudentClass.class_id == class_id) \
+        .scalar()
+
+    # Lấy tổng số học sinh đã đậu
+    passed_students = get_passed_students(class_id, semester_id, subject_id)
+
+    # Nếu không có học sinh nào trong lớp, trả về tỷ lệ đậu là 0
+    if total_students == 0:
+        return 0.0
+
+    # Tính tỷ lệ đậu (làm tròn 2 chữ số thập phân)
+    pass_rate = (passed_students / total_students) * 100
+    return round(pass_rate, 2)
+
+
+def get_class_by_homeroom_teacher_id(id):
+    return Class.query.filter_by(homeroom_teacher_id=id).first()
+
+
+def calculate_student_average(student_id, class_id, semester_id):
+    # Kiểm tra học sinh có thuộc lớp hay không
+    is_student_in_class = db.session.query(StudentClass).filter_by(
+        class_id=class_id, student_id=student_id
+    ).first()
+    if not is_student_in_class:
+        return 0.0  # Nếu học sinh không thuộc lớp, trả về 0
+
+    # Lấy danh sách môn học
+    teaching_assignments = load_subject()
+
+    total_score = 0
+    total_coefficient = 0
+
+    # Duyệt qua tất cả các môn học
+    for assignment in teaching_assignments:
+        subject_id = assignment.id
+
+        # Lấy bảng điểm của học sinh cho môn học này trong học kỳ
+        score_board = db.session.query(ScoreBoard).filter_by(
+            student_id=student_id,
+            subject_id=subject_id,
+            semester_id=semester_id
+        ).first()
+
+        # Nếu có điểm trung bình cho môn học, cộng vào tổng điểm
+        if score_board and score_board.average_score is not None:
+            total_score += score_board.average_score  # Cộng điểm trung bình môn học
+            total_coefficient += 1  # Tăng hệ số cho môn học này
+
+    # Tính điểm trung bình
+    if total_coefficient > 0:
+        return round(total_score / total_coefficient, 2)
+    else:
+        return 0.0
+
+
+
+def get_student_ids_by_class_id(class_id, semester_id):
+    """
+    Lấy danh sách thông tin chi tiết (student_id, name, gender, điểm trung bình, học lực) của học sinh
+    dựa vào class_id và semester_id.
+
+    Args:
+        class_id (int): ID của lớp học.
+        semester_id (int): ID của học kỳ.
+
+    Returns:
+        List[Dict]: Danh sách các thông tin của học sinh thuộc class_id và semester_id.
+    """
+    # Tham gia bảng `StudentClass` với bảng `Student` để lấy thông tin chi tiết
+    student_classes = (
+        db.session.query(
+            StudentClass.student_id,
+            Student.name,
+            Student.gender
+        )
+        .join(Student, StudentClass.student_id == Student.id)
+        .filter(StudentClass.class_id == class_id)
+        .all()
+    )
+
+    # Kết hợp thông tin chi tiết, tính điểm trung bình và phân loại học lực
+    students_with_averages = []
+    for student in student_classes:
+        student_id = student.student_id
+        name = student.name
+        gender = student.gender.value  # Lấy giá trị của Enum
+        if gender == "MALE":
+            gender = "Nam"
+        elif gender == "FEMALE":
+            gender = "Nữ"
+
+        # Tính điểm trung bình cho học sinh trong học kỳ tương ứng
+        average_score = calculate_student_average(student_id, class_id, semester_id)
+
+        # Phân loại học lực
+        if average_score < 5:
+            grade = "Yếu"
+        elif 5 <= average_score < 6.5:
+            grade = "Trung Bình"
+        elif 6.5 <= average_score < 8:
+            grade = "Khá"
+        elif 8 <= average_score <= 10:
+            grade = "Giỏi"
         else:
-            for score_type in score_types:
-                score_values = scores.get(student.student_id, {}).get(score_type.id, [])
-                for i in range(score_type.score_quantity):
-                    score_type_name = f"{score_type.name} ({i + 1})"
-                    row[score_type_name] = score_values[i] if i < len(score_values) else ""
+            grade = "Không xác định"
 
-            row["Trung bình"] = scores.get(student.student_id, {}).get("average_score", 0)  # Điểm trung bình
+        students_with_averages.append({
+            "student_id": student_id,
+            "name": name,
+            "gender": gender,
+            "average_score": average_score,
+            "grade": grade
+        })
 
+<<<<<<< HEAD
         data.append(row)
 
     df = pd.DataFrame(data)
@@ -1012,3 +1168,6 @@ def export_to_excel(semester_id, scores, students):
     response.headers["Content-Disposition"] = "attachment"
     response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return response
+=======
+    return students_with_averages
+>>>>>>> 810f09d26c687a6a8e588ab4566e7c6040f34fb0
