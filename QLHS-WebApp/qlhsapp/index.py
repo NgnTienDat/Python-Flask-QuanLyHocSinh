@@ -5,7 +5,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 import math
 
 from qlhsapp.models import (ScoreType, Score, Regulation, Student,
-                            Teacher, GradeLevel, SchoolYear, Class, StudentClass, Subject, TeachingAssignment, Semester)
+                            Teacher, GradeLevel, SchoolYear, Class, StudentClass, Subject, TeachingAssignment, Semester,
+                            Account)
 
 import cloudinary.uploader
 
@@ -29,12 +30,11 @@ def get_user_by_id(user_id):
     return dao.get_account_by_id(user_id)
 
 
-@app.route("/login", methods=['get', 'post'])
+@app.route("/login", methods=['GET', 'POST'])
 def login_process():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        # trung check
         print(username)
         print(password)
         user = dao.auth_account(username=username, password=password)
@@ -44,6 +44,23 @@ def login_process():
                 return redirect(url_for('get_home_page'))  # Chuyển hướng đến trang chính
             else:
                 flash('Tài khoản không tồn tại hoặc chưa được kích hoạt!', 'warning')  # Thông báo lỗi
+
+
+        # Xác thực tài khoản
+        user, is_active = dao.auth_account(username=username, password=password)
+        if user and is_active:
+            login_user(user)
+            # Kiểm tra vai trò
+            print(user.role)
+            if user.role.value == 'ADMIN':
+                # Chuyển hướng tới trang Flask-Admin
+                print('admin here')
+                return redirect('/admin')
+
+            # Chuyển hướng tới trang chính
+            return redirect(url_for('get_home_page'))
+        elif user and not is_active:
+            flash('Tài khoản bị ngừng hoạt động!', 'danger')
         else:
             flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')  # Thông báo lỗi
 
@@ -61,6 +78,17 @@ def find_student_page():
     stu_class, pages = dao.list_students(kw=kw, class_id=class_id, page=int(page))
     if not stu_class:
         flash(f'Không có học sinh nào tên {kw}.', 'warning')
+
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'STAFF':
+        return render_template('staff/find-student.html',
+                               students=stu_class, pages=pages, page=int(page), classes=classes,
+                               selected_class=class_id)
+    elif r.value == 'TEACHER':
+        return render_template('teacher/find-student.html',
+                               students=stu_class, pages=pages, page=int(page), classes=classes,
+                               selected_class=class_id)
     return render_template('admin/find-student.html',
                            students=stu_class, pages=pages, page=int(page), classes=classes, selected_class=class_id)
 
@@ -148,7 +176,7 @@ def set_class_page():
     else:
         students, pages = dao.load_student_no_assigned(page=int(page))
 
-    return render_template('admin/set-class.html',
+    return render_template('staff/set-class.html',
                            classes=classes, students=students, pages=pages, page=int(page),
                            total_unassigned_students=total_unassigned_students,
                            selected_class_id=selected_class_id)
@@ -172,7 +200,12 @@ def school_year_page():
     semesters = Semester.query.order_by(Semester.id.desc()).all()
     school_years_semesters = dao.get_school_years_with_semesters()
     results = dao.format_school_year_data(school_years_semesters)
-    return render_template('admin/school-year.html', school_years=results)
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/school-year.html', school_years=results)
+
+    return render_template('staff/school-year.html', school_years=results)
 
 
 @app.route('/school-year/new-school-year', methods=['get', 'post'])
@@ -229,7 +262,13 @@ def score_regulations_page():
         return redirect(url_for('score_regulations_page'))
 
     score_types = dao.load_score_regulation()
-    return render_template('admin/score.html', score_types=score_types)
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/score.html', score_types=score_types)
+
+    return render_template('staff/score.html', score_types=score_types)
+
 
 
 @app.route("/add-new-score-type", methods=['get', 'post'])
@@ -281,7 +320,11 @@ def numbers_regulations_page():
             return redirect(url_for('numbers_regulations_page'))
 
     class_size = Regulation.query.filter_by(key_name='CLASS_MAX_SIZE').first()
-    return render_template('admin/numbers.html', class_size=class_size)
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/numbers.html', class_size=class_size)
+    return render_template('staff/numbers.html', class_size=class_size)
 
 
 # Quy định tuổi
@@ -303,7 +346,11 @@ def age_regulations_page():
     max_age = Regulation.query.filter_by(key_name='MAX_AGE').first()
     min_age = Regulation.query.filter_by(key_name='MIN_AGE').first()
 
-    return render_template('admin/age.html', max_age=max_age, min_age=min_age)
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/age.html', max_age=max_age, min_age=min_age)
+    return render_template('staff/age.html', max_age=max_age, min_age=min_age)
 
 
 @app.route("/list-teacher/teaching-assignment", methods=['get', 'post'])
@@ -374,16 +421,53 @@ def input_score():
             dao.save_score(student_id, subject_id, teacher_id, semester_id, score_columns, score_data)
         scores = dao.prepare_scores(subject_id, semester_id)  # load lại điểm lúc nhấn lưu
 
-    return render_template('admin/input-score.html', current_year=current_year, classes=classes, semesters=semesters,
-                           score_columns=score_columns, students=students, selected_class_filter=class_id,
-                           scores=scores, selected_semester_filter=semester_id
-                           )
+
+    return render_template(
+        'teacher/input-score.html',
+        current_year=current_year,
+        classes=classes,
+        semesters=semesters,
+        score_columns=score_columns,
+        students=students,
+        selected_class_filter=class_id,
+        scores=scores,
+        selected_semester_filter=semester_id
+    )
+
 
 
 # Xuất điểm
 @app.route("/export-score")
 def export_score():
-    return render_template('admin/export-score.html')
+    class_id = request.args.get('class_id') or request.form.get('class_id')
+    semester_id = request.args.get('semester_id') or request.form.get('semester_id')
+    subject_id = request.args.get('subject_id') or request.form.get('subject_id')
+    export_format = request.args.get('export')  # Kiểm tra nếu xuất Excel
+
+    current_year = dao.get_current_school_year()
+    classes = dao.get_class_teacher(current_user.user.id)
+    semesters = dao.get_semester(current_year.id) if current_year else []
+    score_columns = dao.load_score_columns()
+    students = dao.get_students_by_class(class_id)
+
+    # lay diem hien len giao dien
+    if semester_id == "all_semester":
+        scores = dao.get_all_average_scores(subject_id, class_id, current_year.id)
+    else:
+        scores = dao.prepare_scores(subject_id, semester_id)
+
+    if export_format == "excel":
+        # Gọi hàm tạo file Excel
+        return dao.export_to_excel(semester_id, scores, students)
+    return render_template('teacher/export-score.html',
+                           current_year=current_year,
+                           classes=classes,
+                           semesters=semesters,
+                           score_columns=score_columns,
+                           students=students,
+                           selected_class_filter=class_id,
+                           scores=scores,
+                           selected_semester_filter=semester_id)
 
 
 @app.route("/list-teacher")
@@ -391,7 +475,12 @@ def list_teacher():
     page = request.args.get('page', 1)
     kw = request.args.get('kw')
     teachers, pages = dao.load_teachers(kw=kw, page=int(page))
-    return render_template('admin/teacher.html', teachers=teachers, pages=pages, page=int(page))
+
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/teacher.html', teachers=teachers, pages=pages, page=int(page))
+    return render_template('staff/teacher.html', teachers=teachers, pages=pages, page=int(page))
 
 
 @app.route("/list-teacher/<int:teacher_id>")
@@ -450,7 +539,12 @@ def delete_teacher(teacher_id):
 def list_subject():
     kw = request.args.get("key-name")
     subjects = dao.load_subject(kw=kw)
-    return render_template('admin/subject.html', subjects=subjects)
+
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
+        return render_template('admin/subject.html', subjects=subjects)
+    return render_template('staff/subject.html', subjects=subjects)
 
 
 @app.route("/list-subject/delete-subject/<int:subject_id>", methods=['get', 'post'])
@@ -495,7 +589,7 @@ def list_class():
 
     grade_levels = GradeLevel.query.all()
     selected_filter = grade_level_id
-    return render_template('admin/class.html', classes=classes,
+    return render_template('staff/class.html', classes=classes,
                            grade_levels=grade_levels, selected_filter=selected_filter, pages=pages, page=int(page))
 
 
@@ -544,14 +638,15 @@ def update_class(class_id):
 
 @app.route("/list-user")
 def list_user():
-    if current_user.role.value == "ADMIN":
-        page = request.args.get('page', 1)
-        kw = request.args.get('kw')
-        users, pages = dao.load_list_users(kw=kw, page=int(page))
+    page = request.args.get('page', 1)
+    kw = request.args.get('kw')
+    users, pages = dao.load_list_users(kw=kw, page=int(page))
+
+    account = db.session.get(Account, current_user.account_id)
+    r = account.role
+    if r.value == 'ADMIN':
         return render_template('admin/list-user.html', users=users, pages=pages)
-    else:
-        flash("Bạn không có quyền truy cập quản lý người dùng.", "error")
-        return redirect(url_for('get_home_page'))
+    return render_template('staff/list-user.html', users=users, pages=pages)
 
 
 

@@ -950,13 +950,12 @@ def prepare_scores(subject_id, semester_id):
     return scores
 
 
-def get_class_teacher(teacher_id, subject_id=None):
+def get_class_teacher(teacher_id):
     current_school_year = get_current_school_year()
 
     if teacher_id == 1:
-        # Khi teacher_id là 1, lấy tất cả các lớp trong cơ sở dữ liệu cho học kỳ hiện tại và lọc theo môn học để tránh lặp dữ liệu
-        class_teacher = TeachingAssignment.query.filter_by(subject_id=subject_id,
-                                                           school_year_id=current_school_year.id).all()
+        # Khi teacher_id là 1, lấy tất cả các lớp trong cơ sở dữ liệu
+        class_teacher = Class.query.filter_by().all()
     else:
         # Khi teacher_id khác 1, chỉ lấy các lớp mà giáo viên đó dạy trong học kỳ hiện tại
         class_teacher = TeachingAssignment.query.filter_by(teacher_id=teacher_id,
@@ -972,8 +971,11 @@ def get_class_by_id(class_id):
 
 def get_teacher_classes_details(teacher_id, semester_id, subject_id, role,class_id=None):
     # Lấy các lớp mà giáo viên dạy
-    class_teacher = get_class_teacher(teacher_id,subject_id)
-    class_ids = [assignment.class_id for assignment in class_teacher]  # Lấy danh sách các class_id mà giáo viên dạy
+    class_teacher = get_class_teacher(teacher_id)
+    if teacher_id == 1:
+        class_ids = [assignment.id for assignment in class_teacher]  # Lấy danh sách các lớp trong cơ sở dữ liệu
+    else:
+        class_ids = [assignment.class_id for assignment in class_teacher]  # Lấy danh sách các class_id mà giáo viên dạy
 
     # Lấy thông tin chi tiết của từng lớp
     class_details = []
