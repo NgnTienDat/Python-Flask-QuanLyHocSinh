@@ -831,6 +831,12 @@ def get_all_school_year():
 def get_all_class():
     return Class.query.all()
 
+def get_all_grade_level():
+    return GradeLevel.query.all()
+
+def get_class_by_grade_level(grade_level_id):
+    return Class.query.filter(Class.grade_level_id == grade_level_id).all()
+
 
 def get_semester(school_year_id):
     semesters = Semester.query.filter(Semester.school_year_id == school_year_id).all()
@@ -944,12 +950,13 @@ def prepare_scores(subject_id, semester_id):
     return scores
 
 
-def get_class_teacher(teacher_id):
+def get_class_teacher(teacher_id, subject_id=None):
     current_school_year = get_current_school_year()
 
     if teacher_id == 1:
-        # Khi teacher_id là 1, lấy tất cả các lớp trong cơ sở dữ liệu cho học kỳ hiện tại
-        class_teacher = TeachingAssignment.query.filter_by(school_year_id=current_school_year.id).all()
+        # Khi teacher_id là 1, lấy tất cả các lớp trong cơ sở dữ liệu cho học kỳ hiện tại và lọc theo môn học để tránh lặp dữ liệu
+        class_teacher = TeachingAssignment.query.filter_by(subject_id=subject_id,
+                                                           school_year_id=current_school_year.id).all()
     else:
         # Khi teacher_id khác 1, chỉ lấy các lớp mà giáo viên đó dạy trong học kỳ hiện tại
         class_teacher = TeachingAssignment.query.filter_by(teacher_id=teacher_id,
@@ -963,27 +970,43 @@ def get_class_by_id(class_id):
     return class_info
 
 
-def get_teacher_classes_details(teacher_id, semester_id, subject_id,class_id=None):
+def get_teacher_classes_details(teacher_id, semester_id, subject_id, role,class_id=None):
     # Lấy các lớp mà giáo viên dạy
-    class_teacher = get_class_teacher(teacher_id)
-    class_ids = [assignment.class_id for assignment in class_teacher]  # Lấy danh sách các class_id
+    class_teacher = get_class_teacher(teacher_id,subject_id)
+    class_ids = [assignment.class_id for assignment in class_teacher]  # Lấy danh sách các class_id mà giáo viên dạy
 
     # Lấy thông tin chi tiết của từng lớp
     class_details = []
+    print(role)
 
     # Nếu có class_id, chỉ lấy thông tin lớp đó
     if class_id:
-        class_info = get_class_by_id(class_id)
-        passed_students = get_passed_students(class_info.id, semester_id, subject_id)
-        rate = get_pass_rate(class_info.id, semester_id, subject_id)
+        if role == "ADMIN":  # Kiểm tra vai trò là ADMIN
+            classes = get_class_by_grade_level(class_id)  # Lấy thông tin lớp theo ID khối
+            for class_info in classes:  # Lặp qua từng lớp
+                passed_students = get_passed_students(class_info.id, semester_id, subject_id)
+                rate = get_pass_rate(class_info.id, semester_id, subject_id)
 
-        class_details.append({
-            'id': class_info.id,  # Trả về id lớp
-            'name': class_info.name,  # Trả về tên lớp
-            'student_numbers': class_info.student_numbers,  # Trả về số học sinh
-            'passed_students': passed_students,  # Trả về số học sinh đạt
-            'rate': rate  # Trả về tỷ lệ phần trăm học sinh đạt
-        })
+                class_details.append({
+                    'id': class_info.id,  # Trả về id lớp
+                    'name': class_info.name,  # Trả về tên lớp
+                    'student_numbers': class_info.student_numbers,  # Trả về số học sinh
+                    'passed_students': passed_students,  # Trả về số học sinh đạt
+                    'rate': rate  # Trả về tỷ lệ phần trăm học sinh đạt
+                })
+        else:  # Nếu không phải ADMIN (là TEACHER)
+            class_info = get_class_by_id(class_id) #Lấy thông tin lớp theo ID
+            passed_students = get_passed_students(class_info.id, semester_id, subject_id)
+            rate = get_pass_rate(class_info.id, semester_id, subject_id)
+
+            class_details.append({
+                'id': class_info.id,  # Trả về id lớp
+                'name': class_info.name,  # Trả về tên lớp
+                'student_numbers': class_info.student_numbers,  # Trả về số học sinh
+                'passed_students': passed_students,  # Trả về số học sinh đạt
+                'rate': rate  # Trả về tỷ lệ phần trăm học sinh đạt
+            })
+
     else:
         # Nếu không có class_id, lấy tất cả các lớp mà giáo viên dạy
         for cls_id in class_ids:
@@ -1008,10 +1031,6 @@ def get_teacher_classes_details(teacher_id, semester_id, subject_id,class_id=Non
 def get_passed_students(class_id, semester_id, subject_id):
     """
     Trả về số lượng học sinh đạt của một lớp trong một học kỳ cho một môn học cụ thể.
-    :param class_id: ID của lớp học.
-    :param semester_id: ID của học kỳ.
-    :param subject_id: ID của môn học.
-    :return: Số lượng học sinh đạt.
     """
     passed_students = db.session.query(func.count(ScoreBoard.student_id)) \
         .join(StudentClass, StudentClass.student_id == ScoreBoard.student_id) \
@@ -1029,12 +1048,6 @@ def get_passed_students(class_id, semester_id, subject_id):
 def get_pass_rate(class_id, semester_id, subject_id):
     """
     Tính tỷ lệ phần trăm học sinh đậu trong một lớp học.
-
-    Args:
-        class_id (int): ID của lớp học.
-
-    Returns:
-        float: Tỷ lệ học sinh đậu (từ 0 đến 100).
     """
     # Lấy tổng số học sinh trong lớp
     total_students = db.session.query(func.count(Student.id)) \
@@ -1100,13 +1113,6 @@ def get_student_ids_by_class_id(class_id, semester_id):
     """
     Lấy danh sách thông tin chi tiết (student_id, name, gender, điểm trung bình, học lực) của học sinh
     dựa vào class_id và semester_id.
-
-    Args:
-        class_id (int): ID của lớp học.
-        semester_id (int): ID của học kỳ.
-
-    Returns:
-        List[Dict]: Danh sách các thông tin của học sinh thuộc class_id và semester_id.
     """
     # Tham gia bảng `StudentClass` với bảng `Student` để lấy thông tin chi tiết
     student_classes = (
