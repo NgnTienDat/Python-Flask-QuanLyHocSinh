@@ -123,16 +123,31 @@
                             {% endif %}
 
                         </div>
+
                         <div class="col">
-                            <label for="class-select">Lớp</label>
-                            <select id="class-select" class="form-control" name="class_id">
-                                <option value="all" {% if class_id == 'all' %}selected{% endif %}>Chọn lớp</option>
-                                {% for cls in classes %}
+                            <!-- Nếu người dùng là ADMIN thì cho chọn khối  -->
+                            {% if current_user.role.value=="ADMIN" %}
+                                <label for="grade-select">Khối</label>
+                                <select id="grade-select" class="form-control" name="grade_id">
+                                <option value="all" {% if grade_id == 'all' %}selected{% endif %}>Chọn khối</option>
+                                {% for cls in grade_levels %}
                                     <option value="{{ cls.id }}"
-                                            {% if class_id == cls.id|string %}selected{% endif %}>
+                                            {% if grade_id == cls.id|string %}selected{% endif %}>
                                         {{ cls.name }}
                                     </option>
                                 {% endfor %}
+                                <!-- Nếu người dùng là TEACHER thì cho chọn lớp  -->
+                            {% else %}
+                                <label for="grade-select">Lớp</label>
+                                <select id="grade-select" class="form-control" name="grade_id">
+                                <option value="all" {% if grade_id == 'all' %}selected{% endif %}>Chọn lớp</option>
+                                {% for cls in classes %}
+                                    <option value="{{ cls.id }}"
+                                            {% if grade_id == cls.id|string %}selected{% endif %}>
+                                        {{ cls.name }}
+                                    </option>
+                                {% endfor %}
+                            {% endif %}
                             </select>
                         </div>
                         <div class="col">
@@ -211,7 +226,7 @@
     <script>
         const userRole = "{{ role }}"; // Lấy role từ server
         const updateURL = () => {
-            const selectedClassId = document.getElementById('class-select').value;
+            const selectedGradeId = document.getElementById('grade-select').value;
             const selectedSemesterId = document.getElementById('semester-select').value;
             const selectedSchoolYearId = document.getElementById('school-year-select').value;
             if (userRole === "ADMIN") {
@@ -226,10 +241,10 @@
                 return;
             }
 
-            window.location.href = `{{ url_for('subject_summary_score') }}?class_id=${selectedClassId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}&school_year_id=${selectedSchoolYearId}`;
+            window.location.href = `{{ url_for('subject_summary_score') }}?grade_id=${selectedGradeId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}&school_year_id=${selectedSchoolYearId}`;
         };
         document.getElementById('subject-select').addEventListener('change', updateURL);
-        document.getElementById('class-select').addEventListener('change', updateURL);
+        document.getElementById('grade-select').addEventListener('change', updateURL);
         document.getElementById('semester-select').addEventListener('change', updateURL);
         document.getElementById('school-year-select').addEventListener('change', updateURL);
 

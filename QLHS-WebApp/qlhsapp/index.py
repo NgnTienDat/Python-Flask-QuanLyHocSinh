@@ -37,6 +37,14 @@ def login_process():
         password = request.form.get('password')
         print(username)
         print(password)
+        user = dao.auth_account(username=username, password=password)
+        if user:  # Nếu tài khoản tồn tại
+            if user.active:  # Kiểm tra trạng thái active
+                login_user(user)  # Đăng nhập
+                return redirect(url_for('get_home_page'))  # Chuyển hướng đến trang chính
+            else:
+                flash('Tài khoản không tồn tại hoặc chưa được kích hoạt!', 'warning')  # Thông báo lỗi
+
 
         # Xác thực tài khoản
         user, is_active = dao.auth_account(username=username, password=password)
@@ -54,7 +62,7 @@ def login_process():
         elif user and not is_active:
             flash('Tài khoản bị ngừng hoạt động!', 'danger')
         else:
-            flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')
+            flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')  # Thông báo lỗi
 
     return render_template('login.html')
 
@@ -782,22 +790,22 @@ def change_password(id):
 def subject_summary_score():
     # Role = STAFF
     if current_user.role.value == "STAFF":
-        flash("Bạn không có quyền truy cập báo cáo thống kê.", "error")
+        flash("Bạn không có quyền truy cập báo cáo thống kê.", "warning")
         return redirect(url_for('get_home_page'))
 
-    class_id = request.args.get('class_id') or request.form.get('class_id')
+    grade_id = request.args.get('grade_id') or request.form.get('grade_id')
     semester_id = request.args.get('semester_id') or request.form.get('semester_id')
     subject_id = request.args.get('subject_id') or request.form.get('subject_id')
     school_year_id = request.args.get('school_year_id') or request.form.get('school_year_id')
     role = current_user.role.value
 
-    # Kiểm tra giá trị của class_id
-    if class_id == 'all':
-        class_id = None  # Nếu chọn 'all', set class_id về None hoặc giá trị mặc định
+    if grade_id == 'all':
+        grade_id = None
 
     # Role = ADMIN
     if current_user.role.value == "ADMIN":
-        classes = dao.get_all_class()
+        grade_levels = dao.get_all_grade_level()
+        classes = dao.get_class_by_grade_level(grade_id)
         subjects = dao.get_all_subject()
         school_years = dao.get_all_school_year()  # Danh sách các niên khóa
         current_year = school_years[0] if school_years else None  # Lấy niên khóa đầu tiên hoặc để None
@@ -806,7 +814,7 @@ def subject_summary_score():
         else:
             semesters = dao.get_semester(current_year.id) if current_year else []
     else:  # Role = TEACHER
-        temp = dao.get_class_teacher(current_user.user.id)
+        temp = dao.get_class_teacher(current_user.user.id, subject_id)
         classes = []  # Tạo danh sách rỗng để chứa thông tin lớp học
         for t in temp:
             class_info = dao.get_class_by_id(t.class_id)  # Lấy thông tin lớp dựa vào class_id
@@ -815,21 +823,22 @@ def subject_summary_score():
 
         subjects = []
         school_years = []
+        grade_levels = []
         current_year = dao.get_current_school_year()
         semesters = dao.get_semester(current_year.id) if current_year else []
 
-    teacher_classes = dao.get_teacher_classes_details(current_user.user.id, semester_id, subject_id, class_id)
+    teacher_classes = dao.get_teacher_classes_details(current_user.user.id, semester_id, subject_id, role, grade_id)
 
-    return render_template('admin/subject-summary.html', class_id=class_id, semester_id=semester_id,
+    return render_template('admin/subject-summary.html', grade_id=grade_id, semester_id=semester_id,
                            subject_id=subject_id, school_year_id=school_year_id, current_year=current_year,
-                           classes=classes, semesters=semesters,
+                           classes=classes, semesters=semesters, grade_levels=grade_levels,
                            teacher_classes=teacher_classes, subjects=subjects, school_years=school_years, role=role)
 
 
 @app.route("/class-summary-score")
 def class_summary_score():
     if current_user.role.value == "STAFF":
-        flash("Bạn không có quyền truy cập báo cáo thống kê.", "error")
+        flash("Bạn không có quyền truy cập báo cáo thống kê.", "warning")
         return redirect(url_for('get_home_page'))
 
     semester_id = request.args.get('semester_id') or request.form.get('semester_id')
