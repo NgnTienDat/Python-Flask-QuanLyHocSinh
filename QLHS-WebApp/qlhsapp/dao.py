@@ -5,10 +5,9 @@ import string
 import math
 import hashlib
 import cloudinary.uploader
-import pandas as pd
-from io import BytesIO
+
 import unicodedata
-from flask import flash, make_response
+from flask import flash
 from sqlalchemy import func
 from flask_mail import Message
 from qlhsapp import app, db, mail
@@ -93,13 +92,9 @@ def find_user(id):
 
 
 def auth_account(username, password):
-    is_active = False
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
-    account =  Account.query.filter(Account.username.__eq__(username.strip()),
+    return Account.query.filter(Account.username.__eq__(username.strip()),
                                 Account.password.__eq__(password)).first()
-    if account and account.active == 1:
-        is_active = True
-    return account, is_active
 
 
 def add_account(account_id, username, password, role):
@@ -732,7 +727,6 @@ def handel_save_subject(name):
 def get_subject_by_id(subject_id):
     return Subject.query.get(subject_id)
 
-
 def get_all_subject():
     return Subject.query.all()
 
@@ -757,7 +751,6 @@ def load_teachers(kw=None, page=1):
     start = (page - 1) * page_size
     query = (db.session.query(Teacher, User)
              .join(Teacher, User.id == Teacher.teacher_id)
-             .filter(User.account.has(active=True))  # Điều kiện kiểm tra active=True
              )
     total_records = query.count()
     total_pages = math.ceil(total_records / page_size)
@@ -831,13 +824,18 @@ def delete_teacher(teacher_id):
 def get_current_school_year():
     return SchoolYear.query.order_by(SchoolYear.id.desc()).first()
 
-
 def get_all_school_year():
     return SchoolYear.query.all()
 
 
 def get_all_class():
     return Class.query.all()
+
+def get_all_grade_level():
+    return GradeLevel.query.all()
+
+def get_class_by_grade_level(grade_level_id):
+    return Class.query.filter(Class.grade_level_id == grade_level_id).all()
 
 
 def get_semester(school_year_id):
@@ -956,8 +954,8 @@ def get_class_teacher(teacher_id):
     current_school_year = get_current_school_year()
 
     if teacher_id == 1:
-        # Khi teacher_id là 1, lấy tất cả các lớp trong cơ sở dữ liệu cho học kỳ hiện tại
-        class_teacher = TeachingAssignment.query.filter_by(school_year_id=current_school_year.id).all()
+        # Khi teacher_id là 1, lấy tất cả các lớp trong cơ sở dữ liệu
+        class_teacher = Class.query.filter_by().all()
     else:
         # Khi teacher_id khác 1, chỉ lấy các lớp mà giáo viên đó dạy trong học kỳ hiện tại
         class_teacher = TeachingAssignment.query.filter_by(teacher_id=teacher_id,
@@ -971,27 +969,46 @@ def get_class_by_id(class_id):
     return class_info
 
 
-def get_teacher_classes_details(teacher_id, semester_id, subject_id, class_id=None):
+def get_teacher_classes_details(teacher_id, semester_id, subject_id, role,class_id=None):
     # Lấy các lớp mà giáo viên dạy
     class_teacher = get_class_teacher(teacher_id)
-    class_ids = [assignment.class_id for assignment in class_teacher]  # Lấy danh sách các class_id
+    if teacher_id == 1:
+        class_ids = [assignment.id for assignment in class_teacher]  # Lấy danh sách các lớp trong cơ sở dữ liệu
+    else:
+        class_ids = [assignment.class_id for assignment in class_teacher]  # Lấy danh sách các class_id mà giáo viên dạy
 
     # Lấy thông tin chi tiết của từng lớp
     class_details = []
+    print(role)
 
     # Nếu có class_id, chỉ lấy thông tin lớp đó
     if class_id:
-        class_info = get_class_by_id(class_id)
-        passed_students = get_passed_students(class_info.id, semester_id, subject_id)
-        rate = get_pass_rate(class_info.id, semester_id, subject_id)
+        if role == "ADMIN":  # Kiểm tra vai trò là ADMIN
+            classes = get_class_by_grade_level(class_id)  # Lấy thông tin lớp theo ID khối
+            for class_info in classes:  # Lặp qua từng lớp
+                passed_students = get_passed_students(class_info.id, semester_id, subject_id)
+                rate = get_pass_rate(class_info.id, semester_id, subject_id)
 
-        class_details.append({
-            'id': class_info.id,  # Trả về id lớp
-            'name': class_info.name,  # Trả về tên lớp
-            'student_numbers': class_info.student_numbers,  # Trả về số học sinh
-            'passed_students': passed_students,  # Trả về số học sinh đạt
-            'rate': rate  # Trả về tỷ lệ phần trăm học sinh đạt
-        })
+                class_details.append({
+                    'id': class_info.id,  # Trả về id lớp
+                    'name': class_info.name,  # Trả về tên lớp
+                    'student_numbers': class_info.student_numbers,  # Trả về số học sinh
+                    'passed_students': passed_students,  # Trả về số học sinh đạt
+                    'rate': rate  # Trả về tỷ lệ phần trăm học sinh đạt
+                })
+        else:  # Nếu không phải ADMIN (là TEACHER)
+            class_info = get_class_by_id(class_id) #Lấy thông tin lớp theo ID
+            passed_students = get_passed_students(class_info.id, semester_id, subject_id)
+            rate = get_pass_rate(class_info.id, semester_id, subject_id)
+
+            class_details.append({
+                'id': class_info.id,  # Trả về id lớp
+                'name': class_info.name,  # Trả về tên lớp
+                'student_numbers': class_info.student_numbers,  # Trả về số học sinh
+                'passed_students': passed_students,  # Trả về số học sinh đạt
+                'rate': rate  # Trả về tỷ lệ phần trăm học sinh đạt
+            })
+
     else:
         # Nếu không có class_id, lấy tất cả các lớp mà giáo viên dạy
         for cls_id in class_ids:
@@ -999,7 +1016,7 @@ def get_teacher_classes_details(teacher_id, semester_id, subject_id, class_id=No
 
             # Lấy số học sinh đạt của lớp cho môn học và học kỳ
             passed_students = get_passed_students(class_info.id, semester_id, subject_id)
-            rate = get_pass_rate(class_info.id, semester_id, subject_id)
+            rate = get_pass_rate(class_info.id, semester_id ,subject_id)
 
             # Thêm thông tin lớp vào danh sách
             class_details.append({
@@ -1016,19 +1033,15 @@ def get_teacher_classes_details(teacher_id, semester_id, subject_id, class_id=No
 def get_passed_students(class_id, semester_id, subject_id):
     """
     Trả về số lượng học sinh đạt của một lớp trong một học kỳ cho một môn học cụ thể.
-    :param class_id: ID của lớp học.
-    :param semester_id: ID của học kỳ.
-    :param subject_id: ID của môn học.
-    :return: Số lượng học sinh đạt.
     """
     passed_students = db.session.query(func.count(ScoreBoard.student_id)) \
         .join(StudentClass, StudentClass.student_id == ScoreBoard.student_id) \
         .filter(
-        StudentClass.class_id == class_id,
-        ScoreBoard.average_score >= 5,
-        ScoreBoard.semester_id == semester_id,  # Lọc theo học kỳ
-        ScoreBoard.subject_id == subject_id  # Lọc theo môn học
-    ) \
+            StudentClass.class_id == class_id,
+            ScoreBoard.average_score >= 5,
+            ScoreBoard.semester_id == semester_id,  # Lọc theo học kỳ
+            ScoreBoard.subject_id == subject_id     # Lọc theo môn học
+        ) \
         .scalar()
 
     return passed_students
@@ -1037,12 +1050,6 @@ def get_passed_students(class_id, semester_id, subject_id):
 def get_pass_rate(class_id, semester_id, subject_id):
     """
     Tính tỷ lệ phần trăm học sinh đậu trong một lớp học.
-
-    Args:
-        class_id (int): ID của lớp học.
-
-    Returns:
-        float: Tỷ lệ học sinh đậu (từ 0 đến 100).
     """
     # Lấy tổng số học sinh trong lớp
     total_students = db.session.query(func.count(Student.id)) \
@@ -1103,17 +1110,11 @@ def calculate_student_average(student_id, class_id, semester_id):
         return 0.0
 
 
+
 def get_student_ids_by_class_id(class_id, semester_id):
     """
     Lấy danh sách thông tin chi tiết (student_id, name, gender, điểm trung bình, học lực) của học sinh
     dựa vào class_id và semester_id.
-
-    Args:
-        class_id (int): ID của lớp học.
-        semester_id (int): ID của học kỳ.
-
-    Returns:
-        List[Dict]: Danh sách các thông tin của học sinh thuộc class_id và semester_id.
     """
     # Tham gia bảng `StudentClass` với bảng `Student` để lấy thông tin chi tiết
     student_classes = (
@@ -1162,69 +1163,3 @@ def get_student_ids_by_class_id(class_id, semester_id):
         })
 
     return students_with_averages
-
-
-def export_to_excel(semester_id, scores, students):
-    data = []
-    score_types = load_score_columns()
-    for student in students:
-        row = {
-            "Mã HS": student.student_id,
-            "Họ và Tên": student.students.name,
-        }
-        if semester_id == "all_semester":
-            row["TBHK1"] = scores.get(student.student_id, {}).get("TBHK1", "")
-            row["TBHK2"] = scores.get(student.student_id, {}).get("TBHK2", "")
-        else:
-            for score_type in score_types:
-                score_values = scores.get(student.student_id, {}).get(score_type.id, [])
-                for i in range(score_type.score_quantity):
-                    score_type_name = f"{score_type.name} ({i + 1})"
-                    row[score_type_name] = score_values[i] if i < len(score_values) else ""
-
-            row["Trung bình"] = scores.get(student.student_id, {}).get("average_score", 0)  # Điểm trung bình
-
-        data.append(row)
-
-    df = pd.DataFrame(data)
-
-    output = BytesIO()  # Tạo buffer trong bộ nhớ
-    df.to_excel(output, index=False, engine='openpyxl')  # Ghi dữ liệu vào buffer
-    output.seek(0)  # Đưa con trỏ về đầu buffer
-
-    # Trả về file dưới dạng HTTP response
-    response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=scores.xlsx"
-    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    return response
-
-
-def get_semester_ids_by_school_year(school_year_id):
-    semesters = get_semester(school_year_id)  # danh sach hoc ky cua nam hoc duoc lay ra
-    semester_mapping = {}
-
-    for semester in semesters:
-        if "HK1" in semester.name:
-            semester_mapping["TBHK1"] = semester.id
-        elif "HK2" in semester.name:
-            semester_mapping["TBHK2"] = semester.id
-
-    return semester_mapping  # tra ve {'TBHK1': 1, 'TBHK2': 2} 1 va 2 la id semester cua nam hoc duoc lay
-
-
-def get_all_average_scores(subject_id, class_id, school_year_id):
-    scores = {}
-    students = get_students_by_class(class_id)
-
-    semester_mapping = get_semester_ids_by_school_year(school_year_id)
-
-    for student in students:
-        student_id = student.student_id
-        scores[student_id] = {"TBHK1": 0, "TBHK2": 0}
-
-        for key, semester_id in semester_mapping.items():
-            semester_scores = prepare_scores(subject_id, semester_id)
-            if student_id in semester_scores:
-                scores[student_id][key] = semester_scores[student_id].get("average_score", 0)
-
-    return scores
