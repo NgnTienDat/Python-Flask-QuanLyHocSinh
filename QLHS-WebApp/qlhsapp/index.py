@@ -35,32 +35,18 @@ def login_process():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        print(username)
-        print(password)
         user = dao.auth_account(username=username, password=password)
         if user:  # Nếu tài khoản tồn tại
             if user.active:  # Kiểm tra trạng thái active
                 login_user(user)  # Đăng nhập
-                return redirect(url_for('get_home_page'))  # Chuyển hướng đến trang chính
+                if user.role.value == 'ADMIN':
+                    # Chuyển hướng tới trang Flask-Admin
+                    print('admin here')
+                    return redirect('/admin')
+                else:
+                    return redirect(url_for('get_home_page'))  # Chuyển hướng đến trang chính
             else:
-                flash('Tài khoản không tồn tại hoặc chưa được kích hoạt!', 'warning')  # Thông báo lỗi
-
-
-        # Xác thực tài khoản
-        user, is_active = dao.auth_account(username=username, password=password)
-        if user and is_active:
-            login_user(user)
-            # Kiểm tra vai trò
-            print(user.role)
-            if user.role.value == 'ADMIN':
-                # Chuyển hướng tới trang Flask-Admin
-                print('admin here')
-                return redirect('/admin')
-
-            # Chuyển hướng tới trang chính
-            return redirect(url_for('get_home_page'))
-        elif user and not is_active:
-            flash('Tài khoản bị ngừng hoạt động!', 'danger')
+                flash('Tài khoản bị ngừng hoạt động!', 'danger')
         else:
             flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')  # Thông báo lỗi
 
@@ -671,6 +657,7 @@ def delete_user(id):
 def update_user(id):
     err_msg = ''
     user = dao.find_user(id)  # Lấy thông tin người dùng theo ID
+    account = dao.get_account_by_id(id)
 
     if request.method == 'POST':
         # Lấy dữ liệu từ form
@@ -679,6 +666,8 @@ def update_user(id):
         address = request.form['address']
         email = request.form['email']
         phone_number = request.form['phone_number']
+        status = request.form['status']
+
         # Kiểm tra xem email có bị trùng với người dùng khác không
         existing_user = dao.find_user_by_email(email)
         if existing_user and existing_user.id != id:  # Kiểm tra email trùng với người khác
@@ -690,6 +679,7 @@ def update_user(id):
             user.address = address
             user.email = email
             user.phone_number = phone_number
+            account.active = int(status)
 
             try:
                 # Lưu thay đổi vào database
@@ -814,7 +804,7 @@ def subject_summary_score():
         else:
             semesters = dao.get_semester(current_year.id) if current_year else []
     else:  # Role = TEACHER
-        temp = dao.get_class_teacher(current_user.user.id, subject_id)
+        temp = dao.get_class_teacher(current_user.user.id)
         classes = []  # Tạo danh sách rỗng để chứa thông tin lớp học
         for t in temp:
             class_info = dao.get_class_by_id(t.class_id)  # Lấy thông tin lớp dựa vào class_id
@@ -869,6 +859,10 @@ def class_summary_score():
             semesters = dao.get_semester(current_year.id) if current_year else []
     else:  # Role = TEACHER
         class_name = dao.get_class_by_homeroom_teacher_id(current_user.user.id)
+        # Kiểm tra nếu class_name là None và hiện thông báo flash
+        if not class_name:
+            flash("Bạn không phải giáo viên chủ nhiệm nên không có quyền truy cập báo cáo thống kê theo lớp.", "danger")
+            return redirect(url_for('get_home_page'))  # Điều hướng đến một trang phù hợp
         current_year = dao.get_current_school_year()
         semesters = dao.get_semester(current_year.id) if current_year else []
         students = dao.get_student_ids_by_class_id(class_name.id, semester_id)

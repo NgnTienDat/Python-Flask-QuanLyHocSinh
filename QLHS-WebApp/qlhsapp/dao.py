@@ -29,7 +29,7 @@ def load_list_users(kw=None, page=1):
     page_size = app.config['PAGE_SIZE']
     start = (page - 1) * page_size
 
-    query = User.query.join(Account).filter(Account.active == True)
+    query = User.query
 
     print(query)
     total_records = query.count()  # Tong so ban ghi
