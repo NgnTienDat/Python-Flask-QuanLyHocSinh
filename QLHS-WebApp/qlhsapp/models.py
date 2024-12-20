@@ -201,7 +201,7 @@ class Student(BaseModel):
     # 1 - N: A student is admitted by one user (staff)
     staff = relationship('Staff', back_populates='students')  # done
     # 1 - N: A student has many scoreboards
-    score_boards = relationship('ScoreBoard', back_populates='student')  # done
+    score_boards = relationship('ScoreBoard', back_populates='student', cascade="all, delete")  # done
 
     student_classes = relationship('StudentClass', back_populates='students', cascade="all, delete")
 
@@ -214,7 +214,7 @@ class ScoreBoard(BaseModel):
     teacher_id = Column(Integer, ForeignKey('teacher.teacher_id'), nullable=False)
     average_score = Column(Float, nullable=True, default=0)  # Thêm cột average_score
     # 1 - N: A subject's scoreboard has many scores
-    scores = relationship('Score', back_populates='score_board')  # done
+    scores = relationship('Score', back_populates='score_board', cascade="all, delete")  # done
     # 1 - N: A scoreboard is scored by a teacher
     teacher = relationship('Teacher', back_populates='enter_scores')  # done
     # 1 - N: A scoreboard belongs to a student
@@ -227,7 +227,7 @@ class ScoreBoard(BaseModel):
 
 # Diem
 class Score(BaseModel):
-    score_type = Column(Integer, ForeignKey('score_type.id'), nullable=False)
+    score_type = Column(Integer, ForeignKey('score_type.id'), nullable=True)
     score_value = Column(Float, nullable=False)
     index = db.Column(db.Integer, nullable=False)  # Add this column
     score_board_id = Column(Integer, ForeignKey('score_board.id'), nullable=False)

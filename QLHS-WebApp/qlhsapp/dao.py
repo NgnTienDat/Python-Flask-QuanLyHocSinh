@@ -675,6 +675,7 @@ def add_student(name, address, gender, date_of_birth, staff_id, **kwargs):
                           staff_id=staff_id,
                           email=kwargs.get('email'),
                           phone_number=kwargs.get('phone_number'))
+        print(student)
         db.session.add(student)
         db.session.commit()
     except ValueError as ve:
