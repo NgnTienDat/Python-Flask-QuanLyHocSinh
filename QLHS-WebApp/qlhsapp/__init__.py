@@ -11,9 +11,9 @@ app = Flask(__name__)
 
 
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1234@localhost/qlhsdb?charset=utf8mb4'
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:%s@localhost/database?charset=utf8mb4" % quote('Admin@123')
 
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:tiendatmySQL964%40@localhost/qlhsdb?charset=utf8mb4'
 
 # Cấu hình mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Gmail SMTP server

@@ -110,7 +110,7 @@ def add_student_page():
             gender = request.form.get('gender')
             date_of_birth = request.form.get('date_of_birth')
             phone_number = request.form.get('phone_number')
-            staff_id = '2'
+            staff_id = current_user.account_id
             print(f"Received data: name={name}, address={address}, email={email}, "
                   f"gender={gender}, date_of_birth={date_of_birth}, phone_number={phone_number}")
             # kiểm tra tính hợp lệ của thông tin nhập vào
@@ -120,10 +120,11 @@ def add_student_page():
             if dao.check_email_student(email):
                 flash("Email đã tồn tại !!!", "warning")
                 return redirect(url_for('add_student_page'))
-
+            print(staff_id)
             dao.add_student(name=name, address=address, gender=gender, date_of_birth=date_of_birth, staff_id=staff_id,
                             email=email,
                             phone_number=phone_number)
+
             flash("Thêm học sinh thành công!", "success")
         except Exception as ex:
             print(f"Error occurred: {ex}")
@@ -814,7 +815,7 @@ def subject_summary_score():
         else:
             semesters = dao.get_semester(current_year.id) if current_year else []
     else:  # Role = TEACHER
-        temp = dao.get_class_teacher(current_user.user.id, subject_id)
+        temp = dao.get_class_teacher(current_user.user.id)
         classes = []  # Tạo danh sách rỗng để chứa thông tin lớp học
         for t in temp:
             class_info = dao.get_class_by_id(t.class_id)  # Lấy thông tin lớp dựa vào class_id
