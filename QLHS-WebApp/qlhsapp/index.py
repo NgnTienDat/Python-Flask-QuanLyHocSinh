@@ -96,7 +96,7 @@ def add_student_page():
             gender = request.form.get('gender')
             date_of_birth = request.form.get('date_of_birth')
             phone_number = request.form.get('phone_number')
-            staff_id = '2'
+            staff_id = current_user.account_id
             print(f"Received data: name={name}, address={address}, email={email}, "
                   f"gender={gender}, date_of_birth={date_of_birth}, phone_number={phone_number}")
             # kiểm tra tính hợp lệ của thông tin nhập vào
@@ -106,10 +106,11 @@ def add_student_page():
             if dao.check_email_student(email):
                 flash("Email đã tồn tại !!!", "warning")
                 return redirect(url_for('add_student_page'))
-
+            print(staff_id)
             dao.add_student(name=name, address=address, gender=gender, date_of_birth=date_of_birth, staff_id=staff_id,
                             email=email,
                             phone_number=phone_number)
+
             flash("Thêm học sinh thành công!", "success")
         except Exception as ex:
             print(f"Error occurred: {ex}")
