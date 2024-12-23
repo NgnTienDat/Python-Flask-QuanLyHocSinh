@@ -90,6 +90,15 @@
                 <li class="breadcrumb-item"><a href="/find-student">Xuất điểm</a></li>
             </ol>
         </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
         <div class="container">
             <h2>Xuất điểm</h2>
 
@@ -208,11 +217,17 @@
         const selectedClassId = document.getElementById('class-select').value;
         const selectedSemesterId = document.getElementById('semester-select').value;
         const selectedSubjectId = document.querySelector('input[name="subject_id"]').value;
+       if (!selectedClassId || !selectedSemesterId) {
+            alert("Lỗi xuất điểm: Chưa chọn lớp hoặc học kỳ");
 
-        const baseUrl = "{{ url_for('export_score') }}";
-        const queryParams = `?class_id=${selectedClassId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}`;
-        const exportParam = exportExcel ? "&export=excel" : "";
-        window.location.href = baseUrl + queryParams + exportParam;
+       }
+       else{
+            const baseUrl = "{{ url_for('export_score') }}";
+            const queryParams = `?class_id=${selectedClassId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}`;
+            const exportParam = exportExcel ? "&export=excel" : "";
+            window.location.href = baseUrl + queryParams + exportParam;
+       }
+
     }
 
 
