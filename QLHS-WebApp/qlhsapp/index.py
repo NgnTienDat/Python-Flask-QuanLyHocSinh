@@ -645,10 +645,12 @@ def list_user():
 
     account = db.session.get(Account, current_user.account_id)
     r = account.role
-    if r.value == 'ADMIN':
-        return render_template('admin/list-user.html', users=users, pages=pages)
-    return render_template('staff/list-user.html', users=users, pages=pages)
+    # if r.value == 'ADMIN':
+    #     return render_template('admin/list-user.html', users=users, pages=pages)
+    # return render_template('staff/list-user.html', users=users, pages=pages)
 
+
+    return render_template('admin/list-user.html', users=users, pages=pages)
 
 
 @app.route("/delete-user/<int:id>", methods=['DELETE'])
