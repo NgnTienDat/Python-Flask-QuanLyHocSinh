@@ -6,35 +6,40 @@
     height: 100%;
     overflow: hidden;
     position: relative;
-    background-image: url('../images/anh1.jpg');
+    background-image: url('../images/photo1.webp');
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
     animation: change 10s infinite ease-in-out;
 }
+.transparent-card {
+    background: rgba(255, 255, 255, 0.2); /* Nền trắng mờ */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+    border: 1px solid rgba(255, 255, 255, 0.5); /* Viền mờ */
+}
 @keyframes change{
     0%
     {
-        background-image: url('../images/anh1.jpg');
+        background-image: url('../images/photo1.webp');
     }
     20%
     {
-        background-image: url('../images/anh2.webp');
+        background-image: url('../images/photo2.jpg');
     }
     40%
     {
-        background-image: url('../images/anh3.jpg');
+        background-image: url('../images/photo3.jpg');
     }
     60%
     {
-        background-image: url('../images/anh5.jpg');
+        background-image: url('../images/photo4.jpg');
     }
     80%
     {
-        background-image: url('../images/anh6.jpg');
+        background-image: url('../images/photo5.jpg');
     }
     100%
     {
-        background-image: url('../images/anh1.jpg');
+        background-image: url('../images/photo1.webp');
     }
 }
