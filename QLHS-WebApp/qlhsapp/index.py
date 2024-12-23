@@ -45,7 +45,6 @@ def login_process():
             else:
                 flash('Tài khoản không tồn tại hoặc chưa được kích hoạt!', 'warning')  # Thông báo lỗi
 
-
         # Xác thực tài khoản
         user, is_active = dao.auth_account(username=username, password=password)
         if user and is_active:
@@ -271,7 +270,6 @@ def score_regulations_page():
     return render_template('staff/score.html', score_types=score_types)
 
 
-
 @app.route("/add-new-score-type", methods=['get', 'post'])
 def new_score_regulation():
     if request.method == 'POST':
@@ -414,14 +412,16 @@ def input_score():
     scores = dao.prepare_scores(subject_id, semester_id)
 
     if request.method == 'POST':
-        teacher_id = request.form.get('teacher_id')
-        for student in students:
-            student_id = student.student_id
-            score_data = dao.extract_score_data(student, score_columns,
-                                                request.form)  # lấy các cột điểm của hs từ form về dạng từ điểm để lưu
-            dao.save_score(student_id, subject_id, teacher_id, semester_id, score_columns, score_data)
-        scores = dao.prepare_scores(subject_id, semester_id)  # load lại điểm lúc nhấn lưu
-
+        if not semester_id or class_id:
+            flash(f"Lỗi lưu điểm: Chưa chọn lớp hoặc học kỳ", "danger")
+        else:
+            teacher_id = request.form.get('teacher_id')
+            for student in students:
+                student_id = student.student_id
+                score_data = dao.extract_score_data(student, score_columns,
+                                                    request.form)  # lấy các cột điểm của hs từ form về dạng từ điểm để lưu
+                dao.save_score(student_id, subject_id, teacher_id, semester_id, score_columns, score_data)
+            scores = dao.prepare_scores(subject_id, semester_id)  # load lại điểm lúc nhấn lưu
 
     return render_template(
         'teacher/input-score.html',
@@ -434,7 +434,6 @@ def input_score():
         scores=scores,
         selected_semester_filter=semester_id
     )
-
 
 
 # Xuất điểm
@@ -645,12 +644,9 @@ def list_user():
 
     account = db.session.get(Account, current_user.account_id)
     r = account.role
-    # if r.value == 'ADMIN':
-    #     return render_template('admin/list-user.html', users=users, pages=pages)
-    # return render_template('staff/list-user.html', users=users, pages=pages)
-
 
     return render_template('admin/list-user.html', users=users, pages=pages)
+
 
 
 @app.route("/delete-user/<int:id>", methods=['DELETE'])
@@ -666,7 +662,6 @@ def delete_user(id):
     except Exception as e:
         print("Xóa thất bại", e)
         return {"message": "Xóa thất bại", "error": str(e)}
-
 
 
 # Route để cập nhật thông tin khách hàng
