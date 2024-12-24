@@ -240,6 +240,7 @@ def score_regulations_page():
                     'score_quantity': score_quantity,
                     'coefficient': coefficient
                 })
+                print(scores_update)
         except (TypeError, ValueError):
             flash('Dữ liệu không hợp lệ, vui lòng nhập số nguyên!!', 'warning')
             return redirect(url_for('score_regulations_page'))
@@ -701,7 +702,7 @@ def update_user(id):
             try:
                 # Lưu thay đổi vào database
                 db.session.commit()
-                return redirect(url_for('get_home_page'))  # Chuyển hướng về trang chủ
+                return redirect(url_for('list_user'))  # Chuyển hướng về trang chủ
             except Exception as e:
                 db.session.rollback()
                 err_msg = "Đã xảy ra lỗi trong quá trình cập nhật."
