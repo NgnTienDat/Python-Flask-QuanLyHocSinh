@@ -28,12 +28,26 @@ from flask import request
 from datetime import datetime
 
 
+# def load_list_users(kw=None, page=1):
+#     page_size = 4
+#     start = (page - 1) * page_size
+#
+#     query = User.query
+#     print(query)
+#     total_records = query.count()  # Tong so ban ghi
+#     total_pages = math.ceil(total_records / page_size)
+#
+#     if kw:
+#         query = query.filter(User.first_name.contains(kw) | User.last_name.contains(kw) | User.email.contains(kw))
+#
+#     users = query.offset(start).limit(page_size).all()
+#     return users, total_pages
+
 def load_list_users(kw=None, page=1):
-    page_size = app.config['PAGE_SIZE']
+    page_size = 8
     start = (page - 1) * page_size
 
-    query = User.query.join(Account).filter(Account.active == True)
-
+    query = User.query
     print(query)
     total_records = query.count()  # Tong so ban ghi
     total_pages = math.ceil(total_records / page_size)
@@ -95,9 +109,13 @@ def find_user(id):
 
 
 def auth_account(username, password):
+    is_active = False
     password = str(hashlib.md5(password.encode('utf-8')).hexdigest())
-    return Account.query.filter(Account.username.__eq__(username.strip()),
+    account =  Account.query.filter(Account.username.__eq__(username.strip()),
                                 Account.password.__eq__(password)).first()
+    if account and account.active == 1:
+        is_active = True
+    return account, is_active
 
 
 def add_account(account_id, username, password, role):

@@ -37,13 +37,6 @@ def login_process():
         password = request.form.get('password')
         print(username)
         print(password)
-        user = dao.auth_account(username=username, password=password)
-        if user:  # Nếu tài khoản tồn tại
-            if user.active:  # Kiểm tra trạng thái active
-                login_user(user)  # Đăng nhập
-                return redirect(url_for('get_home_page'))  # Chuyển hướng đến trang chính
-            else:
-                flash('Tài khoản không tồn tại hoặc chưa được kích hoạt!', 'warning')  # Thông báo lỗi
 
         # Xác thực tài khoản
         user, is_active = dao.auth_account(username=username, password=password)
@@ -61,7 +54,7 @@ def login_process():
         elif user and not is_active:
             flash('Tài khoản bị ngừng hoạt động!', 'danger')
         else:
-            flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')  # Thông báo lỗi
+            flash('Tên đăng nhập hoặc mật khẩu không đúng!', 'danger')
 
     return render_template('login.html')
 
@@ -636,6 +629,17 @@ def update_class(class_id):
                            homeroom_teacher_id=homeroom_teacher_id)
 
 
+# @app.route("/list-user")
+# def list_user():
+#     page = request.args.get('page', 1)
+#     kw = request.args.get('kw')
+#     users, pages = dao.load_list_users(kw=kw, page=int(page))
+#
+#     account = db.session.get(Account, current_user.account_id)
+#     r = account.role
+#
+#     return render_template('admin/list-user.html', users=users, pages=pages)
+
 @app.route("/list-user")
 def list_user():
     page = request.args.get('page', 1)
@@ -644,9 +648,9 @@ def list_user():
 
     account = db.session.get(Account, current_user.account_id)
     r = account.role
-
-    return render_template('admin/list-user.html', users=users, pages=pages)
-
+    if r.value == 'ADMIN':
+        return render_template('admin/list-user.html', users=users, pages=pages)
+    return render_template('staff/list-user.html', users=users, pages=pages)
 
 
 @app.route("/delete-user/<int:id>", methods=['DELETE'])
@@ -677,6 +681,8 @@ def update_user(id):
         address = request.form['address']
         email = request.form['email']
         phone_number = request.form['phone_number']
+        status = request.form.get('status')
+
         # Kiểm tra xem email có bị trùng với người dùng khác không
         existing_user = dao.find_user_by_email(email)
         if existing_user and existing_user.id != id:  # Kiểm tra email trùng với người khác
@@ -688,6 +694,9 @@ def update_user(id):
             user.address = address
             user.email = email
             user.phone_number = phone_number
+            account = Account.query.get(user.id)
+            if account:
+                account.active = int(status)
 
             try:
                 # Lưu thay đổi vào database
