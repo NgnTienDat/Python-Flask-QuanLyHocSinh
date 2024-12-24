@@ -921,7 +921,7 @@ def save_score(student_id, subject_id, teacher_id, semester_id, score_columns, s
                         score_value=score_value,
                         score_board_id=score_board.id
                     )
-                    if 0 < score_value < 10:
+                    if 0 <= score_value <= 10:
                         db.session.add(new_score)
                     else:
                         flash(f"Lỗi nhập điểm: Điểm phải nằm trong khoảng từ 0 đến 10", "danger")

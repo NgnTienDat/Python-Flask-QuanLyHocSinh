@@ -402,9 +402,8 @@ def input_score():
 
     current_year = dao.get_current_school_year()
     if current_year is None:
-        print("No current school year found!")
-        # Xử lý trường hợp không có năm học hiện tại, ví dụ:
-        return "Error: No current school year available"
+        print("khong co nam hien tai!")
+        return "loi: khong co nam hien tai!"
     classes = dao.get_class_teacher(current_user.user.id)
     semesters = dao.get_semester(current_year.id) if current_year else []
     score_columns = dao.load_score_columns()
@@ -412,7 +411,9 @@ def input_score():
     scores = dao.prepare_scores(subject_id, semester_id)
 
     if request.method == 'POST':
-        if not semester_id or class_id:
+        print(semester_id)
+        print(class_id)
+        if not semester_id or not class_id:
             flash(f"Lỗi lưu điểm: Chưa chọn lớp hoặc học kỳ", "danger")
         else:
             teacher_id = request.form.get('teacher_id')
