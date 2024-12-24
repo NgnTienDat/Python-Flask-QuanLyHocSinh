@@ -406,7 +406,7 @@ def input_score():
     scores = dao.prepare_scores(subject_id, semester_id)
 
     if request.method == 'POST':
-        if not semester_id or class_id:
+        if not semester_id or not class_id:
             flash(f"Lỗi lưu điểm: Chưa chọn lớp hoặc học kỳ", "danger")
         else:
             teacher_id = request.form.get('teacher_id')

@@ -102,7 +102,7 @@
                         <label for="subject-select">Môn học</label>
                         <select id="subject-select" class="form-control">
                             {% if current_user.role.value == "ADMIN" %}
-                            <option value="all" {% if subject_id== `'all' %}selected{% endif %}>Chọn môn học
+                            <option value="all" {% if subject_id== 'all' %}selected{% endif %}>Chọn môn học
                             </option>
                             {% for s in subjects %}
                             <option value="{{ s.id }}"

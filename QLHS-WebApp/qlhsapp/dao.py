@@ -458,7 +458,7 @@ def count_student_un_assigned():
 def automatic_assign_students_to_class():
     # si so toi da
     class_max_size = Regulation.query.filter_by(key_name='CLASS_MAX_SIZE').first()  #
-    # cac lop hoc can them hoc sinh
+    # cac lop hoc can them hoc sinh có sĩ số < sĩ số tối đa
     classes = Class.query.filter(Class.student_numbers < int(class_max_size.value)).all()
     if not classes:
         flash('Các lớp học đã đạt sĩ số tối đa!!', 'warning')
@@ -490,8 +490,10 @@ def automatic_assign_students_to_class():
     if numbers_current_classes < min_numbers_class:
         flash('Phân lớp không thành công do không đủ lớp học. Tạo thêm lớp học hoặc nâng sĩ số tối đa lên!', 'warning')
         return False
+    # so nam trong 1 lop
     male_numbers_in_class = male_numbers // min_numbers_class
     print(f'nam 1 lop: {male_numbers_in_class}')
+    # so nữ trong 1 lop
     female_numbers_in_class = female_numbers // min_numbers_class
     print(f'nu 1 lop: {female_numbers_in_class}')
     idx = 0
@@ -506,7 +508,7 @@ def automatic_assign_students_to_class():
             male_students[i].in_assigned = True
             db.session.add(stu_class)
             print('for1')
-        if (i + 1) % male_numbers_in_class == 0:  # vong lap chay tu 0 -> i = 8 la du 9 nam
+        if (i + 1) % male_numbers_in_class == 0:  # vong lap chay tu 0 -> i = 8 la đủ 9 nam
             idx += 1
 
     print('pass for1')
@@ -896,7 +898,8 @@ def calculate_average_score(score_columns, score_data, student_id):
                 total_score += float(score_value) * col.coefficient
                 total_coefficient += col.coefficient
 
-    return total_score / total_coefficient if total_coefficient > 0 else 0
+    average_score = total_score / total_coefficient if total_coefficient > 0 else 0
+    return round(average_score, 2)
 
 
 def save_score(student_id, subject_id, teacher_id, semester_id, score_columns, score_data):
@@ -939,7 +942,7 @@ def save_score(student_id, subject_id, teacher_id, semester_id, score_columns, s
                         score_value=score_value,
                         score_board_id=score_board.id
                     )
-                    if 0 < score_value < 10:
+                    if 0 <= score_value <= 10:
                         db.session.add(new_score)
                     else:
                         flash(f"Lỗi nhập điểm: Điểm phải nằm trong khoảng từ 0 đến 10", "danger")
