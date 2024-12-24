@@ -1,3 +1,5 @@
+import hashlib
+
 from cloudinary.uploader import remove_all_tags
 
 from flask_login import UserMixin
@@ -363,6 +365,8 @@ class Semester(BaseModel):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+
+
         # with Session(engine) as session:  # Đảm bảo bạn đã kết nối đúng engine
         #     create_students(session)
 

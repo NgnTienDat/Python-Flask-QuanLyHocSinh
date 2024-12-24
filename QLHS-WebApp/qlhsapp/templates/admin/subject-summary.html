@@ -2,336 +2,340 @@
 {% block title %} Trang chủ {% endblock %}
 
 {% block css %}
-    <style>
+<style>
 
 
-        h2 {
-            margin-bottom: 20px;
-            font-size: 24px;
-            color: #333;
-        }
+    h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        color: #333;
+    }
 
-        .select-row {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+    .select-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
 
-        .col {
-            flex: 1;
-        }
+    .col {
+        flex: 1;
+    }
 
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
 
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            background-color: #fff;
-            appearance: none;
-        }
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        background-color: #fff;
+        appearance: none;
+    }
 
-        .form-control:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-        }
+    .form-control:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
 
-        .actions {
-            width: 100%;
-            text-align: right; /* Căn nút sang bên phải */
-            margin-top: 20px;
-        }
+    .actions {
+        width: 100%;
+        text-align: right; /* Căn nút sang bên phải */
+        margin-top: 20px;
+    }
 
-        .score-table-container {
-            margin-top: 20px;
-        }
+    .score-table-container {
+        margin-top: 20px;
+    }
 
-        .score-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
+    .score-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
 
-        .score-table th,
-        .score-table td {
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
+    .score-table th,
+    .score-table td {
+        padding: 10px;
+        text-align: center;
+        border: 1px solid #ddd;
+    }
 
-        .score-table th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
+    .score-table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
 
-        .score-table tr:hover {
-            background-color: #f1f1f1;
-        }
-    </style>
+    .score-table tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
 
 {% endblock %}
 
 {% block sidebar %}
-    {% include 'layout/sidebar-admin.html' %}
+{% include 'layout/sidebar-admin.html' %}
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid pt-4 px-4">
-        <form class="row g-4">
-            <!-- Thanh Breadcrumb -->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="">Báo cáo</a></li>
-                    <li class="breadcrumb-item"><a href="/find-student">Báo cáo tổng kết theo môn</a></li>
-                </ol>
-            </nav>
-            <div class="container">
-                <h2>Báo cáo tổng kết theo môn</h2>
+<div class="container-fluid pt-4 px-4">
+    <form class="row g-4">
+        <!-- Thanh Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Hệ thống</a></li>
+                <li class="breadcrumb-item"> Báo cáo tổng kết theo môn</li>
+            </ol>
+        </nav>
+        <div class="container">
+            <h2>Báo cáo tổng kết theo môn</h2>
 
-                <!-- Hàng chọn thông tin -->
-                <form action="{{ url_for('subject_summary_score') }}" method="post">
-                    <div class="row select-row">
-                        <div class="col">
-                            <label for="subject-select">Môn học</label>
-                            <select id="subject-select" class="form-control">
-                                {% if current_user.role.value == "ADMIN" %}
-                                    <option value="all" {% if subject_id == 'all' %}selected{% endif %}>Chọn môn học
-                                    </option>
-                                    {% for s in subjects %}
-                                        <option value="{{ s.id }}"
-                                                {% if subject_id == s.id|string %}selected{% endif %}>
-                                            {{ s.name }}
-                                        </option>
-                                    {% endfor %}
-                                {% else %}
-                                    <option>
-                                        {{ current_user.user.teacher.subject.name }}
-                                    </option>
-                                {% endif %}
-                            </select>
-                            {% if current_user.user and current_user.user.teacher and current_user.user.teacher.subject %}
-                                <input type="hidden" name="subject_id"
-                                       value="{{ current_user.user.teacher.subject.id }}">
-                                <input type="hidden" name="teacher_id" value="{{ current_user.user.id }}">
-                            {% endif %}
-
-                        </div>
-
-                        <div class="col">
-                            <!-- Nếu người dùng là ADMIN thì cho chọn khối  -->
-                            {% if current_user.role.value=="ADMIN" %}
-                                <label for="grade-select">Khối</label>
-                                <select id="grade-select" class="form-control" name="grade_id">
-                                <option value="all" {% if grade_id == 'all' %}selected{% endif %}>Chọn khối</option>
-                                {% for cls in grade_levels %}
-                                    <option value="{{ cls.id }}"
-                                            {% if grade_id == cls.id|string %}selected{% endif %}>
-                                        {{ cls.name }}
-                                    </option>
-                                {% endfor %}
-                                <!-- Nếu người dùng là TEACHER thì cho chọn lớp  -->
-                            {% else %}
-                                <label for="grade-select">Lớp</label>
-                                <select id="grade-select" class="form-control" name="grade_id">
-                                <option value="all" {% if grade_id == 'all' %}selected{% endif %}>Chọn lớp</option>
-                                {% for cls in classes %}
-                                    <option value="{{ cls.id }}"
-                                            {% if grade_id == cls.id|string %}selected{% endif %}>
-                                        {{ cls.name }}
-                                    </option>
-                                {% endfor %}
-                            {% endif %}
-                            </select>
-                        </div>
-                        <div class="col">
-                            <label for="semester-select">Học kỳ</label>
-                            <select id="semester-select" class="form-control" name="semester_id">
-                                <option value="all" {% if semester_id == 'all' %}selected{% endif %}>Chọn học kỳ
-                                </option>
-                                {% for semester in semesters %}
-                                    <option value="{{ semester.id }}"
-                                            {% if semester_id == semester.id|string %}selected{% endif %}>
-                                        {{ semester.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col">
-                            <label for="school-year-select">Niên khóa</label>
-                            <select id="school-year-select" class="form-control">
-                                {% if current_user.role.value == "ADMIN" %}
-                                    <option value="all" {% if school_year_id == 'all' %}selected{% endif %}>Chọn niên
-                                        khoá
-                                    </option>
-                                    {% for year in school_years %}
-                                        <option value="{{ year.id }}"
-                                                {% if school_year_id == year.id|string %}selected{% endif %}>
-                                            {{ year.name }}
-                                        </option>
-                                    {% endfor %}
-                                {% else %}
-                                    <option>{{ current_year.name }}</option>
-                                {% endif %}
-
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Hàng các nút chức năng -->
-                    <div class="actions">
-                        <button id="export-excel-btn">Xem dạng bảng</button>
-                        <button id="export-pdf-btn">Xem dạng biểu đồ</button>
-                    </div>
-
-                    <!-- Bảng hiển thị dữ liệu -->
-                    <div id="score-table-container" class="score-table-container" style="display: block;">
-                        <table class="score-table">
-                            <thead>
-                            <tr>
-                                <th>Mã Lớp</th>
-                                <th>Tên Lớp</th>
-                                <th>Sĩ Số</th>
-                                <th>Số Lượng Đạt</th>
-                                <th>Tỉ Lệ (%)</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for cls in teacher_classes %}
-                                <tr>
-                                    <td>{{ cls.id }}</td>
-                                    <td>{{ cls.name }}</td>
-                                    <td>{{ cls.student_numbers }}</td>
-                                    <td>{{ cls.passed_students }}</td>
-                                    <td>{{ cls.rate }}</td>
-                                </tr>
+            <!-- Hàng chọn thông tin -->
+            <form action="{{ url_for('subject_summary_score') }}" method="post">
+                <div class="row select-row">
+                    <div class="col">
+                        <label for="subject-select">Môn học</label>
+                        <select id="subject-select" class="form-control">
+                            {% if current_user.role.value == "ADMIN" %}
+                            <option value="all" {% if subject_id== `'all' %}selected{% endif %}>Chọn môn học
+                            </option>
+                            {% for s in subjects %}
+                            <option value="{{ s.id }}"
+                                    {% if subject_id== s.id|string %}selected{% endif %}>
+                                {{ s.name }}
+                            </option>
                             {% endfor %}
-                            </tbody>
-                        </table>
+                            {% else %}
+                            <option>
+                                {{ current_user.user.teacher.subject.name }}
+                            </option>
+                            {% endif %}
+                        </select>
+                        {% if current_user.user and current_user.user.teacher and current_user.user.teacher.subject %}
+                        <input type="hidden" name="subject_id"
+                               value="{{ current_user.user.teacher.subject.id }}">
+                        <input type="hidden" name="teacher_id" value="{{ current_user.user.id }}">
+                        {% endif %}
+
                     </div>
-                    <!-- Biểu đồ cột -->
-                    <div id="chart-container" style="display: none;">
-                        <canvas id="rate-chart"></canvas>
+
+                    <div class="col">
+                        <!-- Nếu người dùng là ADMIN thì cho chọn khối  -->
+                        {% if current_user.role.value=="ADMIN" %}
+                        <label for="grade-select">Khối</label>
+                        <select id="grade-select" class="form-control" name="grade_id">
+                            <option value="all" {% if grade_id==
+                            'all' %}selected{% endif %}>Chọn khối</select>
+                        {% for cls in grade_levels %}
+                        <option value="{{ cls.id }}"
+                                {% if grade_id== cls.id|string %}selected{% endif %}>
+                            {{ cls.name }}
+                        </option>
+                        {% endfor %}
+                        <!-- Nếu người dùng là TEACHER thì cho chọn lớp  -->
+                        {% else %}
+                        <label for="grade-select">Lớp</label>
+                        <select id="grade-select" class="form-control" name="grade_id">
+                            <option value="all" {% if grade_id==
+                            'all' %}selected{% endif %}>Chọn lớp</option>
+                            {% for cls in classes %}
+                            <option value="{{ cls.id }}"
+                                    {% if grade_id== cls.id|string %}selected{% endif %}>
+                                {{ cls.name }}
+                            </option>
+                            {% endfor %}
+                            {% endif %}
+                        </select>
                     </div>
-                </form>
-            </div>
-        </form>
-    </div>
-    <script>
-        const userRole = "{{ role }}"; // Lấy role từ server
-        const updateURL = () => {
-            const selectedGradeId = document.getElementById('grade-select').value;
-            const selectedSemesterId = document.getElementById('semester-select').value;
-            const selectedSchoolYearId = document.getElementById('school-year-select').value;
-            if (userRole === "ADMIN") {
-                const subjectSelectElement = document.getElementById('subject-select');
-                selectedSubjectId = subjectSelectElement ? subjectSelectElement.value : null;
-            } else {
-                const subjectInputElement = document.querySelector('input[name="subject_id"]');
-                selectedSubjectId = subjectInputElement ? subjectInputElement.value : null;
-            }
-            if (!selectedSubjectId) {
-                console.error("Subject ID is missing");
-                return;
-            }
+                    <div class="col">
+                        <label for="semester-select">Học kỳ</label>
+                        <select id="semester-select" class="form-control" name="semester_id">
+                            <option value="all" {% if semester_id==
+                            'all' %}selected{% endif %}>Chọn học kỳ
+                            </option>
+                            {% for semester in semesters %}
+                            <option value="{{ semester.id }}"
+                                    {% if semester_id== semester.id|string %}selected{% endif %}>
+                                {{ semester.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="school-year-select">Niên khóa</label>
+                        <select id="school-year-select" class="form-control">
+                            {% if current_user.role.value == "ADMIN" %}
+                            <option value="all" {% if school_year_id==
+                            'all' %}selected{% endif %}>Chọn niên
+                            khoá
+                            </option>
+                            {% for year in school_years %}
+                            <option value="{{ year.id }}"
+                                    {% if school_year_id== year.id|string %}selected{% endif %}>
+                                {{ year.name }}
+                            </option>
+                            {% endfor %}
+                            {% else %}
+                            <option>{{ current_year.name }}</option>
+                            {% endif %}
 
-            window.location.href = `{{ url_for('subject_summary_score') }}?grade_id=${selectedGradeId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}&school_year_id=${selectedSchoolYearId}`;
-        };
-        document.getElementById('subject-select').addEventListener('change', updateURL);
-        document.getElementById('grade-select').addEventListener('change', updateURL);
-        document.getElementById('semester-select').addEventListener('change', updateURL);
-        document.getElementById('school-year-select').addEventListener('change', updateURL);
+                        </select>
+                    </div>
+                </div>
 
-        document.getElementById('export-excel-btn').addEventListener('click', (e) => {
-            e.preventDefault();  // Ngừng hành động mặc định của nút
-            document.getElementById('score-table-container').style.display = 'block';
-            document.getElementById('chart-container').style.display = 'none';
-        });
+                <!-- Hàng các nút chức năng -->
+                <div class="actions">
+                    <button id="export-excel-btn">Xem dạng bảng</button>
+                    <button id="export-pdf-btn">Xem dạng biểu đồ</button>
+                </div>
 
-        document.getElementById('export-pdf-btn').addEventListener('click', (e) => {
-            e.preventDefault();  // Ngừng hành động mặc định của nút
-            document.getElementById('score-table-container').style.display = 'none';
-            document.getElementById('chart-container').style.display = 'block';
-            renderChart();
-        });
+                <!-- Bảng hiển thị dữ liệu -->
+                <div id="score-table-container" class="score-table-container" style="display: block;">
+                    <table class="score-table">
+                        <thead>
+                        <tr>
+                            <th>Mã Lớp</th>
+                            <th>Tên Lớp</th>
+                            <th>Sĩ Số</th>
+                            <th>Số Lượng Đạt</th>
+                            <th>Tỉ Lệ (%)</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for cls in teacher_classes %}
+                        <tr>
+                            <td>{{ cls.id }}</td>
+                            <td>{{ cls.name }}</td>
+                            <td>{{ cls.student_numbers }}</td>
+                            <td>{{ cls.passed_students }}</td>
+                            <td>{{ cls.rate }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Biểu đồ cột -->
+                <div id="chart-container" style="display: none;">
+                    <canvas id="rate-chart"></canvas>
+                </div>
+            </form>
+        </div>
+    </form>
+</div>
+<script>
+    const userRole = "{{ role }}"; // Lấy role từ server
+    const updateURL = () => {
+        const selectedGradeId = document.getElementById('grade-select').value;
+        const selectedSemesterId = document.getElementById('semester-select').value;
+        const selectedSchoolYearId = document.getElementById('school-year-select').value;
+        if (userRole === "ADMIN") {
+            const subjectSelectElement = document.getElementById('subject-select');
+            selectedSubjectId = subjectSelectElement ? subjectSelectElement.value : null;
+        } else {
+            const subjectInputElement = document.querySelector('input[name="subject_id"]');
+            selectedSubjectId = subjectInputElement ? subjectInputElement.value : null;
+        }
+        if (!selectedSubjectId) {
+            console.error("Subject ID is missing");
+            return;
+        }
 
-        const renderChart = () => {
-            const ctx = document.getElementById('rate-chart').getContext('2d');
-            const classNames = [], studentNumbers = [], passedStudents = [], rates = [];
+        window.location.href = `{{ url_for('subject_summary_score') }}?grade_id=${selectedGradeId}&semester_id=${selectedSemesterId}&subject_id=${selectedSubjectId}&school_year_id=${selectedSchoolYearId}`;
+    };
+    document.getElementById('subject-select').addEventListener('change', updateURL);
+    document.getElementById('grade-select').addEventListener('change', updateURL);
+    document.getElementById('semester-select').addEventListener('change', updateURL);
+    document.getElementById('school-year-select').addEventListener('change', updateURL);
 
-            // Lấy dữ liệu từ Flask thông qua vòng lặp
-            {% for cls in teacher_classes %}
-                classNames.push("{{ cls.name }}");
-                studentNumbers.push({{ cls.student_numbers }});
-                passedStudents.push({{ cls.passed_students }});
-                rates.push({{ cls.rate }});
-            {% endfor %}
+    document.getElementById('export-excel-btn').addEventListener('click', (e) => {
+        e.preventDefault();  // Ngừng hành động mặc định của nút
+        document.getElementById('score-table-container').style.display = 'block';
+        document.getElementById('chart-container').style.display = 'none';
+    });
 
-            // Vẽ biểu đồ
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: classNames, // Tên các lớp
-                    datasets: [
-                        {
-                            label: 'Sĩ số',
-                            data: studentNumbers,
-                            backgroundColor: 'rgba(0, 123, 255, 0.6)', // Màu xanh
-                            borderColor: 'rgba(0, 123, 255, 1)',       // Viền xanh
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Số lượng đạt',
-                            data: passedStudents,
-                            backgroundColor: 'rgba(40, 167, 69, 0.6)', // Màu xanh lá
-                            borderColor: 'rgba(40, 167, 69, 1)',       // Viền xanh lá
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Tỉ lệ (%)',
-                            data: rates,
-                            backgroundColor: 'rgba(255, 193, 7, 0.6)', // Màu vàng
-                            borderColor: 'rgba(255, 193, 7, 1)',       // Viền vàng
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Số lượng'
-                            }
-                        },
-                        'rate-axis': { // Trục y cho tỉ lệ
-                            position: 'right',
-                            beginAtZero: true,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Tỉ lệ (%)'
-                            }
+    document.getElementById('export-pdf-btn').addEventListener('click', (e) => {
+        e.preventDefault();  // Ngừng hành động mặc định của nút
+        document.getElementById('score-table-container').style.display = 'none';
+        document.getElementById('chart-container').style.display = 'block';
+        renderChart();
+    });
+
+    const renderChart = () => {
+        const ctx = document.getElementById('rate-chart').getContext('2d');
+        const classNames = [], studentNumbers = [], passedStudents = [], rates = [];
+
+        // Lấy dữ liệu từ Flask thông qua vòng lặp
+        {% for cls in teacher_classes %}
+            classNames.push("{{ cls.name }}");
+            studentNumbers.push({{ cls.student_numbers }});
+            passedStudents.push({{ cls.passed_students }});
+            rates.push({{ cls.rate }});
+        {% endfor %}
+
+        // Vẽ biểu đồ
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: classNames, // Tên các lớp
+                datasets: [
+                    {
+                        label: 'Sĩ số',
+                        data: studentNumbers,
+                        backgroundColor: 'rgba(0, 123, 255, 0.6)', // Màu xanh
+                        borderColor: 'rgba(0, 123, 255, 1)',       // Viền xanh
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Số lượng đạt',
+                        data: passedStudents,
+                        backgroundColor: 'rgba(40, 167, 69, 0.6)', // Màu xanh lá
+                        borderColor: 'rgba(40, 167, 69, 1)',       // Viền xanh lá
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Tỉ lệ (%)',
+                        data: rates,
+                        backgroundColor: 'rgba(255, 193, 7, 0.6)', // Màu vàng
+                        borderColor: 'rgba(255, 193, 7, 1)',       // Viền vàng
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Số lượng'
                         }
                     },
-                    plugins: {
-                        legend: {
+                    'rate-axis': { // Trục y cho tỉ lệ
+                        position: 'right',
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
                             display: true,
-                            position: 'top'
+                            text: 'Tỉ lệ (%)'
                         }
                     }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
                 }
-            });
-        };
-    </script>
+            }
+        });
+    };
+</script>
 {% endblock %}
 
 
