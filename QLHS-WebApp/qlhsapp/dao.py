@@ -14,7 +14,7 @@ from flask import flash, make_response
 from sqlalchemy import func
 from flask_mail import Message
 from qlhsapp import app, db, mail
-
+from datetime import datetime, date
 from qlhsapp.models import Student, User, Account, Subject, Staff, Teacher
 import hashlib
 import cloudinary.uploader
@@ -469,7 +469,7 @@ def automatic_assign_students_to_class():
         flash('Không có học sinh!!', 'warning')
         return False
     print(f'chua phan lop: {count_student_un_assigned()}')
-    # danh sach hoc sinh nam va nu
+
     # Lọc học sinh nam và nữ
     male_students = [s for s in students if s.gender == GenderEnum.MALE]
     female_students = [s for s in students if s.gender == GenderEnum.FEMALE]
@@ -714,7 +714,23 @@ def check_email_student(current_email):
     return existing_student is not None  # cần check lại chỗ này !!!!!
 
 
-def validate_input(name, address, phone_number, email):
+# def validate_input(name, address, phone_number, email):
+#     if len(name) < 3 or len(name) > 50:
+#         flash("Tên phải có độ dài từ 3 đến 50 ký tự.", "warning")
+#         return False
+#     if email and len(email) > 50:
+#         flash("Email phải ít hơn 50 ký tự.", "warning")
+#         return False
+#     if len(address) < 3 or len(address) > 50:
+#         flash("Địa chỉ phải có độ dài từ 3 đến 50 ký tự.", "warning")
+#         return False
+#     if phone_number and len(phone_number) != 10:
+#         flash("Số điện thoại phải có đúng 10 chữ số", "warning")
+#         return False
+#     return True
+
+
+def validate_input(name, address, phone_number, email, date_of_birth):
     if len(name) < 3 or len(name) > 50:
         flash("Tên phải có độ dài từ 3 đến 50 ký tự.", "warning")
         return False
@@ -727,8 +743,15 @@ def validate_input(name, address, phone_number, email):
     if phone_number and len(phone_number) != 10:
         flash("Số điện thoại phải có đúng 10 chữ số", "warning")
         return False
+    min_age = int(Regulation.query.filter_by(key_name="MIN_AGE").first().value)
+    max_age = int(Regulation.query.filter_by(key_name="MAX_AGE").first().value)
+    birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
+    today = date.today()
+    age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+    if age < min_age or age > max_age:
+        flash("Học sinh phải có độ tuổi từ " + str(min_age) + " đến " + str(max_age) + " tuổi.", "warning")
+        return False
     return True
-
 
 def load_subject(kw=None):
     subjects = Subject.query.all()
