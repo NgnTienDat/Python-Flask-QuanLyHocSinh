@@ -102,7 +102,8 @@
                         <label for="subject-select">Môn học</label>
                         <select id="subject-select" class="form-control">
                             {% if current_user.role.value == "ADMIN" %}
-                            <option value="all" {% if subject_id== 'all' %}selected{% endif %}>Chọn môn học
+                            <option value="all" {% if subject_id==
+                            'all' %}selected{% endif %}>Chọn môn học
                             </option>
                             {% for s in subjects %}
                             <option value="{{ s.id }}"
@@ -130,13 +131,14 @@
                         <label for="grade-select">Khối</label>
                         <select id="grade-select" class="form-control" name="grade_id">
                             <option value="all" {% if grade_id==
-                            'all' %}selected{% endif %}>Chọn khối</select>
-                        {% for cls in grade_levels %}
-                        <option value="{{ cls.id }}"
-                                {% if grade_id== cls.id|string %}selected{% endif %}>
-                            {{ cls.name }}
-                        </option>
-                        {% endfor %}
+                            'all' %}selected{% endif %}>Chọn khối
+                            {% for cls in grade_levels %}
+                            <option value="{{ cls.id }}"
+                                    {% if grade_id== cls.id|string %}selected{% endif %}>
+                                {{ cls.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
                         <!-- Nếu người dùng là TEACHER thì cho chọn lớp  -->
                         {% else %}
                         <label for="grade-select">Lớp</label>

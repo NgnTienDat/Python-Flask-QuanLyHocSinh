@@ -107,7 +107,7 @@ def add_student_page():
                   f"gender={gender}, date_of_birth={date_of_birth}, phone_number={phone_number}")
             # kiểm tra tính hợp lệ của thông tin nhập vào
             # Gọi hàm validate từ dao
-            if not dao.validate_input(name, address, phone_number, email):
+            if not dao.validate_input(name, address, phone_number, email, date_of_birth):
                 return redirect(url_for('add_student_page'))
             if dao.check_email_student(email):
                 flash("Email đã tồn tại !!!", "warning")
@@ -877,11 +877,16 @@ def class_summary_score():
             semesters = dao.get_semester(current_year.id) if current_year else []
     else:  # Role = TEACHER
         class_name = dao.get_class_by_homeroom_teacher_id(current_user.user.id)
+        if not class_name:
+            flash("Bạn không phải giáo viên chủ nhiệm nên không có quyền truy cập báo cáo thống kê theo lớp.", "danger")
+            return redirect(url_for('get_home_page'))
         current_year = dao.get_current_school_year()
         semesters = dao.get_semester(current_year.id) if current_year else []
         students = dao.get_student_ids_by_class_id(class_name.id, semester_id)
         school_years = []
         classes = []
+
+
 
     return render_template('admin/class-summary.html', semester_id=semester_id, class_id=class_id,
                            school_year_id=school_year_id,
